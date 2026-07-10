@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Menu, X, Sparkles, BookOpen, Facebook, HelpCircle, 
-  Layers, Mail, ArrowUpCircle, AlertCircle, Copy, Check 
+  Layers, Mail, ArrowUpCircle, AlertCircle, Copy, Check, Lock
 } from 'lucide-react';
 
 interface FloatingMenuProps {
   onScrollToWaitlist: () => void;
+  onNavigateToPortal: () => void;
 }
 
-export default function FloatingMenu({ onScrollToWaitlist }: FloatingMenuProps) {
+export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }: FloatingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -35,7 +36,8 @@ export default function FloatingMenu({ onScrollToWaitlist }: FloatingMenuProps) 
   }, []);
 
   const menuItems = [
-    { id: 'waitlist', label: 'Join Waitlist', icon: <Sparkles className="w-4 h-4 text-amber-400" />, action: () => { onScrollToWaitlist(); setIsOpen(false); } },
+    { id: 'portal', label: 'Member\'s Portal', icon: <Lock className="w-4 h-4 text-amber-400" />, action: () => { onNavigateToPortal(); setIsOpen(false); } },
+    { id: 'waitlist', label: 'Join Waitlist', icon: <Sparkles className="w-4 h-4 text-amber-500" />, action: () => { onScrollToWaitlist(); setIsOpen(false); } },
     { id: 'start', label: 'Start Here', icon: <CompassIcon />, action: () => { setActiveModal('start'); setIsOpen(false); } },
     { id: 'tutorials', label: 'Free Tutorials', icon: <BookOpen className="w-4 h-4 text-cyan-400" />, action: () => { setActiveModal('tutorials'); setIsOpen(false); } },
     { id: 'guides', label: 'Guides', icon: <Layers className="w-4 h-4 text-purple-400" />, action: () => { setActiveModal('guides'); setIsOpen(false); } },

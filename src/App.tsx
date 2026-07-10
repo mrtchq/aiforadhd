@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { User as FirebaseUser } from 'firebase/auth';
 
 // Subcomponents
 import InteractiveBrainLogo from './components/InteractiveBrainLogo';
@@ -12,6 +13,10 @@ import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
 import BelongSection from './components/BelongSection';
 import FloatingMenu from './components/FloatingMenu';
+import MembersPortal from './components/MembersPortal';
+
+// Firebase helper
+import { initAuth } from './lib/firebase';
 
 // @ts-ignore
 import logoImg from './components/logo.png';
@@ -29,6 +34,28 @@ export default function App() {
   const waitlistRef = useRef<HTMLDivElement>(null);
   const [stardust, setStardust] = useState<StardustNode[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [currentView, setCurrentView] = useState<'landing' | 'portal'>('landing');
+  
+  // Auth state shared with portal
+  const [user, setUser] = useState<any>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Initialize Auth listener
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (currentUser, token) => {
+        setUser(currentUser);
+        setAccessToken(token);
+      },
+      () => {
+        setUser(null);
+        setAccessToken(null);
+      }
+    );
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   // Scroll to waitlist target
   const scrollToWaitlist = () => {
@@ -64,6 +91,24 @@ export default function App() {
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentView === 'portal') {
+    return (
+      <MembersPortal
+        onBack={() => setCurrentView('landing')}
+        user={user}
+        accessToken={accessToken}
+        onLoginSuccess={(u, t) => {
+          setUser(u);
+          setAccessToken(t);
+        }}
+        onLogoutSuccess={() => {
+          setUser(null);
+          setAccessToken(null);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 selection:font-medium">
@@ -144,10 +189,10 @@ export default function App() {
               WAITLIST ACTIVE
             </span>
             <button
-              onClick={scrollToWaitlist}
+              onClick={() => setCurrentView('portal')}
               className="hidden sm:inline-block border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer"
             >
-              MEMBERS LOGIN
+              {user ? "ENTER PORTAL" : "MEMBER'S PORTAL"}
             </button>
           </div>
         </div>
@@ -276,7 +321,7 @@ export default function App() {
 
       {/* J. UTILITY INTERACTIVE FLOATING ELEMENTS */}
       {/* Floating Menu bottom right */}
-      <FloatingMenu onScrollToWaitlist={scrollToWaitlist} />
+      <FloatingMenu onScrollToWaitlist={scrollToWaitlist} onNavigateToPortal={() => setCurrentView('portal')} />
 
       {/* Floating Scroll to Top trigger */}
       <AnimatePresence>
