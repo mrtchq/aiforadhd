@@ -159,7 +159,7 @@ export default function App() {
     <div className="relative min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 selection:font-medium">
       
       {/* Immersive Theme: Top Rainbow Gradient Indicator */}
-      <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-cyan-400 via-purple-500 via-pink-500 via-orange-400 via-yellow-300 to-green-500 z-50" />
+      <div className="fixed top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-cyan-400 via-purple-500 via-pink-500 via-orange-400 via-yellow-300 to-green-500 z-[60]" />
 
       {/* A. Animated Stars/Stardust Layer (ADHD-friendly, calm visual depth) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -187,7 +187,7 @@ export default function App() {
       </div>
 
       {/* B. Navigation Wordmark Header */}
-      <header className="sticky top-0 w-full z-50 py-4 px-6 sm:px-12 border-b border-white/5 backdrop-blur-md bg-black/80 transition-all duration-300">
+      <header className="fixed top-[3px] left-0 right-0 w-full z-50 py-4 px-6 sm:px-12 border-b border-white/5 backdrop-blur-md bg-black/80 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Brand Logo Wordmark */}
           <div onClick={handleScrollToTop} className="flex items-center gap-3.5 select-none cursor-pointer group">
@@ -244,7 +244,7 @@ export default function App() {
       </header>
 
       {/* C. HERO SECTION */}
-      <section id="hero-section" className="relative pt-12 pb-24 px-6 md:pt-16 md:pb-32 z-10">
+      <section id="hero-section" className="relative pt-32 pb-24 px-6 md:pt-40 md:pb-32 z-10">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
           
           {/* 1. Core Visual Inspiration Brain Logo */}

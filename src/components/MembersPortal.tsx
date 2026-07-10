@@ -587,7 +587,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[50%] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none" />
       
       {/* Top Portal Nav Bar */}
-      <nav className="border-b border-amber-500/10 backdrop-blur-xl bg-black/70 sticky top-[3px] z-40 px-6 py-3.5 sm:px-12">
+      <nav className="border-b border-amber-500/10 backdrop-blur-xl bg-black/70 fixed top-[3px] left-0 right-0 z-40 px-6 py-3.5 sm:px-12">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button 
@@ -636,7 +636,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
       </nav>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 relative z-10 flex flex-col">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 pt-24 md:pt-28 relative z-10 flex flex-col">
         
         {/* Gate Wall if user is not authenticated */}
         <AnimatePresence mode="wait">
