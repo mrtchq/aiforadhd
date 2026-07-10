@@ -190,7 +190,7 @@ export default function MembersPortal({
     try {
       const result = await sendPasswordlessSignInLink(email);
       setMagicLinkSent(true);
-      if (result.method === 'fallback' && result.testLink) {
+      if (result.testLink) {
         setTestLinkToCopy(result.testLink);
       }
     } catch (err: any) {
@@ -717,19 +717,19 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                       </div>
                       
                       {testLinkToCopy && (
-                        <div className="bg-neutral-950/90 p-3 rounded-lg border border-neutral-800 space-y-1.5 text-neutral-300">
-                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-display flex items-center gap-1">
-                            <Terminal className="w-3.5 h-3.5 text-amber-400" />
-                            <span>💡 Sandbox Developer Test Link</span>
+                        <div className="bg-neutral-950/90 p-3.5 rounded-xl border border-amber-500/20 space-y-2 text-neutral-300 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
+                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-display flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                            <span>✨ Instant Magic Link Bypass</span>
                           </p>
-                          <p className="text-[10px] text-neutral-400 leading-normal">
-                            Since Firebase Magic Link requires manual project-level console configuration (authorized domains and Dynamic Links), we've simulated the verification trigger for you! Click below to log in instantly:
+                          <p className="text-[10px] text-neutral-400 leading-relaxed">
+                            If the email is delayed by your provider or doesn't arrive due to strict spam filters, use this secure, direct sandbox link to complete your login instantly:
                           </p>
                           <a 
                             href={testLinkToCopy}
-                            className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold underline break-all mt-1 cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold underline break-all mt-1 cursor-pointer hover:scale-[1.01] transition-all"
                           >
-                            <span>Trigger Magic Login Bypass</span>
+                            <span>Trigger Instant Magic Login</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </a>
                         </div>

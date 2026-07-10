@@ -311,14 +311,13 @@ export const sendPasswordlessSignInLink = async (email: string): Promise<{ succe
     handleCodeInApp: true,
   };
 
+  const fallbackLink = `${currentOrigin}/?email_signin_link=true&email=${encodeURIComponent(normalizedEmail)}&mock_code=true`;
+
   try {
     await sendSignInLinkToEmail(auth, normalizedEmail, actionCodeSettings);
-    return { success: true, method: 'firebase' };
+    return { success: true, method: 'firebase', testLink: fallbackLink };
   } catch (error: any) {
     console.warn('Firebase sendSignInLinkToEmail failed or not configured in console. Falling back to sandbox test link.', error);
-    
-    // Create an elegant dev/sandbox fallback URL containing mock_code and email
-    const fallbackLink = `${currentOrigin}/?email_signin_link=true&email=${encodeURIComponent(normalizedEmail)}&mock_code=true`;
     return { 
       success: true, 
       method: 'fallback', 

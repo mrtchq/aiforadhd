@@ -385,6 +385,25 @@ export default function App() {
 
       {/* J. UTILITY INTERACTIVE FLOATING ELEMENTS */}
 
+      {/* Floating Animated Member's Portal Button (Bottom-Center) */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+        <button 
+          type="button" 
+          onClick={() => setCurrentView('portal')}
+          className="btn"
+        >
+          <strong>MEMBER'S PORTAL</strong>
+          <div id="container-stars">
+            <div id="stars"></div>
+          </div>
+
+          <div id="glow">
+            <div className="circle"></div>
+            <div className="circle"></div>
+          </div>
+        </button>
+      </div>
+
       {/* Legal pages modals */}
       <LegalModals 
         isOpen={legalModalType !== null} 
