@@ -1,7 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { User as FirebaseUser } from 'firebase/auth';
+import { Sparkles, ArrowUp } from 'lucide-react';
 
 // Subcomponents
 import InteractiveBrainLogo from './components/InteractiveBrainLogo';
@@ -13,10 +12,6 @@ import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
 import BelongSection from './components/BelongSection';
 import FloatingMenu from './components/FloatingMenu';
-import MembersPortal from './components/MembersPortal';
-
-// Firebase helper
-import { initAuth } from './lib/firebase';
 
 // @ts-ignore
 import logoImg from './components/logo.png';
@@ -34,28 +29,6 @@ export default function App() {
   const waitlistRef = useRef<HTMLDivElement>(null);
   const [stardust, setStardust] = useState<StardustNode[]>([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<'landing' | 'portal'>('landing');
-  
-  // Auth state shared with portal
-  const [user, setUser] = useState<any>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-
-  // Initialize Auth listener
-  useEffect(() => {
-    const unsubscribe = initAuth(
-      (currentUser, token) => {
-        setUser(currentUser);
-        setAccessToken(token);
-      },
-      () => {
-        setUser(null);
-        setAccessToken(null);
-      }
-    );
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
 
   // Scroll to waitlist target
   const scrollToWaitlist = () => {
@@ -92,24 +65,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (currentView === 'portal') {
-    return (
-      <MembersPortal
-        onBack={() => setCurrentView('landing')}
-        user={user}
-        accessToken={accessToken}
-        onLoginSuccess={(u, t) => {
-          setUser(u);
-          setAccessToken(t);
-        }}
-        onLogoutSuccess={() => {
-          setUser(null);
-          setAccessToken(null);
-        }}
-      />
-    );
-  }
-
   return (
     <div className="relative min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 selection:font-medium">
       
@@ -145,7 +100,7 @@ export default function App() {
       <header className="sticky top-0 w-full z-50 py-4 px-6 sm:px-12 border-b border-white/5 backdrop-blur-md bg-black/80 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Brand Logo Wordmark */}
-          <div onClick={handleScrollToTop} className="flex items-center gap-3.5 select-none cursor-pointer group">
+          <button onClick={handleScrollToTop} className="flex items-center gap-3.5 select-none cursor-pointer group" aria-label="Return to the top of the page">
             <div className="relative w-12 h-12 flex items-center justify-center rounded-full bg-black border-2 border-[#D4AF37]/45 shadow-[0_0_15px_rgba(212,175,55,0.35)] group-hover:scale-105 group-hover:border-[#D4AF37] transition-transform duration-300 overflow-hidden">
               {/* Subtle gold backdrop glow */}
               <div className="absolute inset-0.5 rounded-full bg-amber-500/10 blur-[3px]" />
@@ -177,22 +132,16 @@ export default function App() {
             <span className="font-display font-extrabold text-lg tracking-tight text-white flex items-center">
               AI for <span className="text-gold-gradient gold-glow-text font-black pl-1">ADHD</span>
             </span>
-          </div>
+          </button>
 
           {/* Quick Header Badge */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> SYSTEM STATUS: OPTIMIZED
-            </div>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 border border-amber-500/20 text-amber-300 shadow-[0_0_8px_rgba(212,175,55,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               WAITLIST ACTIVE
             </span>
-            <button
-              onClick={() => setCurrentView('portal')}
-              className="hidden sm:inline-block border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer"
-            >
-              {user ? "ENTER PORTAL" : "MEMBER'S PORTAL"}
+            <button onClick={scrollToWaitlist} className="hidden sm:inline-block border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer">
+              JOIN FREE
             </button>
           </div>
         </div>
@@ -209,7 +158,7 @@ export default function App() {
 
           {/* 2. Eyebrow */}
           <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-amber-400/90 mb-4 bg-amber-500/5 border border-amber-500/20 px-3.5 py-1 rounded-full shadow-[0_0_12px_rgba(212,175,55,0.05)]">
-            🚀 AI SYSTEMS FOR ADHD BRAINS
+            AI SYSTEMS FOR ADHD BRAINS
           </span>
 
           {/* 3. Main Headline */}
@@ -321,7 +270,7 @@ export default function App() {
 
       {/* J. UTILITY INTERACTIVE FLOATING ELEMENTS */}
       {/* Floating Menu bottom right */}
-      <FloatingMenu onScrollToWaitlist={scrollToWaitlist} onNavigateToPortal={() => setCurrentView('portal')} />
+      <FloatingMenu onScrollToWaitlist={scrollToWaitlist} />
 
       {/* Floating Scroll to Top trigger */}
       <AnimatePresence>
@@ -331,6 +280,7 @@ export default function App() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={handleScrollToTop}
+            aria-label="Scroll to top"
             className="fixed bottom-24 right-6 w-10 h-10 rounded-full bg-neutral-950/80 border border-neutral-800 text-gray-400 hover:text-white flex items-center justify-center cursor-pointer shadow-lg transition-colors z-40 backdrop-blur-sm"
           >
             <ArrowUp className="w-4 h-4" />

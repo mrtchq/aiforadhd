@@ -5,8 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI for ADHD | Beginner-Friendly AI Systems for ADHD Brains</title>
     <meta name="description" content="Join AI for ADHD and learn simple AI, Todoist, and automation workflows for brain dumps, task paralysis, planning, routines, overwhelm, and getting unstuck." />
+    <meta name="theme-color" content="#050505" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="AI for ADHD | Beginner-Friendly AI Systems for ADHD Brains" />
+    <meta property="og:description" content="Simple, shame-free AI, Todoist, and automation workflows built for ADHD brains." />
+    <meta name="twitter:card" content="summary" />
   </head>
   <body class="bg-black text-gray-100 antialiased overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200">
+    <!-- Static form blueprints let Netlify detect the forms used by the React interface. -->
+    <form name="waitlist" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="waitlist" />
+      <input name="bot-field" />
+      <input name="name" />
+      <input type="email" name="email" />
+    </form>
+    <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="contact" />
+      <input name="bot-field" />
+      <input name="name" />
+      <input type="email" name="email" />
+      <textarea name="message"></textarea>
+    </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

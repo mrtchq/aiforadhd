@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Menu, X, Sparkles, BookOpen, Facebook, HelpCircle, 
-  Layers, Mail, ArrowUpCircle, AlertCircle, Copy, Check, Lock
+  Menu, X, Sparkles, BookOpen, Facebook,
+  Layers, Mail, Copy, Check
 } from 'lucide-react';
 
 interface FloatingMenuProps {
   onScrollToWaitlist: () => void;
-  onNavigateToPortal: () => void;
 }
 
-export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }: FloatingMenuProps) {
+const encode = (data: Record<string, string>) => new URLSearchParams(data).toString();
+
+export default function FloatingMenu({ onScrollToWaitlist }: FloatingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isContactSubmitted, setIsContactSubmitted] = useState(false);
+  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
+  const [contactError, setContactError] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Reset success state when modal changes
@@ -36,7 +39,6 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
   }, []);
 
   const menuItems = [
-    { id: 'portal', label: 'Member\'s Portal', icon: <Lock className="w-4 h-4 text-amber-400" />, action: () => { onNavigateToPortal(); setIsOpen(false); } },
     { id: 'waitlist', label: 'Join Waitlist', icon: <Sparkles className="w-4 h-4 text-amber-500" />, action: () => { onScrollToWaitlist(); setIsOpen(false); } },
     { id: 'start', label: 'Start Here', icon: <CompassIcon />, action: () => { setActiveModal('start'); setIsOpen(false); } },
     { id: 'tutorials', label: 'Free Tutorials', icon: <BookOpen className="w-4 h-4 text-cyan-400" />, action: () => { setActiveModal('tutorials'); setIsOpen(false); } },
@@ -74,6 +76,35 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleContactSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setContactError('');
+    setIsContactSubmitting(true);
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: encode({
+          'form-name': 'contact',
+          name: String(formData.get('name') ?? ''),
+          email: String(formData.get('email') ?? ''),
+          message: String(formData.get('message') ?? ''),
+          'bot-field': '',
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Submission failed with status ${response.status}`);
+      setIsContactSubmitted(true);
+    } catch (error) {
+      console.error(error);
+      setContactError('Your message could not be sent. Please try again in a moment.');
+    } finally {
+      setIsContactSubmitting(false);
+    }
+  };
+
   return (
     <div id="floating-interaction-layer" className="fixed bottom-6 right-6 z-50 flex flex-col items-end" ref={menuRef}>
       {/* 1. Main Expanded Menu Options List */}
@@ -109,6 +140,8 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="w-14 h-14 rounded-full bg-gold-gradient text-neutral-950 flex items-center justify-center shadow-[0_4px_25px_rgba(212,175,55,0.35)] cursor-pointer relative group"
+        aria-label={isOpen ? 'Close quick support menu' : 'Open quick support menu'}
+        aria-expanded={isOpen}
       >
         {/* Pulsing neon outer gold circle */}
         <span className="absolute inset-0 rounded-full border border-amber-500/40 animate-ping opacity-75 group-hover:animate-none" />
@@ -129,11 +162,15 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               className="bg-neutral-950 border border-neutral-800 p-6 sm:p-8 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto gold-glow relative"
+              role="dialog"
+              aria-modal="true"
+              aria-label="AI for ADHD resource dialog"
             >
               {/* Close Button */}
               <button
                 onClick={() => setActiveModal(null)}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-neutral-900 border border-neutral-800 hover:border-amber-500/50 flex items-center justify-center text-gray-400 hover:text-white transition-all cursor-pointer"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -155,10 +192,10 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
                       You are probably tired of hearing "just buy a planner," "wake up at 5:00 AM," or "push through the freeze." Standard systems are built for neurotypical brains that enjoy linear lists. They do not work for us.
                     </p>
                     <p className="border-l-2 border-amber-500 pl-4 py-1.5 text-amber-200 bg-amber-500/5 rounded-r-xl italic">
-                      "We teach your systems to bend around your symptoms—so you never have to break yourself trying to fit into them."
+                      "We teach your systems to bend around the way your brain works—so you never have to break yourself trying to fit into them."
                     </p>
                     <p>
-                      By pairing <strong>Todoist</strong> (as our external hard-drive memory) with <strong>AI Prompts</strong> (as our logical reasoning engine) and <strong>Hermes Agent</strong> (as our supportive coach), we build a frictionless scaffolding that removes executive fatigue entirely.
+                      By pairing <strong>Todoist</strong> as an external brain with <strong>AI prompts</strong> as a thinking partner and <strong>Hermes Agent</strong> as an automation assistant, we build supportive scaffolding that can reduce everyday friction.
                     </p>
                   </div>
                   <div className="mt-8 flex justify-end">
@@ -290,17 +327,15 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
                     Join Our Free Facebook Tribe
                   </h3>
                   <p className="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-6 font-sans">
-                    Connect with over 1,200 neurodivergent adults sharing real-time prompts, Todoist templates, and gentle daily body-doubling support.
+                    The AI for ADHD community space is being prepared now. Join the waitlist and we will send the official group link when doors open.
                   </p>
-                  <a 
-                    href="https://facebook.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => { setActiveModal(null); onScrollToWaitlist(); }}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-sans font-semibold py-3 px-6 rounded-xl cursor-pointer shadow-lg transition-all"
                   >
                     <Facebook className="w-4 h-4 fill-current" />
-                    Visit Facebook Community
-                  </a>
+                    Get the Group Link
+                  </button>
                 </div>
               )}
 
@@ -340,23 +375,26 @@ export default function FloatingMenu({ onScrollToWaitlist, onNavigateToPortal }:
                         Drop us a message and our team (mostly humans, supported by friendly bots) will get back to you!
                       </p>
 
-                      <form onSubmit={(e) => { e.preventDefault(); setIsContactSubmitted(true); }} className="space-y-4">
+                      <form name="contact" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onSubmit={handleContactSubmit} className="space-y-4">
+                        <input type="hidden" name="form-name" value="contact" />
+                        <p className="hidden" aria-hidden="true"><label>Do not fill this out: <input name="bot-field" tabIndex={-1} /></label></p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Your Name</label>
-                            <input type="text" required placeholder="Alex" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-amber-500/40" />
+                            <label htmlFor="contact-name" className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Your Name</label>
+                            <input id="contact-name" name="name" type="text" required autoComplete="name" placeholder="Alex" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-base text-white outline-none focus:border-amber-500/40" />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Your Email</label>
-                            <input type="email" required placeholder="alex@email.com" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-amber-500/40" />
+                            <label htmlFor="contact-email" className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Your Email</label>
+                            <input id="contact-email" name="email" type="email" required autoComplete="email" placeholder="alex@email.com" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-base text-white outline-none focus:border-amber-500/40" />
                           </div>
                         </div>
                         <div>
-                          <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Message</label>
-                          <textarea required rows={4} placeholder="What is on your mind? No shame, write as much or as little as you like..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-xs text-white outline-none focus:border-amber-500/40"></textarea>
+                          <label htmlFor="contact-message" className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider mb-1.5">Message</label>
+                          <textarea id="contact-message" name="message" required rows={4} placeholder="What is on your mind? No shame, write as much or as little as you like..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-3 text-base text-white outline-none focus:border-amber-500/40"></textarea>
                         </div>
-                        <button type="submit" className="w-full bg-gold-gradient text-neutral-950 font-display font-bold py-2.5 px-5 rounded-lg hover:opacity-90 transition-all cursor-pointer text-xs">
-                          Send Messy Message
+                        {contactError && <p role="alert" className="text-red-300 text-xs text-center">{contactError}</p>}
+                        <button type="submit" disabled={isContactSubmitting} className="w-full bg-gold-gradient text-neutral-950 font-display font-bold py-3 px-5 rounded-lg hover:opacity-90 transition-all cursor-pointer text-xs disabled:opacity-60">
+                          {isContactSubmitting ? 'Sending…' : 'Send Message'}
                         </button>
                       </form>
                     </>

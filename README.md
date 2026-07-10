@@ -1,20 +1,19 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# AI for ADHD
 
-# Run and deploy your AI Studio app
+Official landing page for the AI for ADHD mastermind and free waitlist.
 
-This contains everything you need to run your app locally.
+## Local development
 
-View your app in AI Studio: https://ai.studio/apps/4c5ee6cb-0dc3-456e-8b82-5f8ef0125ef4
+```bash
+npm install
+npm run dev
+```
 
-## Run Locally
+## Production build
 
-**Prerequisites:**  Node.js
+```bash
+npm run lint
+npm run build
+```
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+The site deploys to Netlify from the `main` branch. Netlify Forms captures the `waitlist` and `contact` forms; no client-side secrets are required for the public landing page.
