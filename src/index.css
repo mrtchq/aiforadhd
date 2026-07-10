@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f59e0b;
+  --color-gold-600: #d97706;
+  --color-gold-700: #b45309;
+  --color-gold-800: #92400e;
+  --color-gold-900: #78350f;
+  --color-gold-gold: #D4AF37; /* Primary Brand Gold Accent */
+}
+
+/* Base style resets and customizations */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #050505;
+    color: #e5e7eb;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom styles for gold metallic shine, glow, and neon rainbow */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FDF0CD 0%, #D4AF37 50%, #9A7B1C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gold-metallic {
+  background: linear-gradient(135deg, #FFF1C5 0%, #D4AF37 40%, #B29026 70%, #6E5306 100%);
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #FFF1C5 0%, #D4AF37 50%, #A2821E 100%);
+}
+
+.border-gold-gradient {
+  border-image: linear-gradient(135deg, #FFF2CC 0%, #D4AF37 50%, #7E6212 100%) 1;
+}
+
+.gold-glow {
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+.gold-glow-intense {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.45);
+}
+
+.gold-glow-text {
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+/* Beautiful Animated Rainbow Wave - representing ADHD neurodivergent brains */
+@keyframes rainbow-border-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.rainbow-glow {
+  position: relative;
+}
+
+.rainbow-glow::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4, #8b5cf6, #ec4899, #f97316, #eab308, #22c55e, #3b82f6);
+  background-size: 400% 400%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: rainbow-border-move 12s ease infinite;
+  opacity: 0.3;
+  filter: blur(8px);
+  transition: opacity 0.3s ease;
+}
+
+.rainbow-glow:hover::before {
+  opacity: 0.6;
+  filter: blur(12px);
+}
+
+/* Animated Neon Accent Line */
+.rainbow-gradient {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4, #8b5cf6, #ec4899, #f97316, #eab308, #22c55e);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030303;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #D4AF37 0%, #1e1b15 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #fbbf24;
+}
+
+/* Custom typing cursor */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 0.8s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Floating stardust particle class */
+.particle {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(212,175,55,0.2) 60%, rgba(0,0,0,0) 100%);
+  animation: float-around 15s infinite linear;
+}
+
+@keyframes float-around {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100px) translateX(20px) scale(0.5);
+    opacity: 0;
+  }
+}
