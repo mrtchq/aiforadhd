@@ -28,7 +28,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
-import { googleSignIn, logout, getAccessToken, emailSignIn, emailSignUp, sendPasswordlessSignInLink, checkIsSignInLink, completeSignInWithLink } from '../lib/firebase';
+import { googleSignIn, logout, getAccessToken, emailSignUp, sendPasswordlessSignInLink, checkIsSignInLink, completeSignInWithLink } from '../lib/firebase';
 
 interface MembersPortalProps {
   onBack: () => void;
@@ -66,9 +66,10 @@ export default function MembersPortal({
   onLoginSuccess, 
   onLogoutSuccess 
 }: MembersPortalProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'drive' | 'prompts' | 'hermes' | 'system'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'prompts' | 'hermes' | 'system'>('dashboard');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDomainConfigInstruction, setShowDomainConfigInstruction] = useState(false);
   
   // Alternative Email/Password Auth States
   const [authMode, setAuthMode] = useState<'email-signup' | 'magic-link'>('email-signup');
@@ -79,17 +80,9 @@ export default function MembersPortal({
   
   // Passwordless Email Link States
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const [testLinkToCopy, setTestLinkToCopy] = useState<string | null>(null);
   const [isSendingLink, setIsSendingLink] = useState(false);
 
-  // Drive States
-  const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
-  const [isLoadingDrive, setIsLoadingDrive] = useState(false);
-  const [driveSearch, setDriveSearch] = useState('');
-  const [adhdFolderId, setAdhdFolderId] = useState<string | null>(() => {
-    return localStorage.getItem('ai_for_adhd_folder_id');
-  });
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  // Portal Notification States
   const [driveNotification, setDriveNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Mind Declutterer Assistant States
@@ -109,13 +102,6 @@ export default function MembersPortal({
     const saved = localStorage.getItem('adhd_portal_checklist');
     return saved ? JSON.parse(saved) : [];
   });
-
-  // Load Drive files if token is available
-  useEffect(() => {
-    if (user && accessToken && activeTab === 'drive') {
-      fetchDriveFiles();
-    }
-  }, [accessToken, activeTab, user]);
 
   const handleLogin = () => {
     setAuthMode('magic-link');
@@ -148,6 +134,7 @@ export default function MembersPortal({
 
     setIsLoggingIn(true);
     setError(null);
+    setShowDomainConfigInstruction(false);
     try {
       const loggedUser = await emailSignUp(email, password);
       setDriveNotification({
@@ -175,6 +162,36 @@ export default function MembersPortal({
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoggingIn(true);
+    setError(null);
+    setShowDomainConfigInstruction(false);
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        onLoginSuccess(result.user, result.accessToken);
+        setDriveNotification({
+          message: "Signed in successfully with Google!",
+          type: "success"
+        });
+      }
+    } catch (err: any) {
+      console.error('Google Sign-In Error:', err);
+      let friendlyError = err.message || 'Failed to sign in with Google.';
+      if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+        friendlyError = `Firebase has blocked Google Sign-In for this site because the domain "${window.location.hostname}" is not authorized. See the details below on how to add it.`;
+        setShowDomainConfigInstruction(true);
+      } else if (err.code === 'auth/popup-blocked') {
+        friendlyError = "The Google Sign-In popup was blocked by your browser. Please allow popups for this site or open the app in a new window/tab to login successfully.";
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        friendlyError = "Google Sign-In popup was closed before completing auth. Please try again.";
+      }
+      setError(friendlyError);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -184,15 +201,12 @@ export default function MembersPortal({
     
     setIsSendingLink(true);
     setError(null);
+    setShowDomainConfigInstruction(false);
     setMagicLinkSent(false);
-    setTestLinkToCopy(null);
     
     try {
-      const result = await sendPasswordlessSignInLink(email);
+      await sendPasswordlessSignInLink(email);
       setMagicLinkSent(true);
-      if (result.testLink) {
-        setTestLinkToCopy(result.testLink);
-      }
     } catch (err: any) {
       console.error('Passwordless send magic link error:', err);
       setError(err.message || 'Failed to send magic link. Please check your email configuration.');
@@ -205,114 +219,10 @@ export default function MembersPortal({
     try {
       await logout();
       onLogoutSuccess();
-      setDriveFiles([]);
       setOptimizedPlan(null);
       setDriveNotification(null);
     } catch (err: any) {
       console.error('Logout error:', err);
-    }
-  };
-
-  const fetchDriveFiles = async () => {
-    if (!accessToken) return;
-    setIsLoadingDrive(true);
-    setError(null);
-    if (accessToken === 'local-session') {
-      setTimeout(() => {
-        setDriveFiles([
-          {
-            id: 'mock-1',
-            name: 'ADHD Chaos Un-shredder prompt worksheet.txt',
-            mimeType: 'text/plain',
-            webViewLink: '#'
-          },
-          {
-            id: 'mock-2',
-            name: 'Todoist ADHD Daily Reset workflow guides.txt',
-            mimeType: 'text/plain',
-            webViewLink: '#'
-          },
-          {
-            id: 'mock-3',
-            name: 'Hermes Agent System Automation checklist.txt',
-            mimeType: 'text/plain',
-            webViewLink: '#'
-          }
-        ]);
-        setIsLoadingDrive(false);
-      }, 600);
-      return;
-    }
-    try {
-      // Fetch list of files
-      const q = encodeURIComponent("trashed = false and mimeType != 'application/vnd.google-apps.folder'");
-      const url = `https://www.googleapis.com/drive/v3/files?q=${q}&pageSize=8&fields=files(id,name,mimeType,webViewLink)&orderBy=modifiedTime desc`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Google Drive API returned an error: ' + response.statusText);
-      }
-
-      const data = await response.json();
-      setDriveFiles(data.files || []);
-    } catch (err: any) {
-      console.error('Fetch drive files failed:', err);
-      setError('Could not sync with Google Drive. Try signing in again.');
-    } finally {
-      setIsLoadingDrive(false);
-    }
-  };
-
-  // Create ADHD Workspace Folder in Google Drive
-  const handleCreateAdhdFolder = async () => {
-    if (!accessToken) return;
-    setIsCreatingFolder(true);
-    setDriveNotification(null);
-    try {
-      // First check if user confirmed
-      const confirmed = window.confirm(
-        "Create 'AI for ADHD Workspace' Folder?\n\nThis will safely create a dedicated folder in your Google Drive to store all exported prompt worksheets, routine guides, and brain dump resets."
-      );
-      if (!confirmed) {
-        setIsCreatingFolder(false);
-        return;
-      }
-
-      const folderMetadata = {
-        name: 'AI for ADHD Workspace',
-        mimeType: 'application/vnd.google-apps.folder',
-        description: 'Dedicated Workspace folder created by the AI for ADHD system to store worksheets, routines, and task lists.'
-      };
-
-      const response = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(folderMetadata)
-      });
-
-      if (!response.ok) {
-        throw new Error('Could not create folder in Google Drive: ' + response.statusText);
-      }
-
-      const folder = await response.json();
-      setAdhdFolderId(folder.id);
-      localStorage.setItem('ai_for_adhd_folder_id', folder.id);
-      setDriveNotification({ message: 'Success! "AI for ADHD Workspace" folder created in your Drive.', type: 'success' });
-      fetchDriveFiles();
-    } catch (err: any) {
-      console.error('Folder creation failed:', err);
-      setDriveNotification({ message: 'Failed to create folder. Please try again.', type: 'error' });
-    } finally {
-      setIsCreatingFolder(false);
     }
   };
 
@@ -337,70 +247,9 @@ export default function MembersPortal({
     }
   };
 
-  // Export specific text template as a file in Google Drive
+  // Export specific text template as a file locally
   const handleExportFile = async (title: string, content: string) => {
-    if (!accessToken || accessToken === 'local-session') {
-      downloadFileLocally(title, content);
-      return;
-    }
-    
-    setIsLoadingDrive(true);
-    setDriveNotification(null);
-
-    try {
-      const fileMetadata: any = {
-        name: `${title}.txt`,
-        mimeType: 'text/plain'
-      };
-
-      // If the ADHD Workspace folder is configured, create the file inside that folder
-      if (adhdFolderId) {
-        fileMetadata.parents = [adhdFolderId];
-      }
-
-      // We do a multipart upload or simple text upload
-      // Since it's plain text, we can use a simpler approach or metadata/media multipart
-      const boundary = 'foo_bar_baz';
-      const delimiter = `\r\n--${boundary}\r\n`;
-      const close_delim = `\r\n--${boundary}--`;
-
-      const multipartRequestBody =
-        delimiter +
-        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-        JSON.stringify(fileMetadata) +
-        delimiter +
-        'Content-Type: text/plain\r\n\r\n' +
-        content +
-        close_delim;
-
-      const response = await fetch(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': `multipart/related; boundary=${boundary}`
-          },
-          body: multipartRequestBody
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Google Drive file upload failed: ' + response.statusText);
-      }
-
-      const file = await response.json();
-      setDriveNotification({ 
-        message: `Successfully saved "${file.name}" to Google Drive!`, 
-        type: 'success' 
-      });
-      fetchDriveFiles();
-    } catch (err: any) {
-      console.error('File export failed:', err);
-      setDriveNotification({ message: 'Failed to export file to Google Drive.', type: 'error' });
-    } finally {
-      setIsLoadingDrive(false);
-    }
+    downloadFileLocally(title, content);
   };
 
   // Simulating ADHD Brain Optimization with state-of-the-art interactive prompt responder
@@ -686,10 +535,77 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                 </button>
               </div>
 
+              {/* Google Sign-In Option */}
+              <div className="w-full max-w-md mb-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoggingIn}
+                  className="w-full bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 hover:border-amber-500/40 text-white font-display py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer text-xs group relative overflow-hidden shadow-lg"
+                >
+                  <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <svg className="w-4 h-4 shrink-0 relative z-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                  </svg>
+                  
+                  <span className="relative z-10 font-bold tracking-wide">Continue with Google</span>
+                </button>
+
+                <div className="relative flex py-3 items-center">
+                  <div className="flex-grow border-t border-neutral-800/60"></div>
+                  <span className="flex-shrink mx-4 text-[9px] text-neutral-500 font-display font-semibold uppercase tracking-wider">or continue with email</span>
+                  <div className="flex-grow border-t border-neutral-800/60"></div>
+                </div>
+              </div>
+
               {error && (
                 <div className="w-full bg-red-950/40 border border-red-500/20 text-red-300 px-4 py-3 rounded-xl flex items-center gap-2 mb-6 text-xs text-left">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span className="leading-normal">{error}</span>
+                </div>
+              )}
+
+              {showDomainConfigInstruction && (
+                <div className="w-full max-w-md bg-amber-950/15 border border-amber-500/30 p-5 rounded-2xl text-left mb-6 text-xs space-y-4 shadow-[0_0_20px_rgba(212,175,55,0.05)] animate-fadeIn">
+                  <div className="flex items-start gap-2.5">
+                    <Sparkles className="w-4.5 h-4.5 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <h4 className="font-bold text-amber-400 font-display text-sm uppercase tracking-wide">Firebase Authorization Needed</h4>
+                      <p className="text-neutral-300 text-[11px] leading-relaxed mt-1">
+                        Firebase Authentication blocks OAuth popups from unauthorized domains for security. To enable Google Sign-In on this container, please add this domain to your Firebase settings:
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-neutral-950/90 border border-neutral-800 p-3 rounded-xl flex items-center justify-between gap-2">
+                    <code className="text-amber-300 font-mono text-[10px] select-all break-all">{window.location.hostname}</code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.hostname);
+                      }}
+                      className="text-[9px] font-bold text-neutral-400 hover:text-amber-400 bg-neutral-900 border border-neutral-800 hover:border-amber-500/30 px-2.5 py-1 rounded-lg transition-all"
+                    >
+                      Copy Domain
+                    </button>
+                  </div>
+
+                  <div className="text-neutral-400 text-[10px] space-y-2 leading-relaxed">
+                    <p className="font-semibold text-neutral-300">How to authorize this domain:</p>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-neutral-300">
+                      <li>Open the <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 hover:underline">Firebase Console</a> and select your project.</li>
+                      <li>Go to <strong>Authentication</strong> (left sidebar) &rarr; click the <strong>Settings</strong> tab.</li>
+                      <li>Select <strong>Authorized domains</strong> from the list.</li>
+                      <li>Click <strong>Add domain</strong>, paste the domain you copied above, and save.</li>
+                    </ol>
+                    <p className="text-neutral-400 text-[10px] italic pt-1">
+                      💡 <strong>Alternative:</strong> You can also use the <strong>Email/Password Sign Up</strong> below, which does not require any domain registration and works instantly!
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -707,33 +623,14 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                   {magicLinkSent ? (
                     <div className="bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs space-y-3 mb-6">
                       <div className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400 animate-bounce" />
+                        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
                         <div>
                           <p className="font-bold font-display text-emerald-400">Magic Link Dispatched!</p>
                           <p className="text-neutral-400 text-[11px] mt-0.5 leading-normal">
-                            Check your inbox at <span className="text-emerald-300 font-semibold font-mono">{email}</span> and click the link to bypass passwords forever.
+                            Check your inbox at <span className="text-emerald-300 font-semibold font-mono">{email}</span> and click the link to sign in securely.
                           </p>
                         </div>
                       </div>
-                      
-                      {testLinkToCopy && (
-                        <div className="bg-neutral-950/90 p-3.5 rounded-xl border border-amber-500/20 space-y-2 text-neutral-300 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
-                          <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider font-display flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                            <span>✨ Instant Magic Link Bypass</span>
-                          </p>
-                          <p className="text-[10px] text-neutral-400 leading-relaxed">
-                            If the email is delayed by your provider or doesn't arrive due to strict spam filters, use this secure, direct sandbox link to complete your login instantly:
-                          </p>
-                          <a 
-                            href={testLinkToCopy}
-                            className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold underline break-all mt-1 cursor-pointer hover:scale-[1.01] transition-all"
-                          >
-                            <span>Trigger Instant Magic Login</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </a>
-                        </div>
-                      )}
                     </div>
                   ) : (
                     <div className="space-y-4 mb-6">
@@ -771,15 +668,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                         Send to a different email
                       </button>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => onLoginSuccess({ displayName: "VIP Local Member", email: "adhd.VIP@local.dev", photoURL: null }, "local-session")}
-                      className="bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 hover:border-amber-500/30 text-amber-400 font-display font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                      <span>Local Session Bypass</span>
-                    </button>
                   </div>
                 </form>
               ) : (
@@ -849,14 +737,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                     >
                       {isLoggingIn ? 'Verifying...' : 'Create Account'}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onLoginSuccess({ displayName: "VIP Local Member", email: "adhd.VIP@local.dev", photoURL: null }, "local-session")}
-                      className="bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 hover:border-amber-500/30 text-amber-400 font-display font-bold py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                      <span>Local Session Bypass</span>
-                    </button>
                   </div>
                 </form>
               )}
@@ -864,10 +744,10 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 w-full text-left">
                 <div className="bg-neutral-900/40 border border-neutral-800/80 p-4 rounded-xl">
                   <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 mb-3">
-                    <Folder className="w-4 h-4 text-cyan-400" />
+                    <FileText className="w-4 h-4 text-cyan-400" />
                   </div>
-                  <h4 className="text-white text-xs font-bold mb-1 font-display uppercase tracking-wider">Drive Workspace Sync</h4>
-                  <p className="text-neutral-500 text-[11px] leading-normal">Creates a dedicated folder in your Google Drive. Save custom tools with 1-click.</p>
+                  <h4 className="text-white text-xs font-bold mb-1 font-display uppercase tracking-wider">Workspace Export</h4>
+                  <p className="text-neutral-500 text-[11px] leading-normal">Instantly save and download custom prompts, templates, and routines directly to any device.</p>
                 </div>
                 <div className="bg-neutral-900/40 border border-neutral-800/80 p-4 rounded-xl">
                   <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mb-3">
@@ -926,23 +806,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                 >
                   <Compass className="w-4 h-4 shrink-0" />
                   <span>Executive Dashboard</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('drive')}
-                  className={`w-full text-left py-3 px-4 rounded-xl font-display text-sm font-semibold transition-all flex items-center gap-3 cursor-pointer ${
-                    activeTab === 'drive' 
-                      ? 'bg-gradient-to-r from-amber-500/15 to-transparent border-l-2 border-amber-500 text-amber-400' 
-                      : 'text-neutral-400 hover:text-white hover:bg-neutral-900/40'
-                  }`}
-                >
-                  <Folder className="w-4 h-4 shrink-0" />
-                  <span className="flex-1">Google Drive Sync</span>
-                  {adhdFolderId ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                  ) : (
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  )}
                 </button>
 
                 <button
@@ -1037,14 +900,14 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="bg-black/40 border border-amber-500/15 p-5 rounded-2xl shadow-[0_0_15px_rgba(212,175,55,0.03)]">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Drive Status</span>
-                          <span className={`w-2.5 h-2.5 rounded-full ${adhdFolderId ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Workspace Status</span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                         </div>
                         <h4 className="text-2xl font-display font-bold text-white mb-1">
-                          {adhdFolderId ? 'Sync Active' : 'Unlinked'}
+                          Enabled
                         </h4>
                         <p className="text-neutral-500 text-[11px]">
-                          {adhdFolderId ? 'ADHD folder detected in Google Drive' : 'Sync is ready to bind folder'}
+                          Save and download customized prompt worksheets instantly
                         </p>
                       </div>
 
@@ -1074,7 +937,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                       <span className="text-[10px] font-mono text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase mb-4 inline-block">Welcome Affirmation</span>
                       <h4 className="text-lg font-display font-bold text-white mb-2">"No shame if you've started over a hundred times."</h4>
                       <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-xl">
-                        Productivity advice written for typical brains often adds guilt. In this exclusive portal, your goal is not to be a perfect organizer. Your goal is simply to build external scaffolding (Todoist, Drive files, prompts) that catch you when executive function fails.
+                        Productivity advice written for typical brains often adds guilt. In this exclusive portal, your goal is not to be a perfect organizer. Your goal is simply to build external scaffolding (Todoist, offline guides, prompts) that catch you when executive function fails.
                       </p>
                     </div>
 
@@ -1094,14 +957,14 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                           <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-amber-400 transition-colors" />
                         </div>
 
-                        <div onClick={() => setActiveTab('drive')} className="group bg-neutral-900/40 hover:bg-neutral-900/80 border border-neutral-800/80 p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between">
+                        <div onClick={() => setActiveTab('prompts')} className="group bg-neutral-900/40 hover:bg-neutral-900/80 border border-neutral-800/80 p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded bg-amber-500/10 flex items-center justify-center text-amber-400">
-                              <Folder className="w-4 h-4" />
+                              <Sparkles className="w-4 h-4" />
                             </div>
                             <div>
-                              <h5 className="text-xs font-bold text-white">Drive Template Hub</h5>
-                              <p className="text-neutral-500 text-[10px]">Manage files & link dedicated folder</p>
+                              <h5 className="text-xs font-bold text-white">ADHD Prompts Hub</h5>
+                              <p className="text-neutral-500 text-[10px]">Access shame-free copiable prompt worksheets</p>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-amber-400 transition-colors" />
@@ -1111,125 +974,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                   </div>
                 )}
 
-                {/* TAB 2: GOOGLE DRIVE SYNC */}
-                {activeTab === 'drive' && (
-                  <div className="space-y-6 flex-1 flex flex-col">
-                    <div className="border-b border-amber-500/10 pb-4 mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-display font-black text-gold-gradient tracking-tight">Google Drive Workspace</h2>
-                        <p className="text-neutral-400 text-xs mt-1">Direct live connection to view, sync, and create templates directly inside your Google Drive.</p>
-                      </div>
 
-                      {adhdFolderId ? (
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-mono self-start sm:self-auto">
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          <span>Hub Connected</span>
-                        </div>
-                      ) : (
-                        <button 
-                          onClick={handleCreateAdhdFolder}
-                          disabled={isCreatingFolder}
-                          className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500 text-amber-300 text-[11px] font-display font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
-                        >
-                          <FolderPlus className="w-3.5 h-3.5" />
-                          <span>{isCreatingFolder ? 'Creating Folder...' : 'Create ADHD Folder in Drive'}</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Explainer card */}
-                    <div className="bg-black/60 border border-amber-500/10 p-4 rounded-xl text-xs text-neutral-400 leading-relaxed flex items-start gap-3">
-                      <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                      <div>
-                        <strong className="text-neutral-200">Exclusive Advantage:</strong> Creating the folder <strong className="text-amber-400 font-medium">"AI for ADHD Workspace"</strong> gives you a dedicated file hub. When you click "Export to Drive" on any prompt, mind dump, or system guide throughout this portal, we will safely construct and place the file straight inside that folder, reducing file hunting paralysis.
-                      </div>
-                    </div>
-
-                    {/* Folder ID display if exists */}
-                    {adhdFolderId && (
-                      <div className="p-3 bg-neutral-900/60 border border-neutral-800 rounded-lg flex items-center justify-between text-[11px]">
-                        <span className="text-neutral-500 font-mono">Workspace Folder ID: {adhdFolderId}</span>
-                        <button 
-                          onClick={() => {
-                            localStorage.removeItem('ai_for_adhd_folder_id');
-                            setAdhdFolderId(null);
-                            setDriveNotification({ message: 'Linked folder cleared locally.', type: 'success' });
-                          }}
-                          className="text-neutral-500 hover:text-red-400 transition-colors cursor-pointer text-[10px] uppercase font-mono"
-                        >
-                          Clear Link
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Live File Browser list */}
-                    <div className="flex-1 flex flex-col min-h-[220px]">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-neutral-400">Your Recent Drive Files</h4>
-                        <button 
-                          onClick={fetchDriveFiles} 
-                          disabled={isLoadingDrive}
-                          className="p-1.5 text-neutral-500 hover:text-amber-400 rounded-lg hover:bg-neutral-900 transition-colors cursor-pointer"
-                          title="Refresh Files"
-                        >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDrive ? 'animate-spin text-amber-400' : ''}`} />
-                        </button>
-                      </div>
-
-                      {isLoadingDrive ? (
-                        <div className="flex-1 flex flex-col items-center justify-center py-10">
-                          <RefreshCw className="w-8 h-8 text-amber-500/80 animate-spin mb-3" />
-                          <p className="text-neutral-500 text-xs">Querying Google Drive API...</p>
-                        </div>
-                      ) : driveFiles.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 overflow-y-auto max-h-[300px] pr-1">
-                          {driveFiles.map(file => (
-                            <a 
-                              key={file.id}
-                              href={file.webViewLink}
-                              onClick={(e) => {
-                                if (accessToken === 'local-session') {
-                                  e.preventDefault();
-                                  let content = `AI FOR ADHD - VIP WORKSPACE ASSET\n\nFile Name: ${file.name}\n\n`;
-                                  if (file.id === 'mock-1') {
-                                    content += `THE ADHD CHAOS UN-SHREDDER PROMPT WORKSHEET\n\nCopy and paste this premium prompt into your preferred AI chat assistant:\n\n${premiumPrompts[0].promptText}`;
-                                  } else if (file.id === 'mock-2') {
-                                    content += `TODOIST ADHD DAILY RESET WORKFLOW GUIDES\n\nCopy and paste this premium prompt to design customized Todoist daily workspaces:\n\n${premiumPrompts[1].promptText}`;
-                                  } else {
-                                    content += `HERMES AGENT SYSTEM AUTOMATION CHECKLIST\n\nUse this detailed outline to guide your Hermes Agent set up:\n\n${premiumPrompts[2].promptText}`;
-                                  }
-                                  downloadFileLocally(file.name.replace('.txt', ''), content);
-                                }
-                              }}
-                              target={accessToken === 'local-session' ? undefined : "_blank"}
-                              rel="noreferrer"
-                              className="bg-neutral-900/40 hover:bg-neutral-900/80 border border-neutral-800 hover:border-amber-500/30 p-3.5 rounded-xl flex items-center justify-between gap-4 transition-all group cursor-pointer"
-                            >
-                              <div className="flex items-center gap-3 truncate">
-                                <div className="w-8 h-8 rounded bg-amber-500/10 flex items-center justify-center shrink-0">
-                                  <FileText className="w-4 h-4 text-amber-400" />
-                                </div>
-                                <div className="truncate text-left">
-                                  <h5 className="text-xs font-bold text-white group-hover:text-amber-400 truncate transition-colors">{file.name}</h5>
-                                  <p className="text-[10px] text-neutral-500 font-mono truncate">{file.mimeType.split('.').pop()?.replace('vnd.google-apps.', '') || 'document'}</p>
-                                </div>
-                              </div>
-                              <ExternalLink className="w-3.5 h-3.5 text-neutral-600 group-hover:text-neutral-400 shrink-0 transition-colors" />
-                            </a>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex-1 border-2 border-dashed border-neutral-800 rounded-xl flex flex-col items-center justify-center p-8 text-center bg-black/10">
-                          <Folder className="w-8 h-8 text-neutral-600 mb-3" />
-                          <h5 className="text-xs font-bold text-neutral-400 mb-1">No files listed in your Workspace yet</h5>
-                          <p className="text-[11px] text-neutral-600 max-w-sm leading-normal">
-                            Generate your first ADHD Prompt worksheet or use the "Create ADHD Folder" button to seed files inside Google Drive.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* TAB 3: ADHD PROMPTS HUB */}
                 {activeTab === 'prompts' && (
@@ -1269,7 +1014,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                                 className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:border-amber-500 text-amber-300 rounded-lg text-[11px] font-display font-bold transition-all cursor-pointer flex items-center gap-1"
                               >
                                 <FolderPlus className="w-3 h-3" />
-                                <span>Export to Drive</span>
+                                <span>Download Worksheet</span>
                               </button>
                             </div>
                           </div>
@@ -1339,7 +1084,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                                     onClick={handleExportPlanToDrive}
                                     disabled={isExportingPlan}
                                     className="p-1.5 text-neutral-400 hover:text-amber-400 hover:bg-neutral-900 rounded-lg transition-colors cursor-pointer"
-                                    title="Save Plan directly to Google Drive"
+                                    title="Download Plan Worksheet locally"
                                   >
                                     <FolderPlus className="w-4 h-4" />
                                   </button>
@@ -1386,7 +1131,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                                 className="flex-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-amber-500/30 text-white font-display font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                               >
                                 <FolderPlus className="w-3.5 h-3.5" />
-                                <span>{isExportingPlan ? 'Saving to Drive...' : 'Export Plan to Drive'}</span>
+                                <span>{isExportingPlan ? 'Downloading Plan...' : 'Download Plan Worksheet'}</span>
                               </button>
                               <button
                                 onClick={() => {
@@ -1471,9 +1216,9 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                             </button>
                             <div className="text-left">
                               <span className="text-[9px] font-mono text-amber-500 uppercase tracking-widest block mb-0.5">Scaffolding Module 02</span>
-                              <h4 className="text-sm font-bold text-white font-display mb-1">Sync Google Drive ADHD Workspace</h4>
+                              <h4 className="text-sm font-bold text-white font-display mb-1">Download and Save ADHD Worksheet Guides</h4>
                               <p className="text-neutral-400 text-xs leading-normal">
-                                Ensure your workspace is linked correctly. Navigate to the "Google Drive Sync" tab on the left sidebar and click "Create ADHD Folder in Drive" to establish your designated, safe cloud system container.
+                                Ensure you download your custom ADHD reset guides. Navigate to the "ADHD Prompts Hub" tab on the left sidebar, export or copy your favorite reset scripts, and save them in a local "ADHD Workspace" folder on your local computer or phone.
                               </p>
                             </div>
                           </div>
@@ -1502,7 +1247,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                               <span className="text-[9px] font-mono text-amber-500 uppercase tracking-widest block mb-0.5">Scaffolding Module 03</span>
                               <h4 className="text-sm font-bold text-white font-display mb-1">Establish the Hermes Agent Connection</h4>
                               <p className="text-neutral-400 text-xs leading-normal">
-                                Use the Mind Declutterer AI assistant to format physical friction thoughts, and export at least one optimized workflow guide to your Drive. Test opening and reading it from your local mobile device to ensure quick offline access.
+                                Use the Mind Declutterer AI assistant to format physical friction thoughts, and export at least one optimized workflow guide to your local files. Test opening and reading it from your local mobile device to ensure quick offline access.
                               </p>
                             </div>
                           </div>
