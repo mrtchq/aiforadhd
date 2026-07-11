@@ -25,12 +25,15 @@ import {
   Copy,
   ChevronRight,
   Plus,
-  ArrowRight
+  ArrowRight,
+  X
 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { googleSignIn, logout, getAccessToken, emailSignUp, sendPasswordlessSignInLink, checkIsSignInLink, completeSignInWithLink } from '../lib/firebase';
 import ParallaxStars from './ParallaxStars';
 import Celebration from './Celebration';
+import VoiceCallManager, { CallState } from './VoiceCallManager';
+
 
 interface MembersPortalProps {
   onBack: () => void;
@@ -106,6 +109,107 @@ export default function MembersPortal({
   });
 
   const [showCelebration, setShowCelebration] = useState(false);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [callState, setCallState] = useState<CallState>('idle');
+  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [userVolume, setUserVolume] = useState(0);
+  const [quillVolume, setQuillVolume] = useState(0);
+
+  // Todoist Credentials and Locations config
+  const [showTodoistConfig, setShowTodoistConfig] = useState(false);
+  const [todoistToken, setTodoistToken] = useState<string>(() => {
+    return localStorage.getItem('todoist_token') || '';
+  });
+
+  const [locations, setLocations] = useState<any[]>(() => {
+    const saved = localStorage.getItem('todoist_locations');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Office', lat: 37.7749, lng: -122.4194, radius: 100 },
+      { id: '2', name: 'Home', lat: 37.7833, lng: -122.4167, radius: 100 },
+      { id: '3', name: 'Grocery Store', lat: 37.7694, lng: -122.4464, radius: 100 }
+    ];
+  });
+
+  const [geofenceReminders, setGeofenceReminders] = useState<any[]>(() => {
+    const saved = localStorage.getItem('todoist_geofences');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [voiceLogs, setVoiceLogs] = useState<any[]>([]);
+
+  // Auto-sync with local storage
+  useEffect(() => {
+    localStorage.setItem('todoist_locations', JSON.stringify(locations));
+  }, [locations]);
+
+  useEffect(() => {
+    localStorage.setItem('todoist_geofences', JSON.stringify(geofenceReminders));
+  }, [geofenceReminders]);
+
+  const handleToolExecuted = (msg: any) => {
+    const { toolExecuted, args, result } = msg;
+    const timestamp = new Date().toLocaleTimeString();
+    
+    let description = '';
+    if (toolExecuted === 'add_reminders') {
+      const g = result.geofence;
+      description = `Geofenced reminder set for "${args.task_text}" at "${g.location}" (${g.lat.toFixed(4)}, ${g.lng.toFixed(4)})`;
+      // Add to geofenced reminders list
+      setGeofenceReminders(prev => [
+        {
+          id: result.task?.id || Math.random().toString(),
+          taskText: args.task_text,
+          location: g.location,
+          lat: g.lat,
+          lng: g.lng,
+          radius: g.radius,
+          trigger: g.trigger,
+          timestamp: new Date().toLocaleString()
+        },
+        ...prev
+      ]);
+    } else if (toolExecuted === 'add_tasks') {
+      const count = result.created_count || 0;
+      description = `Batch created ${count} tasks in Todoist: "${args.tasks.map((t: any) => t.content).join(', ')}"`;
+    } else if (toolExecuted === 'reorder_objects') {
+      description = `Moved task to project ID ${args.project_id}`;
+    } else if (toolExecuted === 'get_overview') {
+      description = `Retrieved user workspace overview (${result.projects?.length || 0} projects, ${result.tasks?.length || 0} tasks)`;
+    } else if (toolExecuted === 'find_projects') {
+      description = `Searched projects for "${args.query}" (${result.matches?.length || 0} matches)`;
+    }
+
+    setVoiceLogs(prev => [
+      {
+        id: Math.random().toString(),
+        tool: toolExecuted,
+        description,
+        timestamp
+      },
+      ...prev
+    ]);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCallButtonClick = () => {
+    if (callState === 'idle' || callState === 'ended' || callState === 'error') {
+      setErrorMessage(null);
+      setIsVoiceCallOpen(true);
+    }
+  };
+
+  const handleEndCall = () => {
+    setIsVoiceCallOpen(false);
+    setCallState('idle');
+    setErrorMessage(null);
+  };
+
 
   useEffect(() => {
     if (magicLinkMessage && magicLinkMessage.type === 'success') {
@@ -772,15 +876,216 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                         <p className="text-neutral-500 text-[11px]">Chaos Un-shredder prompt is updated</p>
                       </div>
 
-                      <div className="bg-black/40 border border-amber-500/15 p-5 rounded-2xl shadow-[0_0_15px_rgba(212,175,55,0.03)]">
+                      <div 
+                        onClick={() => setShowTodoistConfig(!showTodoistConfig)}
+                        className={`p-5 rounded-2xl shadow-[0_0_15px_rgba(212,175,55,0.03)] cursor-pointer transition-all border ${
+                          todoistToken 
+                            ? 'bg-emerald-950/10 border-emerald-500/30 hover:border-emerald-500' 
+                            : 'bg-black/40 border-amber-500/15 hover:border-amber-500/30'
+                        }`}
+                      >
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">Todoist Workspace</span>
-                          <CheckSquare className="w-4 h-4 text-emerald-400" />
+                          {todoistToken ? (
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                              <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest font-bold">Connected</span>
+                            </span>
+                          ) : (
+                            <CheckSquare className="w-4 h-4 text-amber-500" />
+                          )}
                         </div>
-                        <h4 className="text-2xl font-display font-bold text-white mb-1">C.L.A.R.I.T.Y.</h4>
-                        <p className="text-neutral-500 text-[11px]">Progress tracked inside setup guide</p>
+                        <h4 className="text-2xl font-display font-bold text-white mb-1">
+                          {todoistToken ? "Active" : "Configure"}
+                        </h4>
+                        <p className="text-neutral-500 text-[11px]">
+                          {todoistToken ? "Click to manage your voice-linked Todoist settings" : "Click to connect your real Todoist API account"}
+                        </p>
                       </div>
                     </div>
+
+                    {/* Todoist Configuration Panel */}
+                    {showTodoistConfig && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-black/80 border border-amber-500/20 rounded-2xl p-6 space-y-6 mt-4"
+                      >
+                        <div className="flex items-center justify-between border-b border-neutral-900 pb-4">
+                          <div>
+                            <h3 className="text-lg font-display font-bold text-white flex items-center gap-2">
+                              <Terminal className="w-5 h-5 text-amber-400" />
+                              Todoist & Geofence Voice-Link
+                            </h3>
+                            <p className="text-neutral-400 text-xs mt-1">
+                              Connect your real Todoist API token to enable real-time task creations, geofence scheduling, and brain dump sweeps.
+                            </p>
+                          </div>
+                          <button 
+                            onClick={() => setShowTodoistConfig(false)}
+                            className="p-1 hover:bg-neutral-900 rounded-lg text-neutral-400 hover:text-white transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Left Column: API Key & Locations */}
+                          <div className="space-y-6">
+                            {/* Todoist Token Input */}
+                            <div className="space-y-2">
+                              <label className="block text-xs font-mono text-amber-400 uppercase tracking-wider">
+                                Todoist API Personal Access Token
+                              </label>
+                              <div className="flex gap-2">
+                                <input
+                                  type="password"
+                                  placeholder="e.g. 4c3ef..."
+                                  value={todoistToken}
+                                  onChange={(e) => {
+                                    setTodoistToken(e.target.value);
+                                    localStorage.setItem('todoist_token', e.target.value);
+                                  }}
+                                  className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white font-mono placeholder-neutral-600 outline-none transition-colors"
+                                />
+                                {todoistToken && (
+                                  <button
+                                    onClick={() => {
+                                      setTodoistToken('');
+                                      localStorage.removeItem('todoist_token');
+                                    }}
+                                    className="px-3 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/40 text-red-400 rounded-xl text-xs font-mono transition-all"
+                                  >
+                                    Disconnect
+                                  </button>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-neutral-500 leading-normal">
+                                Get your API token in Todoist under <span className="text-neutral-400 font-medium">Settings &gt; Integrations &gt; Developer</span>. It stays purely in your browser's local state and is used solely to authenticate your voice calls directly to Todoist.
+                              </p>
+                              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 text-[11px] text-amber-300/90 leading-relaxed space-y-1">
+                                <span className="font-bold text-amber-400 block uppercase tracking-wider text-[10px]">⚠️ Crucial Setup Tip:</span>
+                                <span>Do <strong>NOT</strong> create an integration app on <code className="bg-black/50 px-1 py-0.5 rounded text-amber-400">developer.todoist.com</code>. The Client ID and Client Secret from that page will not work here.</span>
+                                <span className="block mt-1">Instead, simply open your <strong>normal Todoist web/desktop app</strong>, click your avatar/profile icon, open <strong>Settings</strong>, go to the <strong>Integrations</strong> tab, click the <strong>Developer</strong> sub-tab, and copy your personal <strong>API token</strong>.</span>
+                              </div>
+                            </div>
+
+                            {/* Locations List */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-xs font-mono text-amber-400 uppercase tracking-wider">
+                                  Geofenced Coordinates Map (My Locations)
+                                </label>
+                                <button
+                                  onClick={() => {
+                                    const name = prompt('Enter location name (e.g., Office, Gym):');
+                                    if (!name) return;
+                                    const latStr = prompt('Enter Latitude (e.g., 37.7749):', '37.7749');
+                                    if (latStr === null) return;
+                                    const lngStr = prompt('Enter Longitude (e.g., -122.4194):', '-122.4194');
+                                    if (lngStr === null) return;
+                                    const radiusStr = prompt('Enter trigger radius in meters:', '100');
+                                    if (radiusStr === null) return;
+                                    
+                                    const lat = parseFloat(latStr || '0');
+                                    const lng = parseFloat(lngStr || '0');
+                                    const radius = parseInt(radiusStr || '100');
+                                    
+                                    setLocations(prev => [
+                                      ...prev,
+                                      { id: Math.random().toString(), name, lat, lng, radius }
+                                    ]);
+                                  }}
+                                  className="text-xs text-amber-400 hover:text-amber-300 font-display font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                                >
+                                  + Add Location
+                                </button>
+                              </div>
+                              
+                              <div className="bg-neutral-950/60 border border-neutral-900 rounded-xl overflow-hidden divide-y divide-neutral-900">
+                                {locations.map((loc: any) => (
+                                  <div key={loc.id} className="flex items-center justify-between p-3 text-xs">
+                                    <div>
+                                      <div className="font-bold text-white font-display">{loc.name}</div>
+                                      <div className="text-[10px] text-neutral-500 font-mono mt-0.5">
+                                        Lat: {loc.lat.toFixed(4)}, Lng: {loc.lng.toFixed(4)} ({loc.radius}m)
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => setLocations(prev => prev.filter(l => l.id !== loc.id))}
+                                      className="text-neutral-600 hover:text-red-400 font-mono p-1 transition-colors text-[10px]"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column: Voice Logs & Active Geofences */}
+                          <div className="space-y-6">
+                            {/* Live Voice AI Tool Action Logs */}
+                            <div className="space-y-3">
+                              <label className="block text-xs font-mono text-amber-400 uppercase tracking-wider">
+                                Live Voice Action Log (Live Call stream)
+                              </label>
+                              <div className="bg-neutral-950/80 border border-neutral-900 rounded-xl p-4 h-[135px] overflow-y-auto font-mono text-[11px] space-y-2">
+                                {voiceLogs.length === 0 ? (
+                                  <div className="text-neutral-600 h-full flex items-center justify-center">
+                                    Waiting for live call voice commands...
+                                  </div>
+                                ) : (
+                                  voiceLogs.map(log => (
+                                    <div key={log.id} className="border-b border-neutral-900 pb-1.5 last:border-0">
+                                      <div className="flex items-center justify-between text-[10px] text-neutral-500">
+                                        <span className="text-amber-500 font-bold uppercase">{log.tool}</span>
+                                        <span>{log.timestamp}</span>
+                                      </div>
+                                      <div className="text-neutral-300 mt-1 leading-normal">{log.description}</div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Active Geofenced Reminders */}
+                            <div className="space-y-3">
+                              <label className="block text-xs font-mono text-emerald-400 uppercase tracking-wider">
+                                Active Geofenced Reminders Created
+                              </label>
+                              <div className="bg-neutral-950/80 border border-neutral-900 rounded-xl overflow-hidden">
+                                {geofenceReminders.length === 0 ? (
+                                  <div className="p-4 text-xs text-neutral-600 font-mono text-center">
+                                    No geofenced reminders created yet. Try calling Quill and saying: "Remind me to do X when I arrive at Y."
+                                  </div>
+                                ) : (
+                                  <div className="divide-y divide-neutral-900 max-h-[145px] overflow-y-auto">
+                                    {geofenceReminders.map(rem => (
+                                      <div key={rem.id} className="p-3 text-xs flex items-center justify-between gap-4">
+                                        <div>
+                                          <div className="font-bold text-white leading-normal">{rem.taskText}</div>
+                                          <div className="text-[10px] text-emerald-400/80 font-mono mt-1 flex items-center gap-1">
+                                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                            Trigger on {rem.trigger === 'on_enter' ? 'Enter' : 'Leave'} at {rem.location} ({rem.lat.toFixed(3)}, {rem.lng.toFixed(3)})
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => setGeofenceReminders(prev => prev.filter(r => r.id !== rem.id))}
+                                          className="text-neutral-600 hover:text-neutral-400 text-[10px] p-1 font-mono shrink-0"
+                                        >
+                                          Clear
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
 
                     <div className="bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/15 p-6 rounded-2xl mt-8 relative overflow-hidden">
                       <div className="absolute right-[-30px] bottom-[-30px] opacity-10">
@@ -1115,7 +1420,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
       </main>
 
       {/* Footer info */}
-      <footer className="border-t border-amber-500/10 bg-black/90 py-6 px-6 mt-12 text-center text-xs text-neutral-500 font-mono relative z-10">
+      <footer className="border-t border-amber-500/10 bg-black/90 py-6 px-6 mt-12 text-center text-xs text-neutral-500 font-mono relative z-10 mb-16">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© {new Date().getFullYear()} AI for ADHD. Luxurious exclusive space.</span>
           <div className="flex gap-6">
@@ -1124,6 +1429,83 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
           </div>
         </div>
       </footer>
+
+      {/* Floating Animated CALL QUILL Button & Glowing Red X (Bottom-Center, Google sign-in only) */}
+      {user && (
+        user.providerData?.some((p: any) => p.providerId === 'google.com') ||
+        user.providerId === 'google.com' ||
+        (accessToken && accessToken !== 'local-session')
+      ) && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
+          {errorMessage && (
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-50 bg-neutral-950/95 border border-red-500/30 text-red-400 text-[11px] font-mono px-4 py-2.5 rounded-2xl shadow-[0_10px_35px_rgba(239,68,68,0.25)] backdrop-blur-md flex items-center gap-2 w-72">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <span className="leading-normal flex-1">{errorMessage}</span>
+              <button 
+                type="button" 
+                onClick={() => setErrorMessage(null)} 
+                className="text-red-400 hover:text-red-300 ml-1 p-0.5 cursor-pointer animate-pulse"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <button 
+            type="button" 
+            onClick={handleCallButtonClick}
+            className="btn"
+          >
+            <strong>
+              {callState === 'idle' && "CALL QUILL"}
+              {callState === 'requesting-permission' && "ALLOW MIC..."}
+              {callState === 'connecting' && "CONNECTING..."}
+              {callState === 'active' && `LIVE • ${formatTime(timeRemaining)}`}
+              {callState === 'ended' && "CALL ENDED"}
+              {callState === 'error' && "RETRY CALL"}
+            </strong>
+            <div id="container-stars">
+              <div id="stars"></div>
+            </div>
+
+            <div id="glow">
+              <div className="circle"></div>
+              <div className="circle"></div>
+            </div>
+          </button>
+
+          {/* Glowing Red X button next to the Quill button */}
+          {(callState === 'requesting-permission' || callState === 'connecting' || callState === 'active' || callState === 'error') && (
+            <button
+              type="button"
+              onClick={handleEndCall}
+              className="btn-red-x animate-pulse"
+              title="End Voice Call"
+            >
+              <X className="w-5 h-5 text-red-400" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Headless Voice Call Manager */}
+      <VoiceCallManager 
+        isOpen={isVoiceCallOpen} 
+        onStateChange={(state) => setCallState(state)}
+        onTimeRemainingChange={(seconds) => setTimeRemaining(seconds)}
+        onVolumeChange={(uVol, qVol) => {
+          setUserVolume(uVol);
+          setQuillVolume(qVol);
+        }}
+        onError={(msg) => setErrorMessage(msg)}
+        onEnd={() => {
+          setIsVoiceCallOpen(false);
+          setCallState('idle');
+        }}
+        todoistToken={todoistToken}
+        locations={locations}
+        onToolExecuted={handleToolExecuted}
+      />
     </div>
   );
 }

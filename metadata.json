@@ -1,6 +1,6 @@
 {
   "name": "AI for ADHD",
   "description": "Beginner-friendly AI systems and workflows to help ADHD/neurodivergent brains reduce chaos, task paralysis, and executive dysfunction.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
