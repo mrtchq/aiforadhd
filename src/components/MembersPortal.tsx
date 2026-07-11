@@ -122,6 +122,119 @@ export default function MembersPortal({
     return localStorage.getItem('todoist_token') || '';
   });
 
+  const [connectMethod, setConnectMethod] = useState<'oauth' | 'token'>(() => {
+    // Default to OAuth if there's stored client credentials, or fallback to token
+    return localStorage.getItem('todoist_client_id') ? 'oauth' : 'token';
+  });
+  const [clientId, setClientId] = useState(() => localStorage.getItem('todoist_client_id') || '');
+  const [clientSecret, setClientSecret] = useState(() => localStorage.getItem('todoist_client_secret') || '');
+  const [isOAuthProcessing, setIsOAuthProcessing] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
+  const [connectionTestStatus, setConnectionTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [connectionTestError, setConnectionTestError] = useState<string | null>(null);
+
+  // Detect and handle Todoist OAuth callback code in URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+
+    if (code && state === 'todoist_oauth') {
+      const storedClientId = localStorage.getItem('todoist_client_id');
+      const storedClientSecret = localStorage.getItem('todoist_client_secret');
+
+      if (!storedClientId || !storedClientSecret) {
+        setOauthError("OAuth credentials (Client ID or Client Secret) were not found in your browser's local storage. Please input them and click 'Connect via OAuth 2.0' again.");
+        setShowTodoistConfig(true);
+        // Clear query parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      const exchangeCode = async () => {
+        setIsOAuthProcessing(true);
+        setOauthError(null);
+        setShowTodoistConfig(true); // Open settings to show progress
+
+        try {
+          const redirectUri = `${window.location.origin}${window.location.pathname}`;
+          console.log("[OAuth] Exchanging code via proxy with redirect_uri:", redirectUri);
+
+          const res = await fetch('/api/todoist/exchange', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              client_id: storedClientId,
+              client_secret: storedClientSecret,
+              redirect_uri: redirectUri
+            })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to exchange authorization code');
+          }
+
+          if (data.access_token) {
+            localStorage.setItem('todoist_token', data.access_token);
+            setTodoistToken(data.access_token);
+            setShowCelebration(true);
+            setConnectionTestStatus('success');
+            setConnectionTestError(null);
+            console.log("[OAuth] Successfully retrieved access token!");
+          } else {
+            throw new Error('Access token was missing in Todoist response');
+          }
+
+        } catch (err: any) {
+          console.error("[OAuth] Exchange error:", err);
+          setOauthError(err.message || 'An error occurred during code exchange.');
+          setConnectionTestStatus('error');
+          setConnectionTestError(err.message || 'OAuth exchange failed');
+        } finally {
+          setIsOAuthProcessing(false);
+          // Clear query parameters from URL safely without page reload
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      };
+
+      exchangeCode();
+    }
+  }, []);
+
+  const handleTestConnection = async (tokenToTest: string) => {
+    if (!tokenToTest) {
+      setConnectionTestStatus('error');
+      setConnectionTestError('Please provide a token/key to test.');
+      return;
+    }
+
+    setConnectionTestStatus('testing');
+    setConnectionTestError(null);
+
+    try {
+      const res = await fetch('/api/todoist/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tokenToTest })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setConnectionTestStatus('success');
+        setConnectionTestError(null);
+      } else {
+        setConnectionTestStatus('error');
+        setConnectionTestError(data.error || 'Invalid API token or connection error.');
+      }
+    } catch (err: any) {
+      setConnectionTestStatus('error');
+      setConnectionTestError(err.message || 'Failed to contact validation server.');
+    }
+  };
+
   const [locations, setLocations] = useState<any[]>(() => {
     const saved = localStorage.getItem('todoist_locations');
     return saved ? JSON.parse(saved) : [
@@ -932,43 +1045,222 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {/* Left Column: API Key & Locations */}
                           <div className="space-y-6">
-                            {/* Todoist Token Input */}
-                            <div className="space-y-2">
-                              <label className="block text-xs font-mono text-amber-400 uppercase tracking-wider">
-                                Todoist API Personal Access Token
-                              </label>
-                              <div className="flex gap-2">
-                                <input
-                                  type="password"
-                                  placeholder="e.g. 4c3ef..."
-                                  value={todoistToken}
-                                  onChange={(e) => {
-                                    setTodoistToken(e.target.value);
-                                    localStorage.setItem('todoist_token', e.target.value);
-                                  }}
-                                  className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white font-mono placeholder-neutral-600 outline-none transition-colors"
-                                />
-                                {todoistToken && (
+                            {/* Connection Method Tabs */}
+                            <div className="flex bg-neutral-900/60 p-1 rounded-xl border border-neutral-800">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setConnectMethod('oauth');
+                                  setConnectionTestStatus('idle');
+                                  setConnectionTestError(null);
+                                }}
+                                className={`flex-1 py-2 text-xs font-mono rounded-lg transition-all cursor-pointer ${
+                                  connectMethod === 'oauth'
+                                    ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/10'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                Quick Connect (OAuth 2.0)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setConnectMethod('token');
+                                  setConnectionTestStatus('idle');
+                                  setConnectionTestError(null);
+                                }}
+                                className={`flex-1 py-2 text-xs font-mono rounded-lg transition-all cursor-pointer ${
+                                  connectMethod === 'token'
+                                    ? 'bg-amber-500 text-black font-bold shadow-md shadow-amber-500/10'
+                                    : 'text-neutral-400 hover:text-white'
+                                }`}
+                              >
+                                Personal API Token
+                              </button>
+                            </div>
+
+                            {/* Method A: Custom OAuth 2.0 Flow */}
+                            {connectMethod === 'oauth' && (
+                              <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                  <label className="block text-[10px] font-mono text-neutral-400 uppercase tracking-wider">
+                                    1. Register Redirect URI in your Todoist Developer App Settings
+                                  </label>
+                                  <div className="flex items-center gap-2 bg-neutral-950 p-2.5 rounded-xl border border-neutral-900">
+                                    <code className="text-xs font-mono text-amber-400/95 flex-1 select-all break-all leading-normal">
+                                      {`${window.location.origin}${window.location.pathname}`}
+                                    </code>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}`);
+                                        alert("Redirect URI copied! Now open your Todoist Developer app, paste this as the 'OAuth redirect URL', and click Save.");
+                                      }}
+                                      className="px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-[10px] font-mono text-neutral-300 rounded-lg border border-neutral-800 transition-colors cursor-pointer"
+                                    >
+                                      Copy URL
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="block text-[10px] font-mono text-amber-400 uppercase tracking-wider">
+                                      Client ID
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. 4f3d4e..."
+                                      value={clientId}
+                                      onChange={(e) => {
+                                        const val = e.target.value.trim();
+                                        setClientId(val);
+                                        localStorage.setItem('todoist_client_id', val);
+                                      }}
+                                      className="w-full bg-neutral-950 border border-neutral-900 focus:border-amber-500/50 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono placeholder-neutral-700 outline-none transition-colors"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="block text-[10px] font-mono text-amber-400 uppercase tracking-wider">
+                                      Client Secret
+                                    </label>
+                                    <input
+                                      type="password"
+                                      placeholder="e.g. db745c..."
+                                      value={clientSecret}
+                                      onChange={(e) => {
+                                        const val = e.target.value.trim();
+                                        setClientSecret(val);
+                                        localStorage.setItem('todoist_client_secret', val);
+                                      }}
+                                      className="w-full bg-neutral-950 border border-neutral-900 focus:border-amber-500/50 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono placeholder-neutral-700 outline-none transition-colors"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="pt-1">
                                   <button
+                                    type="button"
+                                    disabled={!clientId || !clientSecret || isOAuthProcessing}
                                     onClick={() => {
-                                      setTodoistToken('');
-                                      localStorage.removeItem('todoist_token');
+                                      localStorage.setItem('todoist_client_id', clientId);
+                                      localStorage.setItem('todoist_client_secret', clientSecret);
+                                      const redirectUri = `${window.location.origin}${window.location.pathname}`;
+                                      window.location.href = `https://todoist.com/oauth/authorize?client_id=${clientId.trim()}&scope=data:read_write,data:delete&state=todoist_oauth&redirect_uri=${encodeURIComponent(redirectUri)}`;
                                     }}
-                                    className="px-3 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/40 text-red-400 rounded-xl text-xs font-mono transition-all"
+                                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:from-neutral-900 disabled:to-neutral-900 disabled:text-neutral-500 border disabled:border-neutral-800 border-amber-500/30 text-black font-display font-bold rounded-xl text-xs transition-all shadow-[0_0_20px_rgba(212,175,55,0.05)] hover:shadow-[0_0_25px_rgba(212,175,55,0.15)] flex items-center justify-center gap-2 cursor-pointer"
                                   >
-                                    Disconnect
+                                    {isOAuthProcessing ? (
+                                      <>
+                                        <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                        Completing Secure Exchange...
+                                      </>
+                                    ) : (
+                                      "Connect via OAuth 2.0"
+                                    )}
                                   </button>
+                                </div>
+
+                                {oauthError && (
+                                  <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs leading-relaxed">
+                                    <strong>OAuth Error:</strong> {oauthError}
+                                  </div>
                                 )}
                               </div>
-                              <p className="text-[10px] text-neutral-500 leading-normal">
-                                Get your API token in Todoist under <span className="text-neutral-400 font-medium">Settings &gt; Integrations &gt; Developer</span>. It stays purely in your browser's local state and is used solely to authenticate your voice calls directly to Todoist.
-                              </p>
-                              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 text-[11px] text-amber-300/90 leading-relaxed space-y-1">
-                                <span className="font-bold text-amber-400 block uppercase tracking-wider text-[10px]">⚠️ Crucial Setup Tip:</span>
-                                <span>Do <strong>NOT</strong> create an integration app on <code className="bg-black/50 px-1 py-0.5 rounded text-amber-400">developer.todoist.com</code>. The Client ID and Client Secret from that page will not work here.</span>
-                                <span className="block mt-1">Instead, simply open your <strong>normal Todoist web/desktop app</strong>, click your avatar/profile icon, open <strong>Settings</strong>, go to the <strong>Integrations</strong> tab, click the <strong>Developer</strong> sub-tab, and copy your personal <strong>API token</strong>.</span>
+                            )}
+
+                            {/* Method B: Personal API Token */}
+                            {connectMethod === 'token' && (
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <label className="block text-xs font-mono text-amber-400 uppercase tracking-wider">
+                                    Todoist API Personal Access Token
+                                  </label>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="password"
+                                      placeholder="e.g. 4c3ef..."
+                                      value={todoistToken}
+                                      onChange={(e) => {
+                                        const val = e.target.value.trim();
+                                        setTodoistToken(val);
+                                        localStorage.setItem('todoist_token', val);
+                                        setConnectionTestStatus('idle');
+                                      }}
+                                      className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white font-mono placeholder-neutral-600 outline-none transition-colors"
+                                    />
+                                    {todoistToken && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setTodoistToken('');
+                                          localStorage.removeItem('todoist_token');
+                                          setConnectionTestStatus('idle');
+                                        }}
+                                        className="px-3 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 hover:border-red-500/40 text-red-400 rounded-xl text-xs font-mono transition-all cursor-pointer"
+                                      >
+                                        Disconnect
+                                      </button>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-neutral-500 leading-normal">
+                                    Get your API token in Todoist under <span className="text-neutral-400 font-medium">Settings &gt; Integrations &gt; Developer</span>. It stays purely in your browser's local state and is used solely to authenticate your voice calls directly to Todoist.
+                                  </p>
+                                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 text-[11px] text-amber-200/80 leading-relaxed space-y-1">
+                                    <span className="font-bold text-amber-400 block uppercase tracking-wider text-[10px]">⚠️ Crucial Setup Tip:</span>
+                                    <span>Do <strong>NOT</strong> create an integration app on <code className="bg-black/50 px-1 py-0.5 rounded text-amber-400">developer.todoist.com</code>. The Client ID and Client Secret from that page will not work here.</span>
+                                    <span className="block mt-1">Instead, simply open your <strong>normal Todoist web/desktop app</strong>, click your avatar/profile icon, open <strong>Settings</strong>, go to the <strong>Integrations</strong> tab, click the <strong>Developer</strong> sub-tab, and copy your personal <strong>API token</strong>.</span>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            )}
+
+                            {/* Connection Validation & Status Display */}
+                            {todoistToken && (
+                              <div className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">
+                                    Connection Health
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={connectionTestStatus === 'testing'}
+                                    onClick={() => handleTestConnection(todoistToken)}
+                                    className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded-lg text-[10px] font-mono transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                  >
+                                    {connectionTestStatus === 'testing' ? (
+                                      <>
+                                        <span className="w-2.5 h-2.5 border border-amber-400 border-t-transparent rounded-full animate-spin" />
+                                        Testing...
+                                      </>
+                                    ) : (
+                                      "Test Connection"
+                                    )}
+                                  </button>
+                                </div>
+
+                                {connectionTestStatus === 'success' && (
+                                  <div className="flex items-start gap-2 text-emerald-400 text-xs bg-emerald-950/20 border border-emerald-500/20 rounded-lg p-2.5 font-mono">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 animate-pulse shrink-0" />
+                                    <span>Verified! Your app can successfully read and write to your Todoist workspace.</span>
+                                  </div>
+                                )}
+
+                                {connectionTestStatus === 'error' && (
+                                  <div className="text-red-400 text-xs bg-red-950/20 border border-red-500/20 rounded-lg p-2.5 font-mono leading-normal">
+                                    <div className="font-bold uppercase tracking-wider text-[10px] mb-1">⚠️ Connection Refused:</div>
+                                    <span>{connectionTestError || "Todoist rejected the token. Make sure it is valid."}</span>
+                                  </div>
+                                )}
+
+                                {connectionTestStatus === 'idle' && (
+                                  <div className="text-neutral-500 text-xs font-mono italic">
+                                    Click "Test Connection" to check if your connected token is currently active.
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Locations List */}
                             <div className="space-y-4">

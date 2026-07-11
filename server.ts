@@ -31,9 +31,83 @@ async function startServer() {
   const server = http.createServer(app);
   const wss = new WebSocketServer({ noServer: true });
 
+  // Enable JSON request body parsing
+  app.use(express.json());
+
   // Standard API health endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", time: new Date().toISOString() });
+  });
+
+  // Secure Todoist OAuth 2.0 Code Exchange Proxy
+  app.post("/api/todoist/exchange", async (req, res) => {
+    try {
+      const { code, client_id, client_secret, redirect_uri } = req.body;
+      
+      if (!code || !client_id || !client_secret || !redirect_uri) {
+        return res.status(400).json({ error: "Missing required parameters (code, client_id, client_secret, or redirect_uri)" });
+      }
+
+      console.log(`[OAuthProxy] Exchanging code for token using Client ID: ${client_id}`);
+
+      const response = await fetch("https://todoist.com/oauth/access_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          client_id,
+          client_secret,
+          code,
+          redirect_uri
+        }).toString()
+      });
+
+      const data: any = await response.json();
+      
+      if (!response.ok) {
+        console.error("[OAuthProxy] Exchange failed from Todoist:", data);
+        return res.status(response.status).json({ error: data.error || "Failed to exchange code" });
+      }
+
+      console.log("[OAuthProxy] Access token retrieved successfully!");
+      return res.json(data);
+
+    } catch (err: any) {
+      console.error("[OAuthProxy] Error in proxy endpoint:", err);
+      return res.status(500).json({ error: err.message || "Internal server error during exchange" });
+    }
+  });
+
+  // Secure Todoist Connection Verification Test Endpoint
+  app.post("/api/todoist/test", async (req, res) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ error: "Missing Todoist API token to test" });
+      }
+      
+      console.log("[TodoistTest] Verifying connectivity for token...");
+      const response = await fetch("https://api.todoist.com/api/v1/projects", {
+        headers: { Authorization: `Bearer ${token.trim()}` }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        console.warn(`[TodoistTest] Token verification failed: ${response.statusText} (Status ${response.status})`);
+        return res.json({ 
+          success: false, 
+          error: `${response.statusText} (${response.status})${errorText ? ': ' + errorText : ''}` 
+        });
+      }
+      
+      const projects = await response.json();
+      console.log(`[TodoistTest] Verification successful. Retrieved ${projects.length} projects.`);
+      return res.json({ success: true, projects_count: projects.length });
+    } catch (err: any) {
+      console.error("[TodoistTest] Error validating token:", err);
+      return res.json({ success: false, error: err.message || "Connection failed unexpectedly" });
+    }
   });
 
   // Handle WebSocket upgrades for speech call
@@ -56,17 +130,24 @@ async function startServer() {
     if (!token) {
       throw new Error("Todoist API token is missing. Please connect your Todoist account.");
     }
+    const cleanToken = token.trim();
     
-    const projectsRes = await fetch("https://api.todoist.com/rest/v2/projects", {
-      headers: { Authorization: `Bearer ${token}` }
+    const projectsRes = await fetch("https://api.todoist.com/api/v1/projects", {
+      headers: { Authorization: `Bearer ${cleanToken}` }
     });
-    if (!projectsRes.ok) throw new Error(`Todoist projects fetch failed: ${projectsRes.statusText}`);
+    if (!projectsRes.ok) {
+      const errorText = await projectsRes.text().catch(() => "");
+      throw new Error(`Todoist projects fetch failed: ${projectsRes.statusText} (${projectsRes.status})${errorText ? ' - ' + errorText : ''}`);
+    }
     const projects = await projectsRes.json();
     
-    const tasksRes = await fetch("https://api.todoist.com/rest/v2/tasks", {
-      headers: { Authorization: `Bearer ${token}` }
+    const tasksRes = await fetch("https://api.todoist.com/api/v1/tasks", {
+      headers: { Authorization: `Bearer ${cleanToken}` }
     });
-    if (!tasksRes.ok) throw new Error(`Todoist tasks fetch failed: ${tasksRes.statusText}`);
+    if (!tasksRes.ok) {
+      const errorText = await tasksRes.text().catch(() => "");
+      throw new Error(`Todoist tasks fetch failed: ${tasksRes.statusText} (${tasksRes.status})${errorText ? ' - ' + errorText : ''}`);
+    }
     const tasks = await tasksRes.json();
     
     return {
@@ -86,12 +167,14 @@ async function startServer() {
     if (!token) {
       throw new Error("Todoist API token is missing. Please connect your Todoist account.");
     }
+    const cleanToken = token.trim();
     const tasksToAdd = args.tasks;
     if (!Array.isArray(tasksToAdd)) {
       throw new Error("Invalid arguments: 'tasks' must be an array.");
     }
     
     const createdTasks = [];
+    const errors = [];
     for (const task of tasksToAdd) {
       // Defensive ID check: Todoist IDs are strictly numeric strings.
       // Omit placeholder or non-numeric values (like "Inbox", "null", "undefined", or empty string)
@@ -117,10 +200,10 @@ async function startServer() {
 
       console.log("[LiveSpeech] Creating task in Todoist:", bodyPayload);
 
-      const response = await fetch("https://api.todoist.com/rest/v2/tasks", {
+      const response = await fetch("https://api.todoist.com/api/v1/tasks", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${cleanToken}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(bodyPayload)
@@ -128,7 +211,9 @@ async function startServer() {
       
       if (!response.ok) {
         const errorText = await response.text().catch(() => "");
-        console.error(`Failed to add task: ${task.content}`, response.statusText, errorText);
+        const errMsg = `Failed to add task "${task.content}": ${response.statusText} (Status ${response.status})${errorText ? ' - ' + errorText : ''}`;
+        console.error(errMsg);
+        errors.push(errMsg);
         continue;
       }
       
@@ -142,19 +227,32 @@ async function startServer() {
       });
     }
     
-    return { success: true, created_count: createdTasks.length, tasks: createdTasks };
+    if (createdTasks.length === 0 && errors.length > 0) {
+      return { success: false, error: errors.join("; "), created_count: 0, tasks: [] };
+    }
+    
+    return { 
+      success: true, 
+      created_count: createdTasks.length, 
+      tasks: createdTasks,
+      errors: errors.length > 0 ? errors : undefined
+    };
   }
 
   async function handleFindProjects(args: any, token: string | null) {
     if (!token) {
       throw new Error("Todoist API token is missing. Please connect your Todoist account.");
     }
+    const cleanToken = token.trim();
     const query = (args.query || "").toLowerCase();
     
-    const response = await fetch("https://api.todoist.com/rest/v2/projects", {
-      headers: { Authorization: `Bearer ${token}` }
+    const response = await fetch("https://api.todoist.com/api/v1/projects", {
+      headers: { Authorization: `Bearer ${cleanToken}` }
     });
-    if (!response.ok) throw new Error(`Todoist projects fetch failed: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Todoist projects fetch failed: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
+    }
     const projects = await response.json();
     
     const matches = projects
@@ -168,6 +266,7 @@ async function startServer() {
     if (!token) {
       throw new Error("Todoist API token is missing. Please connect your Todoist account.");
     }
+    const cleanToken = token.trim();
     const { task_id, project_id, parent_id } = args;
     if (!task_id) throw new Error("Missing 'task_id' parameter.");
     
@@ -179,10 +278,10 @@ async function startServer() {
       body.parent_id = parent_id;
     }
     
-    const response = await fetch(`https://api.todoist.com/rest/v2/tasks/${task_id}`, {
+    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${task_id}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(body)
@@ -190,7 +289,7 @@ async function startServer() {
     
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      throw new Error(`Failed to move/reorder task: ${response.statusText}. ${errorText}`);
+      throw new Error(`Failed to move/reorder task: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
     }
     
     const data = await response.json();
@@ -201,6 +300,7 @@ async function startServer() {
     if (!token) {
       throw new Error("Todoist API token is missing. Please connect your Todoist account.");
     }
+    const cleanToken = token.trim();
     const { task_text, location, trigger = "on_enter" } = args;
     if (!task_text) throw new Error("Missing 'task_text' parameter.");
     if (!location) throw new Error("Missing 'location' parameter.");
@@ -223,10 +323,10 @@ async function startServer() {
     }
     
     const description = `📍 Geofence Reminder: Trigger ${trigger} at ${resolvedName} (${lat}, ${lng}) with radius ${radius}m.`;
-    const taskResponse = await fetch("https://api.todoist.com/rest/v2/tasks", {
+    const taskResponse = await fetch("https://api.todoist.com/api/v1/tasks", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -237,7 +337,8 @@ async function startServer() {
     });
     
     if (!taskResponse.ok) {
-      throw new Error(`Failed to create task in Todoist: ${taskResponse.statusText}`);
+      const errorText = await taskResponse.text().catch(() => "");
+      throw new Error(`Failed to create task in Todoist: ${taskResponse.statusText} (${taskResponse.status})${errorText ? ' - ' + errorText : ''}`);
     }
     
     const createdTask = await taskResponse.json();
