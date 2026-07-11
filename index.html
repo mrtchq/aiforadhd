@@ -5,28 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI for ADHD Mastermind Group – Neurodivergent Productivity, Systems & Support</title>
     <meta name="description" content="Join AI for ADHD and learn simple AI, Todoist, and automation workflows for brain dumps, task paralysis, planning, routines, overwhelm, and getting unstuck. Join the AI for ADHD Mastermind Group designed for neurodivergent creators, entrepreneurs, and thinkers. Build ADHD‑friendly systems, learn automation tools, boost focus, and connect with a supportive community using AI to make life easier and more productive." />
-    <meta name="theme-color" content="#8d00ca" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#8d00ca" media="(prefers-color-scheme: dark)" />
-    <meta id="theme-color-meta" name="theme-color" content="#8d00ca" />
+    <meta name="theme-color" content="#8d00ca" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#8d00ca" media="(prefers-color-scheme: dark)">
+    <meta id="theme-color-meta" name="theme-color" content="#8d00ca">
     <script src="https://app.vocal.email/sdk/vocal-form.js"></script>
     <script>
       function updateThemeColor() {
         const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
         const themeColor = getComputedStyle(document.documentElement)
           .getPropertyValue(isDark ? '--theme-color-dark' : '--theme-color-light')
-          .trim() || '#8d00ca';
+          .trim();
+
         const meta = document.querySelector('#theme-color-meta');
         if (meta) {
-          meta.setAttribute('content', themeColor);
+          meta.setAttribute('content', themeColor || '#8d00ca');
         }
       }
-      // Run immediately & on load
+
+      // Run on load
       updateThemeColor();
-      window.addEventListener('DOMContentLoaded', updateThemeColor);
+
       // Listen for OS theme changes
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
+
       // Optional: If your site has a theme toggle button
       document.addEventListener('themechange', updateThemeColor);
+
       // Optional: If CSS variables change dynamically
       const observer = new MutationObserver(updateThemeColor);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
@@ -35,6 +40,7 @@
   <body class="bg-black text-gray-100 antialiased overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script src="https://app.contactbutton.com/script/9db5035be64433f500b1b9b2b49e05bf" async="async"></script>
   </body>
 </html>
 

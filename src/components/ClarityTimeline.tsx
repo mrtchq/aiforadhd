@@ -59,8 +59,7 @@ export default function ClarityTimeline() {
             Launch Roadmap
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-white tracking-tight">
-            Starting July 13th: <br />
-            <span className="text-gold-gradient font-black gold-glow-text">Three Weeks of C.L.A.R.I.T.Y.</span>
+            How we build <span className="text-gold-gradient font-black gold-glow-text">momentum</span>
           </h2>
           <p className="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto mt-4 leading-relaxed">
             A simple, shame-free launch series designed to help you move from scattered thoughts to practical AI-supported systems.

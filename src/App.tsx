@@ -1,13 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 
 // Subcomponents
 import InteractiveBrainLogo from './components/InteractiveBrainLogo';
 import TypingRotation from './components/TypingRotation';
-import CountdownTimer from './components/CountdownTimer';
-import WaitlistForm from './components/WaitlistForm';
 import CardGrid from './components/CardGrid';
 import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
@@ -206,9 +204,6 @@ export default function App() {
                 className="w-9 h-9 object-contain relative z-10 select-none drop-shadow-[0_0_8px_rgba(212,175,55,0.45)] group-hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.65)] group-hover:scale-110 transition-all duration-300"
               />
             </div>
-            <span className="font-display font-extrabold text-lg tracking-tight text-white flex items-center">
-              AI for <span className="text-gold-gradient gold-glow-text font-black pl-1">ADHD</span>
-            </span>
           </div>
 
           {/* Quick Header Badge */}
@@ -231,7 +226,7 @@ export default function App() {
       </header>
 
       {/* C. HERO SECTION */}
-      <section id="hero-section" className="relative pt-32 pb-24 px-6 md:pt-40 md:pb-32 z-10">
+      <section id="hero-section" className="relative pt-24 pb-8 px-6 md:pt-28 md:pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
           
           {/* 1. Core Visual Inspiration Brain Logo */}
@@ -241,13 +236,13 @@ export default function App() {
 
           {/* 2. Eyebrow */}
           <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-amber-400/90 mb-4 bg-amber-500/5 border border-amber-500/20 px-3.5 py-1 rounded-full shadow-[0_0_12px_rgba(212,175,55,0.05)]">
-            🚀 AI SYSTEMS FOR ADHD BRAINS
+            🚀 THE ADHD-AI DESTINY MASTERMIND
           </span>
 
           {/* 3. Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight text-white max-w-3xl leading-[1.1] mb-6">
-            Make ADHD Life Feel <br className="hidden sm:inline" />
-            <span className="text-gold-gradient font-black gold-glow-text">Less Chaotic</span> With AI
+            Where Your ADHD Brain <br className="hidden sm:inline" />
+            Finally Feels <span className="text-gold-gradient font-black gold-glow-text">At Home</span>
           </h1>
 
           {/* 4. Smooth Animated Typing Line below headline */}
@@ -257,24 +252,59 @@ export default function App() {
 
           {/* 5. Subheadline */}
           <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed mb-6">
-            Learn simple, beginner-friendly ways to use AI, Todoist, and automation to brain dump, plan your day, break down tasks, build routines, and get unstuck.
+            Embrace the one technology uniquely destined for the neurodivergent mind. Learn simple, beginner-friendly ways to use AI, Todoist, and automation to turn scattered thoughts into momentum.
           </p>
 
           {/* 6. Supporting compassionate line */}
-          <p className="text-neutral-500 text-xs sm:text-sm italic max-w-md mb-12 font-sans">
+          <p className="text-neutral-500 text-xs sm:text-sm italic max-w-md font-sans">
             "No tech background needed. No perfect routine required. No shame if you’ve started over a hundred times."
           </p>
 
-          {/* 7. Live Countdown Indicator */}
-          <div className="mb-14">
-            <CountdownTimer />
-          </div>
+        </div>
+      </section>
 
-          {/* 8. Waitlist Subscription Card */}
-          <div ref={waitlistRef} className="w-full scroll-mt-24">
-            <WaitlistForm />
+      {/* MAGICAL INTRO BANNER SECTION */}
+      <section className="py-12 px-6 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-neutral-950 via-neutral-900/60 to-neutral-950 border border-neutral-800/80 rounded-3xl p-8 sm:p-10 relative overflow-hidden shadow-2xl gold-glow">
+            {/* Ambient gold background glow */}
+            <div className="absolute -right-20 -top-20 w-60 h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            {/* Multi-color left border inspired by the brain logo */}
+            <div className="absolute top-0 bottom-0 left-0 w-[4px] bg-gradient-to-b from-blue-500 via-purple-500 via-pink-500 to-amber-500" />
+            
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+                <span className="text-xs font-mono font-bold tracking-wider text-amber-400 uppercase">
+                  A Quiet Movement Is Happening
+                </span>
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-tight leading-snug">
+                Barely days old, with <span className="text-amber-300 font-extrabold underline decoration-amber-500/30 underline-offset-4">zero posts</span> and no marketing, a private circle quietly attracted <span className="text-white font-extrabold">125+ neurodivergent minds</span> who showed up anyway.
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-gray-400 text-xs sm:text-sm leading-relaxed font-sans font-light">
+                <div className="space-y-3 border-r border-white/5 pr-0 md:pr-6">
+                  <p>
+                    <strong>Why?</strong> Because people like us can instantly feel when something is being built specifically for us—not to "fix" or "manage" us, but to <strong>unleash</strong> us. 
+                  </p>
+                  <p>
+                    This mastermind is that <em>deeper room</em>. The place where your ADHD stops being the daily barrier you fight and becomes the catalyst that lifts you.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <p>
+                    <strong>The ADHD-AI Destiny:</strong> For decades, traditional productivity has demanded rigid, linear logic from non-linear brains. It failed because it forced you to spend precious executive energy keeping lists tidy.
+                  </p>
+                  <p>
+                    But AI is different. It is a highly fluid, non-judgmental, responsive thinking partner. It excels at sorting raw mental chaos, ignoring the friction of start states, and bridging the gap between intention and action in real-time.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-
         </div>
       </section>
 
@@ -291,7 +321,7 @@ export default function App() {
       <BelongSection />
 
       {/* H. FINAL CALL-TO-ACTION (CTA) SECTION */}
-      <section id="final-cta-section" className="py-28 px-6 relative overflow-hidden bg-gradient-to-b from-black to-neutral-950">
+      <section id="final-cta-section" className="py-16 sm:py-20 px-6 relative overflow-hidden bg-gradient-to-b from-black to-neutral-950">
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
@@ -301,19 +331,21 @@ export default function App() {
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-white tracking-tight mb-4">
-            Start With <span className="text-gold-gradient font-black gold-glow-text">One Small Step</span>
+            Ready to <span className="text-gold-gradient font-black gold-glow-text">Unlock Clarity</span>?
           </h2>
 
-          <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-10">
-            Join the free waitlist and get practical AI for ADHD tutorials, prompts, workflows, and launch updates.
+          <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
+            Access the private member’s space for ADHD-friendly prompts, voice-memo organization workflows, and custom neural systems.
           </p>
 
-          <button
-            onClick={scrollToWaitlist}
-            className="bg-gold-gradient hover:opacity-90 active:scale-95 text-neutral-950 font-display font-bold py-4 px-8 rounded-xl shadow-[0_4px_20px_rgba(212,175,55,0.25)] inline-flex items-center gap-2 cursor-pointer transition-all duration-300"
-          >
-            Join the Free Waitlist
-          </button>
+          <div ref={waitlistRef} className="w-full scroll-mt-24">
+            <button
+              onClick={() => setCurrentView('portal')}
+              className="bg-gold-gradient hover:opacity-90 active:scale-95 text-neutral-950 font-display font-bold py-3.5 px-8 rounded-xl shadow-[0_4px_20px_rgba(212,175,55,0.25)] inline-flex items-center gap-2 cursor-pointer transition-all duration-300 text-sm sm:text-base"
+            >
+              Access Member's Portal <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </section>
 

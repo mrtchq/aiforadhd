@@ -83,11 +83,11 @@ export default function CardGrid() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold tracking-tight text-white mb-4">
-            Built for the Parts of Life That Feel <br className="hidden sm:inline" />
-            <span className="text-gold-gradient font-black gold-glow-text">Harder Than They Should</span>
+            A Mastermind Crafted for the <br className="hidden sm:inline" />
+            <span className="text-gold-gradient font-black gold-glow-text">Curious, and the Non-Technical</span>
           </h2>
-          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            AI for ADHD is designed to help you get thoughts, tasks, reminders, and decisions out of your head and into systems that can actually support you.
+          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-light">
+            You don't need to be technical. You don't need to be confident. You just need to show up. We build simple AI structures to handle the parts of life that feel harder than they should.
           </p>
         </div>
 

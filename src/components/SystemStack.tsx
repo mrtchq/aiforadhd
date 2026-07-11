@@ -70,10 +70,10 @@ export default function SystemStack() {
             The ADHD-Friendly Stack
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-white tracking-tight">
-            The <span className="text-gold-gradient font-black gold-glow-text">AI for ADHD</span> System
+            Destined to Be the One <span className="text-gold-gradient font-black gold-glow-text">Technology</span> We've Waited For
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto mt-3 leading-relaxed">
-            Four simple, deeply integrated components working in unison to build an indestructible container for your thoughts and tasks.
+          <p className="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto mt-3 leading-relaxed font-light">
+            Unlike rigid planners that demand massive executive effort just to organize, our core stack acts as a dynamic, non-judgmental thinking partner. It bends to fit your daily chaos and supports your execution in real-time.
           </p>
         </div>
 

@@ -110,9 +110,6 @@ export default function WaitlistForm() {
                 className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-amber-500/15 to-transparent skew-x-12"
               />
             </div>
-
-            {/* Subtle golden top border highlight */}
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-amber-500/80 to-transparent" />
             
             <div className="text-center mb-8">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 mb-3">
@@ -262,7 +259,7 @@ export default function WaitlistForm() {
               <ul className="text-xs text-gray-300 space-y-2 font-sans">
                 <li className="flex items-start gap-2">
                   <span className="text-amber-400 mt-0.5">✔</span>
-                  <span><strong>July 13th:</strong> The "Three Weeks of C.L.A.R.I.T.Y." series launches. Watch your inbox for your Day 1 guide.</span>
+                  <span><strong>The Momentum Series:</strong> Our simple, shame-free launch sequence starts immediately. Watch your inbox for your Day 1 guide.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-amber-400 mt-0.5">✔</span>
