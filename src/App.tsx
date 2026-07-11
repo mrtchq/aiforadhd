@@ -19,8 +19,7 @@ import ParallaxStars from './components/ParallaxStars';
 // Firebase helper
 import { initAuth, checkIsSignInLink, completeSignInWithLink } from './lib/firebase';
 
-// @ts-ignore
-import logoImg from './components/logo.png';
+const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png";
 
 interface StardustNode {
   id: number;
