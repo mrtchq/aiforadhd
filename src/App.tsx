@@ -219,7 +219,7 @@ export default function App() {
             </div>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 border border-amber-500/20 text-amber-300 shadow-[0_0_8px_rgba(212,175,55,0.15)]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              WAITLIST ACTIVE
+              STATUS: UNDER CONSTRUCTION
             </span>
             <button
               onClick={() => setCurrentView('portal')}
