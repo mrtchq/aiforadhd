@@ -446,7 +446,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             </button>
             <div className="flex items-center gap-2 select-none">
-              <span className="text-xs font-mono tracking-widest text-amber-500/80 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase">Exclusive Access</span>
               <span className="font-display font-extrabold text-sm sm:text-base text-white tracking-tight">
                 MEMBER'S <span className="text-gold-gradient font-black gold-glow-text">PORTAL</span>
               </span>
@@ -474,7 +473,7 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
               </div>
             ) : (
               <button 
-                onClick={handleLogin}
+                onClick={handleGoogleSignIn}
                 className="bg-gold-gradient text-neutral-950 font-display font-bold text-xs py-2 px-4 rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5" /> Sign In
@@ -509,32 +508,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                 Welcome to the inner circle. Authenticate to sync worksheets, download bespoke setups, and utilize real-time AI formatting tools designed to bypass executive friction.
               </p>
 
-              {/* Login Method Tab Switcher */}
-              <div className="grid grid-cols-2 gap-1.5 bg-neutral-900/60 p-1.5 rounded-xl border border-neutral-800/80 mb-6 max-w-md w-full">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('email-signup'); setError(null); }}
-                  className={`text-center py-2 px-1.5 rounded-lg text-xs font-bold font-display transition-all cursor-pointer ${
-                    authMode === 'email-signup' 
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm' 
-                      : 'text-neutral-400 hover:text-neutral-200'
-                  }`}
-                >
-                  Create Account
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('magic-link'); setError(null); setMagicLinkSent(false); }}
-                  className={`text-center py-2 px-1.5 rounded-lg text-xs font-bold font-display transition-all cursor-pointer ${
-                    authMode === 'magic-link' 
-                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm' 
-                      : 'text-neutral-400 hover:text-neutral-200'
-                  }`}
-                >
-                  ✨ Sign In (Magic Link)
-                </button>
-              </div>
-
               {/* Google Sign-In Option */}
               <div className="w-full max-w-md mb-6">
                 <button
@@ -554,12 +527,6 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                   
                   <span className="relative z-10 font-bold tracking-wide">Continue with Google</span>
                 </button>
-
-                <div className="relative flex py-3 items-center">
-                  <div className="flex-grow border-t border-neutral-800/60"></div>
-                  <span className="flex-shrink mx-4 text-[9px] text-neutral-500 font-display font-semibold uppercase tracking-wider">or continue with email</span>
-                  <div className="flex-grow border-t border-neutral-800/60"></div>
-                </div>
               </div>
 
               {error && (
@@ -602,144 +569,11 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
                       <li>Select <strong>Authorized domains</strong> from the list.</li>
                       <li>Click <strong>Add domain</strong>, paste the domain you copied above, and save.</li>
                     </ol>
-                    <p className="text-neutral-400 text-[10px] italic pt-1">
-                      💡 <strong>Alternative:</strong> You can also use the <strong>Email/Password Sign Up</strong> below, which does not require any domain registration and works instantly!
-                    </p>
                   </div>
                 </div>
               )}
 
-              {authMode === 'magic-link' ? (
-                /* High-fidelity Exclusive Magic Link Form */
-                <form onSubmit={handleSendMagicLink} className="w-full max-w-md bg-neutral-900/40 border border-neutral-800/80 p-6 rounded-2xl text-left shadow-[0_4px_30px_rgba(0,0,0,0.4)] animate-fadeIn">
-                  <h3 className="text-white font-display font-bold text-base mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4.5 h-4.5 text-amber-400" />
-                    <span>Passwordless Magic Sign In</span>
-                  </h3>
-                  <p className="text-neutral-400 text-xs leading-relaxed mb-4">
-                    Enter your email to receive an instant, zero-password sign-in link directly to your inbox. Easy on the brain, secure for the soul.
-                  </p>
-                  
-                  {magicLinkSent ? (
-                    <div className="bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs space-y-3 mb-6">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
-                        <div>
-                          <p className="font-bold font-display text-emerald-400">Magic Link Dispatched!</p>
-                          <p className="text-neutral-400 text-[11px] mt-0.5 leading-normal">
-                            Check your inbox at <span className="text-emerald-300 font-semibold font-mono">{email}</span> and click the link to sign in securely.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 mb-6">
-                      <div>
-                        <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5 font-display">Email Address</label>
-                        <input 
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="your.brain@gmail.com"
-                          className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-700 outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-                  )}
 
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {!magicLinkSent && (
-                      <button
-                        type="submit"
-                        disabled={isSendingLink}
-                        className="flex-1 bg-gold-gradient text-neutral-950 font-display font-bold py-2.5 px-4 rounded-xl hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs disabled:opacity-50 font-semibold"
-                      >
-                        {isSendingLink ? 'Dispatching...' : 'Send Magic Link'}
-                      </button>
-                    )}
-                    
-                    {magicLinkSent && (
-                      <button
-                        type="button"
-                        onClick={() => setMagicLinkSent(false)}
-                        className="flex-1 bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 text-neutral-300 font-display font-bold py-2.5 px-4 rounded-xl transition-all text-xs cursor-pointer text-center"
-                      >
-                        Send to a different email
-                      </button>
-                    )}
-                  </div>
-                </form>
-              ) : (
-                /* High-fidelity Exclusive Email & Password Form */
-                <form onSubmit={handleEmailAuthSubmit} className="w-full max-w-md bg-neutral-900/40 border border-neutral-800/80 p-6 rounded-2xl text-left shadow-[0_4px_30px_rgba(0,0,0,0.4)] animate-fadeIn">
-                  <h3 className="text-white font-display font-bold text-base mb-4 flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-amber-400" />
-                    <span>Create Premium Email Account</span>
-                  </h3>
-                  
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5 font-display">Email Address</label>
-                      <input 
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="your.brain@gmail.com"
-                        className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-700 outline-none transition-all"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5 font-display">Confirm Email Address</label>
-                      <input 
-                        type="email"
-                        required
-                        value={confirmEmail}
-                        onChange={(e) => setConfirmEmail(e.target.value)}
-                        placeholder="your.brain@gmail.com"
-                        className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-700 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5 font-display">Password</label>
-                      <input 
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-700 outline-none transition-all"
-                      />
-                      <p className="text-[10px] text-neutral-500 mt-1">Min 6 characters. Shhh... keep it safe!</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1.5 font-display">Confirm Password</label>
-                      <input 
-                        type="password"
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-neutral-700 outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      type="submit"
-                      disabled={isLoggingIn}
-                      className="flex-1 bg-gold-gradient text-neutral-950 font-display font-bold py-2.5 px-4 rounded-xl hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs disabled:opacity-50 font-semibold"
-                    >
-                      {isLoggingIn ? 'Verifying...' : 'Create Account'}
-                    </button>
-                  </div>
-                </form>
-              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 w-full text-left">
                 <div className="bg-neutral-900/40 border border-neutral-800/80 p-4 rounded-xl">
