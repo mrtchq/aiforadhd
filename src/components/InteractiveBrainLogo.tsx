@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png";
+const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png";
 
 interface BrainNode {
   id: number;

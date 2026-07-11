@@ -30,6 +30,7 @@ import {
 import { User as FirebaseUser } from 'firebase/auth';
 import { googleSignIn, logout, getAccessToken, emailSignUp, sendPasswordlessSignInLink, checkIsSignInLink, completeSignInWithLink } from '../lib/firebase';
 import ParallaxStars from './ParallaxStars';
+import Celebration from './Celebration';
 
 interface MembersPortalProps {
   onBack: () => void;
@@ -104,6 +105,14 @@ export default function MembersPortal({
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  useEffect(() => {
+    if (magicLinkMessage && magicLinkMessage.type === 'success') {
+      setShowCelebration(true);
+    }
+  }, [magicLinkMessage]);
+
   const handleLogin = () => {
     setAuthMode('magic-link');
     setError(null);
@@ -142,6 +151,7 @@ export default function MembersPortal({
         message: "Welcome! Your ADHD VIP account has been successfully created. Subsequent logins will send a magic link.",
         type: "success"
       });
+      setShowCelebration(true);
       onLoginSuccess(loggedUser, 'local-session');
     } catch (err: any) {
       console.error('Email Auth Error:', err);
@@ -170,6 +180,7 @@ export default function MembersPortal({
     try {
       const result = await googleSignIn();
       if (result) {
+        setShowCelebration(true);
         onLoginSuccess(result.user, result.accessToken);
         setDriveNotification({
           message: "Signed in successfully with Google!",
@@ -429,6 +440,9 @@ Keep the tone energetic, playful, and focused on momentum rather than perfection
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col relative overflow-hidden">
+      {/* Subtle Celebratory Workspace Unlocked Micro-animation */}
+      <Celebration isVisible={showCelebration} onComplete={() => setShowCelebration(false)} />
+
       {/* Infinite CSS Parallax Scrolling Stars Background */}
       <ParallaxStars />
 
