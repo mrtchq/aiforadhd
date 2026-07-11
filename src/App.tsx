@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
@@ -12,15 +12,15 @@ import CardGrid from './components/CardGrid';
 import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
 import BelongSection from './components/BelongSection';
+import MembersPortal from './components/MembersPortal';
 import LegalModals from './components/LegalModals';
-
-const MembersPortal = lazy(() => import('./components/MembersPortal'));
+import ParallaxStars from './components/ParallaxStars';
 
 // Firebase helper
-import { initAuth } from './lib/firebase';
+import { initAuth, checkIsSignInLink, completeSignInWithLink } from './lib/firebase';
 
 // @ts-ignore
-const logoImg = 'https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png';
+import logoImg from './components/logo.png';
 
 interface StardustNode {
   id: number;
@@ -40,7 +40,7 @@ export default function App() {
   // Auth state shared with portal
   const [user, setUser] = useState<any>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-
+  const [magicLinkMessage, setMagicLinkMessage] = useState<{ text: string; type: 'success' | 'error' | 'loading' } | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
 
   // Initialize Auth listener
@@ -60,7 +60,46 @@ export default function App() {
     };
   }, []);
 
-
+  // Check for Passwordless Magic Sign-In Link on Mount
+  useEffect(() => {
+    const handlePasswordlessLink = async () => {
+      if (checkIsSignInLink(window.location.href)) {
+        setCurrentView('portal'); // Take them directly to the portal view
+        setMagicLinkMessage({ text: 'Processing your magic sign-in link...', type: 'loading' });
+        
+        let email = window.localStorage.getItem('emailForSignIn') || new URL(window.location.href).searchParams.get('email');
+        
+        if (!email) {
+          const userEmailInput = window.prompt("To complete secure passwordless sign-in, please confirm your email address:");
+          if (userEmailInput) {
+            email = userEmailInput.trim();
+          } else {
+            setMagicLinkMessage({ text: "Email confirmation is required to complete passwordless sign-in.", type: 'error' });
+            return;
+          }
+        }
+        
+        try {
+          const loggedUser = await completeSignInWithLink(email, window.location.href);
+          setUser(loggedUser);
+          setAccessToken('local-session');
+          setMagicLinkMessage({ text: "Unlocking workspace... Welcome to your private elite capsule!", type: 'success' });
+          
+          // Clear query params elegantly from the browser address bar without reload
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (err: any) {
+          console.error("Failed to complete passwordless sign-in", err);
+          setMagicLinkMessage({ 
+            text: err.message || "Failed to complete passwordless login. The link may have expired or was already used.", 
+            type: 'error' 
+          });
+        }
+      }
+    };
+    
+    handlePasswordlessLink();
+  }, []);
 
   // Scroll to waitlist target
   const scrollToWaitlist = () => {
@@ -99,22 +138,21 @@ export default function App() {
 
   if (currentView === 'portal') {
     return (
-      <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading portal...</div>}>
-        <MembersPortal
-          onBack={() => setCurrentView('landing')}
-          user={user}
-          accessToken={accessToken}
-
-          onLoginSuccess={(u, t) => {
-            setUser(u);
-            setAccessToken(t);
-          }}
-          onLogoutSuccess={() => {
-            setUser(null);
-            setAccessToken(null);
-          }}
-        />
-      </Suspense>
+      <MembersPortal
+        onBack={() => setCurrentView('landing')}
+        user={user}
+        accessToken={accessToken}
+        magicLinkMessage={magicLinkMessage}
+        clearMagicLinkMessage={() => setMagicLinkMessage(null)}
+        onLoginSuccess={(u, t) => {
+          setUser(u);
+          setAccessToken(t);
+        }}
+        onLogoutSuccess={() => {
+          setUser(null);
+          setAccessToken(null);
+        }}
+      />
     );
   }
 
@@ -126,22 +164,9 @@ export default function App() {
 
       {/* A. Animated Stars/Stardust Layer (ADHD-friendly, calm visual depth) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {stardust.map((star) => (
-          <div
-            key={star.id}
-            className="absolute rounded-full bg-amber-400/40"
-            style={{
-              top: star.top,
-              left: star.left,
-              width: star.size,
-              height: star.size,
-              boxShadow: '0 0 6px rgba(212,175,55,0.3)',
-              animation: `float-around ${star.duration} infinite ease-in-out`,
-              animationDelay: star.delay,
-              opacity: 0.5,
-            }}
-          />
-        ))}
+        {/* Infinite CSS Parallax Scrolling Stars (Small, Medium, Big) */}
+        <ParallaxStars />
+
         {/* Immersive Theme: Golden central halo aura */}
         <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 0%, transparent 70%)' }}></div>
         {/* Soft rotating gradients representing background light movement */}
@@ -293,23 +318,38 @@ export default function App() {
         </div>
       </section>
 
-      <section className="py-20 px-6 bg-neutral-950 border-t border-white/5 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/20 mb-4">
-              Audio Support
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight mb-3">
-              Prefer to say it out loud?
-            </h2>
-            <p className="text-sm sm:text-base text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-              We accept support requests, feedback, and suggestions via audio for anyone who would rather verbally explain a message instead of writing it out.
-              Leave a voice note when typing feels like one more obstacle — we’ll still get the message.
+      {/* VOCAL SUPPORT WIDGET SECTION */}
+      <section id="vocal-support" className="py-20 px-6 relative overflow-hidden bg-black/40 border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(212,175,55,0.03),transparent_50%)]" />
+        <div className="max-w-3xl mx-auto relative z-10 text-center space-y-8">
+          {/* Header on top */}
+          <div className="max-w-2xl mx-auto space-y-4">
+            <div className="inline-block">
+              <span className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+                🧠 ADHD-Friendly Support
+              </span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+              Prefer Speaking Over Typing?
+            </h3>
+            <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
+              Writing out emails or typing long paragraphs can feel exhausting when your brain is already working overtime. We understand.
+            </p>
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
+              If you prefer to verbally detail your support requests, feedback, or custom suggestions, just use the audio recorder below to speak directly to us. No typing or layout pressure required.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-amber-500/15 bg-black/60 p-4 sm:p-6 shadow-[0_0_40px_rgba(212,175,55,0.06)]">
-            <vocal-form code="61716902464373899"></vocal-form>
+          {/* Widget below */}
+          <div className="max-w-xl mx-auto bg-neutral-950/60 border border-neutral-900 rounded-2xl p-6 sm:p-8 shadow-2xl relative">
+            <div 
+              className="w-full flex items-center justify-center text-center"
+              dangerouslySetInnerHTML={{ __html: '<vocal-form code="61716902464373899"></vocal-form>' }} 
+            />
+            <div className="flex items-center justify-center gap-2 text-neutral-500 text-[10px] font-mono mt-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>Audio Support Active — Click microphone to begin</span>
+            </div>
           </div>
         </div>
       </section>

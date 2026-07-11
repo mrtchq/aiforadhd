@@ -2,7 +2,6 @@ node_modules/
 build/
 dist/
 coverage/
-.netlify/
 .DS_Store
 *.log
 .env*
