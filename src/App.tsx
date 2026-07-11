@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { lazy, Suspense, useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
@@ -12,14 +12,15 @@ import CardGrid from './components/CardGrid';
 import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
 import BelongSection from './components/BelongSection';
-import MembersPortal from './components/MembersPortal';
 import LegalModals from './components/LegalModals';
 
+const MembersPortal = lazy(() => import('./components/MembersPortal'));
+
 // Firebase helper
-import { initAuth, checkIsSignInLink, completeSignInWithLink } from './lib/firebase';
+import { initAuth } from './lib/firebase';
 
 // @ts-ignore
-import logoImg from './components/logo.png';
+const logoImg = 'https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png';
 
 interface StardustNode {
   id: number;
@@ -39,7 +40,7 @@ export default function App() {
   // Auth state shared with portal
   const [user, setUser] = useState<any>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [magicLinkMessage, setMagicLinkMessage] = useState<{ text: string; type: 'success' | 'error' | 'loading' } | null>(null);
+
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
 
   // Initialize Auth listener
@@ -59,46 +60,7 @@ export default function App() {
     };
   }, []);
 
-  // Check for Passwordless Magic Sign-In Link on Mount
-  useEffect(() => {
-    const handlePasswordlessLink = async () => {
-      if (checkIsSignInLink(window.location.href)) {
-        setCurrentView('portal'); // Take them directly to the portal view
-        setMagicLinkMessage({ text: 'Processing your magic sign-in link...', type: 'loading' });
-        
-        let email = window.localStorage.getItem('emailForSignIn') || new URL(window.location.href).searchParams.get('email');
-        
-        if (!email) {
-          const userEmailInput = window.prompt("To complete secure passwordless sign-in, please confirm your email address:");
-          if (userEmailInput) {
-            email = userEmailInput.trim();
-          } else {
-            setMagicLinkMessage({ text: "Email confirmation is required to complete passwordless sign-in.", type: 'error' });
-            return;
-          }
-        }
-        
-        try {
-          const loggedUser = await completeSignInWithLink(email, window.location.href);
-          setUser(loggedUser);
-          setAccessToken('local-session');
-          setMagicLinkMessage({ text: "Unlocking workspace... Welcome to your private elite capsule!", type: 'success' });
-          
-          // Clear query params elegantly from the browser address bar without reload
-          const cleanUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-        } catch (err: any) {
-          console.error("Failed to complete passwordless sign-in", err);
-          setMagicLinkMessage({ 
-            text: err.message || "Failed to complete passwordless login. The link may have expired or was already used.", 
-            type: 'error' 
-          });
-        }
-      }
-    };
-    
-    handlePasswordlessLink();
-  }, []);
+
 
   // Scroll to waitlist target
   const scrollToWaitlist = () => {
@@ -137,21 +99,22 @@ export default function App() {
 
   if (currentView === 'portal') {
     return (
-      <MembersPortal
-        onBack={() => setCurrentView('landing')}
-        user={user}
-        accessToken={accessToken}
-        magicLinkMessage={magicLinkMessage}
-        clearMagicLinkMessage={() => setMagicLinkMessage(null)}
-        onLoginSuccess={(u, t) => {
-          setUser(u);
-          setAccessToken(t);
-        }}
-        onLogoutSuccess={() => {
-          setUser(null);
-          setAccessToken(null);
-        }}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading portal...</div>}>
+        <MembersPortal
+          onBack={() => setCurrentView('landing')}
+          user={user}
+          accessToken={accessToken}
+
+          onLoginSuccess={(u, t) => {
+            setUser(u);
+            setAccessToken(t);
+          }}
+          onLogoutSuccess={() => {
+            setUser(null);
+            setAccessToken(null);
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -327,6 +290,27 @@ export default function App() {
           >
             Join the Free Waitlist
           </button>
+        </div>
+      </section>
+
+      <section className="py-20 px-6 bg-neutral-950 border-t border-white/5 relative z-10">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest text-amber-300 bg-amber-500/10 border border-amber-500/20 mb-4">
+              Audio Support
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight mb-3">
+              Prefer to say it out loud?
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+              We accept support requests, feedback, and suggestions via audio for anyone who would rather verbally explain a message instead of writing it out.
+              Leave a voice note when typing feels like one more obstacle — we’ll still get the message.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-500/15 bg-black/60 p-4 sm:p-6 shadow-[0_0_40px_rgba(212,175,55,0.06)]">
+            <vocal-form code="61716902464373899"></vocal-form>
+          </div>
         </div>
       </section>
 

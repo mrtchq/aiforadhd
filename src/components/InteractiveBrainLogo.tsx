@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 // @ts-ignore
-import logoImg from './logo.png';
+const logoImg = 'https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png';
 
 interface BrainNode {
   id: number;
