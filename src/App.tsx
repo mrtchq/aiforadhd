@@ -26,9 +26,7 @@ import {
 // Subcomponents
 import InteractiveBrainLogo from './components/InteractiveBrainLogo';
 import TypingRotation from './components/TypingRotation';
-import CardGrid from './components/CardGrid';
-import SystemStack from './components/SystemStack';
-import ClarityTimeline from './components/ClarityTimeline';
+
 import BelongSection from './components/BelongSection';
 import LegalModals from './components/LegalModals';
 import ParallaxStars from './components/ParallaxStars';
@@ -992,9 +990,6 @@ export default function App() {
 
           </div>
 
-          {/* Core visual card grid containing hacks */}
-          <CardGrid />
-
         </div>
       </section>
 
@@ -1041,8 +1036,6 @@ export default function App() {
             </div>
           </div>
 
-          <ClarityTimeline />
-
         </div>
       </section>
 
@@ -1086,8 +1079,6 @@ export default function App() {
             </div>
 
           </div>
-
-          <SystemStack />
 
         </div>
       </section>
