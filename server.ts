@@ -5,8 +5,84 @@ import { WebSocketServer, WebSocket } from "ws";
 import { GoogleGenAI, LiveServerMessage, Modality, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import crypto from "crypto";
+import fs from "fs";
 
 dotenv.config();
+
+// Usage limit configuration
+const ANONYMOUS_DAILY_SECONDS = 300;
+
+interface UsageRecord {
+  usedSeconds: number;
+  lastActive: number; // Unix timestamp
+  resetAt: string;    // ISO timestamp
+  activeSessionId?: string;
+  sessionStart?: number;
+}
+
+const USAGE_FILE = path.join(process.cwd(), "usage_db.json");
+let usageStore: Record<string, UsageRecord> = {};
+
+function loadUsageStore() {
+  try {
+    if (fs.existsSync(USAGE_FILE)) {
+      usageStore = JSON.parse(fs.readFileSync(USAGE_FILE, "utf-8"));
+      console.log(`[UsageDB] Loaded ${Object.keys(usageStore).length} usage records.`);
+    }
+  } catch (err) {
+    console.error("[UsageDB] Failed to load usage store, starting fresh:", err);
+    usageStore = {};
+  }
+}
+
+function saveUsageStore() {
+  try {
+    fs.writeFileSync(USAGE_FILE, JSON.stringify(usageStore, null, 2), "utf-8");
+  } catch (err) {
+    console.error("[UsageDB] Failed to save usage store:", err);
+  }
+}
+
+// Load usage database at startup
+loadUsageStore();
+
+function getNextResetTime(): Date {
+  const reset = new Date();
+  reset.setHours(24, 0, 0, 0); // Next midnight local/system time
+  return reset;
+}
+
+function getOrCreateVisitorId(req: any, res: any): string {
+  const cookieHeader = req.headers.cookie || "";
+  const match = cookieHeader.match(/quill_anon_id=([^;]+)/);
+  let anonId = match ? match[1] : null;
+
+  if (!anonId) {
+    anonId = "anon_" + crypto.randomBytes(16).toString("hex");
+    const maxAge = 365 * 24 * 60 * 60; // 1 year
+    const secureFlag = process.env.NODE_ENV === "production" ? "Secure;" : "";
+    res.setHeader(
+      "Set-Cookie",
+      `quill_anon_id=${anonId}; Max-Age=${maxAge}; Path=/; HttpOnly; ${secureFlag} SameSite=Lax`
+    );
+    console.log(`[Auth] Issued new anonymous ID: ${anonId}`);
+  }
+  return anonId;
+}
+
+function hashId(id: string): string {
+  return crypto.createHash("sha256").update(id).digest("hex");
+}
+
+function findRecordBySessionId(sessionId: string): { hashed: string; record: UsageRecord } | null {
+  for (const [hashed, record] of Object.entries(usageStore)) {
+    if (record.activeSessionId === sessionId) {
+      return { hashed, record };
+    }
+  }
+  return null;
+}
 
 // Lazy-initialization of Gemini client
 function getGeminiClient() {
@@ -37,6 +113,188 @@ async function startServer() {
   // Standard API health endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", time: new Date().toISOString() });
+  });
+
+  // Server-authoritative Quill usage and entitlement routes
+  app.get("/api/quill/entitlement", (req, res) => {
+    try {
+      const anonId = getOrCreateVisitorId(req, res);
+      const hashed = hashId(anonId);
+      
+      const now = new Date();
+      let record = usageStore[hashed];
+      const nextReset = getNextResetTime();
+      
+      if (!record || new Date(record.resetAt) <= now) {
+        record = {
+          usedSeconds: 0,
+          lastActive: Date.now(),
+          resetAt: nextReset.toISOString(),
+        };
+        usageStore[hashed] = record;
+        saveUsageStore();
+      }
+      
+      const remainingSeconds = Math.max(0, ANONYMOUS_DAILY_SECONDS - record.usedSeconds);
+      
+      res.json({
+        allowed: remainingSeconds > 0,
+        remainingSeconds,
+        dailyLimitSeconds: ANONYMOUS_DAILY_SECONDS,
+        usedSeconds: record.usedSeconds,
+        resetAt: record.resetAt,
+        accessType: "anonymous_beta",
+        reason: remainingSeconds > 0 ? null : "daily_limit_exhausted"
+      });
+    } catch (err: any) {
+      console.error("[Entitlement] Error processing entitlement:", err);
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
+  });
+
+  app.post("/api/quill/session/start", (req, res) => {
+    try {
+      const anonId = getOrCreateVisitorId(req, res);
+      const hashed = hashId(anonId);
+      
+      const now = new Date();
+      let record = usageStore[hashed];
+      const nextReset = getNextResetTime();
+      
+      if (!record || new Date(record.resetAt) <= now) {
+        record = {
+          usedSeconds: 0,
+          lastActive: Date.now(),
+          resetAt: nextReset.toISOString(),
+        };
+        usageStore[hashed] = record;
+      }
+      
+      const remainingSeconds = Math.max(0, ANONYMOUS_DAILY_SECONDS - record.usedSeconds);
+      if (remainingSeconds <= 0) {
+        return res.status(403).json({ error: "Daily allowance exhausted", resetAt: record.resetAt });
+      }
+      
+      // Check for an active session. Expire stale sessions (no heartbeat for > 30 seconds)
+      const heartbeatTimeout = 30000;
+      if (record.activeSessionId && record.lastActive && (Date.now() - record.lastActive < heartbeatTimeout)) {
+        return res.status(409).json({ error: "Duplicate active session detected in another tab." });
+      }
+      
+      const sessionId = "sess_" + crypto.randomBytes(12).toString("hex");
+      record.activeSessionId = sessionId;
+      record.sessionStart = Date.now();
+      record.lastActive = Date.now();
+      usageStore[hashed] = record;
+      saveUsageStore();
+      
+      res.json({
+        sessionId,
+        remainingSeconds,
+        resetAt: record.resetAt
+      });
+    } catch (err: any) {
+      console.error("[SessionStart] Error starting session:", err);
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
+  });
+
+  app.post("/api/quill/session/heartbeat", (req, res) => {
+    try {
+      const anonId = getOrCreateVisitorId(req, res);
+      const hashed = hashId(anonId);
+      const { sessionId } = req.body;
+      
+      let record = usageStore[hashed];
+      if (!record || record.activeSessionId !== sessionId) {
+        return res.status(400).json({ error: "Invalid or inactive session." });
+      }
+      
+      const now = Date.now();
+      const elapsedMs = now - (record.lastActive || now);
+      const elapsedSeconds = Math.round(elapsedMs / 1000);
+      
+      if (elapsedSeconds > 0) {
+        record.usedSeconds = Math.min(ANONYMOUS_DAILY_SECONDS, record.usedSeconds + elapsedSeconds);
+      }
+      record.lastActive = now;
+      usageStore[hashed] = record;
+      saveUsageStore();
+      
+      const remainingSeconds = Math.max(0, ANONYMOUS_DAILY_SECONDS - record.usedSeconds);
+      
+      res.json({
+        remainingSeconds,
+        usedSeconds: record.usedSeconds,
+        resetAt: record.resetAt,
+        sessionActive: remainingSeconds > 0
+      });
+    } catch (err: any) {
+      console.error("[Heartbeat] Error processing heartbeat:", err);
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
+  });
+
+  app.post("/api/quill/session/end", (req, res) => {
+    try {
+      const anonId = getOrCreateVisitorId(req, res);
+      const hashed = hashId(anonId);
+      const { sessionId } = req.body;
+      
+      let record = usageStore[hashed];
+      if (record && record.activeSessionId === sessionId) {
+        const now = Date.now();
+        const elapsedMs = now - (record.lastActive || now);
+        const elapsedSeconds = Math.round(elapsedMs / 1000);
+        
+        if (elapsedSeconds > 0) {
+          record.usedSeconds = Math.min(ANONYMOUS_DAILY_SECONDS, record.usedSeconds + elapsedSeconds);
+        }
+        record.activeSessionId = undefined;
+        record.sessionStart = undefined;
+        record.lastActive = Date.now();
+        usageStore[hashed] = record;
+        saveUsageStore();
+      }
+      
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[SessionEnd] Error ending session:", err);
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
+  });
+
+  app.post("/api/quill/feedback", (req, res) => {
+    try {
+      const { rating, feedbackText, sessionId } = req.body;
+      const FEEDBACK_FILE = path.join(process.cwd(), "feedback_db.json");
+      
+      let feedbackList = [];
+      if (fs.existsSync(FEEDBACK_FILE)) {
+        try {
+          feedbackList = JSON.parse(fs.readFileSync(FEEDBACK_FILE, "utf-8"));
+        } catch (e) {
+          feedbackList = [];
+        }
+      }
+      
+      const entry = {
+        id: "feed_" + crypto.randomBytes(8).toString("hex"),
+        rating,
+        feedbackText,
+        sessionId,
+        timestamp: new Date().toISOString()
+      };
+      
+      feedbackList.push(entry);
+      fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(feedbackList, null, 2), "utf-8");
+      console.log(`[Feedback] Saved feedback:`, entry);
+      
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[Feedback] Error saving feedback:", err);
+      res.status(500).json({ error: err.message || "Internal server error" });
+    }
   });
 
   // Secure Todoist OAuth 2.0 Code Exchange Proxy
@@ -101,7 +359,17 @@ async function startServer() {
         });
       }
       
-      const projects = await response.json();
+      const rawText = await response.text().catch(() => "");
+      let projects;
+      try {
+        projects = JSON.parse(rawText);
+      } catch (e: any) {
+        throw new Error(`Invalid response: Failed to parse JSON from Todoist. Raw: ${rawText.substring(0, 500)}`);
+      }
+      
+      if (!Array.isArray(projects)) {
+        throw new Error(`Invalid response: Expected an array of projects from Todoist. Got type: ${typeof projects}, Raw response: ${rawText.substring(0, 500)}`);
+      }
       console.log(`[TodoistTest] Verification successful. Retrieved ${projects.length} projects.`);
       return res.json({ success: true, projects_count: projects.length });
     } catch (err: any) {
@@ -112,15 +380,20 @@ async function startServer() {
 
   // Handle WebSocket upgrades for speech call
   server.on("upgrade", (request, socket, head) => {
-    const parsedUrl = new URL(request.url || "", `http://${request.headers.host}`);
-    const pathname = parsedUrl.pathname;
+    const rawUrl = request.url || "";
+    const pathname = rawUrl.split("?")[0];
+    console.log(`[Upgrade] Upgrade request received. Pathname: "${pathname}", Full URL: "${rawUrl}"`);
     
     if (pathname === "/api/live-ws") {
+      console.log("[Upgrade] Matching /api/live-ws. Upgrading socket connection...");
       wss.handleUpgrade(request, socket, head, (ws) => {
+        console.log("[Upgrade] Socket upgraded successfully. Emitting connection event.");
         wss.emit("connection", ws, request);
       });
     } else {
-      socket.destroy();
+      // Allow other middlewares or handlers (like Vite dev server HMR) to upgrade their own connections.
+      // Do not destroy the socket here.
+      console.log(`[Upgrade] Non-matching path "${pathname}". Skipping upgrade to let other services handle it.`);
     }
   });
 
@@ -139,7 +412,16 @@ async function startServer() {
       const errorText = await projectsRes.text().catch(() => "");
       throw new Error(`Todoist projects fetch failed: ${projectsRes.statusText} (${projectsRes.status})${errorText ? ' - ' + errorText : ''}`);
     }
-    const projects = await projectsRes.json();
+    const rawProjects = await projectsRes.text().catch(() => "");
+    let projects;
+    try {
+      projects = JSON.parse(rawProjects);
+    } catch (e: any) {
+      throw new Error(`Todoist projects JSON parse failed. Raw: ${rawProjects.substring(0, 500)}`);
+    }
+    if (!Array.isArray(projects)) {
+      throw new Error(`Invalid response: Expected projects array, got: ${rawProjects.substring(0, 500)}`);
+    }
     
     const tasksRes = await fetch("https://api.todoist.com/api/v1/tasks", {
       headers: { Authorization: `Bearer ${cleanToken}` }
@@ -149,6 +431,9 @@ async function startServer() {
       throw new Error(`Todoist tasks fetch failed: ${tasksRes.statusText} (${tasksRes.status})${errorText ? ' - ' + errorText : ''}`);
     }
     const tasks = await tasksRes.json();
+    if (!Array.isArray(tasks)) {
+      throw new Error(`Invalid response: Expected tasks array, got: ${JSON.stringify(tasks)}`);
+    }
     
     return {
       projects: projects.map((p: any) => ({ id: p.id, name: p.name })),
@@ -254,9 +539,12 @@ async function startServer() {
       throw new Error(`Todoist projects fetch failed: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
     }
     const projects = await response.json();
+    if (!Array.isArray(projects)) {
+      throw new Error(`Invalid response: Expected projects array, got: ${JSON.stringify(projects)}`);
+    }
     
     const matches = projects
-      .filter((p: any) => p.name.toLowerCase().includes(query))
+      .filter((p: any) => p.name && p.name.toLowerCase().includes(query))
       .map((p: any) => ({ id: p.id, name: p.name }));
       
     return { matches };
@@ -366,10 +654,38 @@ async function startServer() {
     console.log("[LiveSpeech] New client connected to speech socket");
 
     let session: any = null;
+    let maxDurationTimer: NodeJS.Timeout | null = null;
+    let sessionId: string | null = null;
 
     try {
       // Parse the connection URL query parameters to retrieve user credentials and config safely inside try-catch
       const parsedUrl = new URL(request.url || "", "http://localhost");
+      
+      sessionId = parsedUrl.searchParams.get("sessionId");
+      if (!sessionId) {
+        throw new Error("Missing sessionId parameter for voice call authorization.");
+      }
+      const sessionData = findRecordBySessionId(sessionId);
+      if (!sessionData) {
+        throw new Error("Invalid or inactive voice call session.");
+      }
+      const { hashed, record } = sessionData;
+      const remainingSeconds = Math.max(0, ANONYMOUS_DAILY_SECONDS - record.usedSeconds);
+      if (remainingSeconds <= 0) {
+        throw new Error("Your daily allowance has been fully used.");
+      }
+
+      console.log(`[LiveSpeech] Session ${sessionId} authorized. Remaining time: ${remainingSeconds}s`);
+
+      // Set a maximum duration timer for the call to enforce the strict 5-minute quota
+      maxDurationTimer = setTimeout(() => {
+        console.log(`[LiveSpeech] Daily limit reached for session ${sessionId}. Closing socket.`);
+        try {
+          clientWs.send(JSON.stringify({ error: "Daily limit reached. Call ended." }));
+          clientWs.close();
+        } catch (err) {}
+      }, remainingSeconds * 1000);
+
       const todoistToken = parsedUrl.searchParams.get("todoist_token");
       const rawLocations = parsedUrl.searchParams.get("locations");
       
@@ -570,6 +886,10 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
       clientWs.on("message", (rawData) => {
         try {
           const parsed = JSON.parse(rawData.toString());
+          if (parsed.type === "ping" || parsed.ping) {
+            clientWs.send(JSON.stringify({ type: "pong" }));
+            return;
+          }
           if (parsed.audio && session) {
             // Forward raw audio from user microphone to Gemini Live API
             session.sendRealtimeInput({
@@ -598,6 +918,30 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
 
     clientWs.on("close", () => {
       console.log("[LiveSpeech] Client connection closed. Cleaning up Gemini session.");
+      
+      if (maxDurationTimer) {
+        clearTimeout(maxDurationTimer);
+      }
+
+      if (sessionId) {
+        const latestSessionData = findRecordBySessionId(sessionId);
+        if (latestSessionData) {
+          const { hashed: h, record: r } = latestSessionData;
+          const now = Date.now();
+          const elapsedMs = now - (r.lastActive || now);
+          const elapsedSeconds = Math.round(elapsedMs / 1000);
+          if (elapsedSeconds > 0) {
+            r.usedSeconds = Math.min(ANONYMOUS_DAILY_SECONDS, r.usedSeconds + elapsedSeconds);
+          }
+          r.activeSessionId = undefined;
+          r.sessionStart = undefined;
+          r.lastActive = now;
+          usageStore[h] = r;
+          saveUsageStore();
+          console.log(`[LiveSpeech] Connection closed. Session: ${sessionId}, elapsed: ${elapsedSeconds}s, total used: ${r.usedSeconds}s`);
+        }
+      }
+
       if (session) {
         try {
           session.close();

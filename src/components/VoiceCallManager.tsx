@@ -4,6 +4,7 @@ export type CallState = 'idle' | 'requesting-permission' | 'connecting' | 'activ
 
 interface VoiceCallManagerProps {
   isOpen: boolean;
+  sessionId: string | null;
   onStateChange: (state: CallState) => void;
   onTimeRemainingChange: (seconds: number) => void;
   onVolumeChange: (userVol: number, quillVol: number) => void;
@@ -67,6 +68,7 @@ const downsampleBuffer = (buffer: Float32Array, inputSampleRate: number, outputS
 
 export default function VoiceCallManager({
   isOpen,
+  sessionId,
   onStateChange,
   onTimeRemainingChange,
   onVolumeChange,
@@ -78,6 +80,7 @@ export default function VoiceCallManager({
 }: VoiceCallManagerProps) {
   // Audio & WS Context refs
   const wsRef = useRef<WebSocket | null>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const inputAudioCtxRef = useRef<AudioContext | null>(null);
   const outputAudioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -211,6 +214,11 @@ export default function VoiceCallManager({
       wsRef.current = null;
     }
 
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+
     quillVolumeRef.current = 0;
     userVolumeRef.current = 0;
     onVolumeChangeRef.current(0, 0);
@@ -241,6 +249,9 @@ export default function VoiceCallManager({
       // 3. Connect to server-side WebSocket proxy with credentials and parameters
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const queryParams = new URLSearchParams();
+      if (sessionId) {
+        queryParams.append('sessionId', sessionId);
+      }
       if (todoistToken) {
         queryParams.append('todoist_token', todoistToken);
       }
@@ -254,8 +265,15 @@ export default function VoiceCallManager({
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[CallManager] WS connected. Setting up mic processor.');
+        console.log('[CallManager] WS connected. Setting up mic processor and heartbeat.');
         onStateChangeRef.current('active');
+
+        // Start a heartbeat ping every 10 seconds to keep the connection alive through intermediate proxies
+        heartbeatIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 10000);
 
         // Set up mic capture script processor
         const source = inputAudioCtx.createMediaStreamSource(stream);
@@ -290,18 +308,18 @@ export default function VoiceCallManager({
           }
 
           // -------------------------------------------------------------
-          // SILENCE DETECTION ENGINE (10s threshold when model is idle)
+          // SILENCE DETECTION ENGINE (120s threshold when model is idle)
           // -------------------------------------------------------------
           const isQuillSpeaking = quillVolumeRef.current > 0.01 || (nextStartTimeRef.current > outputAudioCtx.currentTime);
           
           if (!isQuillSpeaking) {
-            // User silence check (threshold 0.0035 for clear rooms)
-            if (rms < 0.0035) {
+            // User silence check (extremely safe threshold of 0.0005 for quiet environments)
+            if (rms < 0.0005) {
               const elapsedSeconds = channelData.length / inputAudioCtx.sampleRate; // native time duration
               silenceTimerRef.current += elapsedSeconds;
 
-              if (silenceTimerRef.current >= 10) {
-                console.log('[CallManager] 10s of user silence detected. Terminating call.');
+              if (silenceTimerRef.current >= 120) {
+                console.log('[CallManager] 120s of user silence detected. Terminating call safely.');
                 onStateChangeRef.current('ended');
                 endCall();
                 onEndRef.current();

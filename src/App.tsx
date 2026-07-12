@@ -1,7 +1,27 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Compass, BrainCircuit, Heart, ArrowUp, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
-import { User as FirebaseUser } from 'firebase/auth';
+import { 
+  Sparkles, 
+  BrainCircuit, 
+  Heart, 
+  ArrowUp, 
+  AlertCircle, 
+  CheckCircle2, 
+  ArrowRight, 
+  Phone, 
+  PhoneOff, 
+  MapPin, 
+  Settings, 
+  Terminal, 
+  Star, 
+  MessageSquare, 
+  Database,
+  Check,
+  RefreshCw,
+  HelpCircle,
+  Clock,
+  ShieldAlert
+} from 'lucide-react';
 
 // Subcomponents
 import InteractiveBrainLogo from './components/InteractiveBrainLogo';
@@ -10,386 +30,1053 @@ import CardGrid from './components/CardGrid';
 import SystemStack from './components/SystemStack';
 import ClarityTimeline from './components/ClarityTimeline';
 import BelongSection from './components/BelongSection';
-import MembersPortal from './components/MembersPortal';
 import LegalModals from './components/LegalModals';
 import ParallaxStars from './components/ParallaxStars';
-
-// Firebase helper
-import { initAuth, checkIsSignInLink, completeSignInWithLink } from './lib/firebase';
+import VoiceCallManager, { CallState } from './components/VoiceCallManager';
 
 const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png";
 
-interface StardustNode {
-  id: number;
-  top: string;
-  left: string;
-  size: string;
-  delay: string;
-  duration: string;
-}
-
 export default function App() {
-  const waitlistRef = useRef<HTMLDivElement>(null);
-  const [stardust, setStardust] = useState<StardustNode[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const quillSectionRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [currentView, setCurrentView] = useState<'landing' | 'portal'>('landing');
-  
-  // Auth state shared with portal
-  const [user, setUser] = useState<any>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [magicLinkMessage, setMagicLinkMessage] = useState<{ text: string; type: 'success' | 'error' | 'loading' } | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
 
-  // Initialize Auth listener
-  useEffect(() => {
-    const unsubscribe = initAuth(
-      (currentUser, token) => {
-        setUser(currentUser);
-        setAccessToken(token);
-      },
-      () => {
-        setUser(null);
-        setAccessToken(null);
-      }
-    );
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, []);
+  // Voice call state
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [callState, setCallState] = useState<CallState>('idle');
+  const [timeRemaining, setTimeRemaining] = useState(300);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [userVolume, setUserVolume] = useState(0);
+  const [quillVolume, setQuillVolume] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [entitlement, setEntitlement] = useState<any>(null);
 
-  // Check for Passwordless Magic Sign-In Link on Mount
-  useEffect(() => {
-    const handlePasswordlessLink = async () => {
-      if (checkIsSignInLink(window.location.href)) {
-        setCurrentView('portal'); // Take them directly to the portal view
-        setMagicLinkMessage({ text: 'Processing your magic sign-in link...', type: 'loading' });
-        
-        let email = window.localStorage.getItem('emailForSignIn') || new URL(window.location.href).searchParams.get('email');
-        
-        if (!email) {
-          const userEmailInput = window.prompt("To complete secure passwordless sign-in, please confirm your email address:");
-          if (userEmailInput) {
-            email = userEmailInput.trim();
-          } else {
-            setMagicLinkMessage({ text: "Email confirmation is required to complete passwordless sign-in.", type: 'error' });
-            return;
-          }
-        }
-        
-        try {
-          const loggedUser = await completeSignInWithLink(email, window.location.href);
-          setUser(loggedUser);
-          setAccessToken('local-session');
-          setMagicLinkMessage({ text: "Unlocking workspace... Welcome to your private elite capsule!", type: 'success' });
-          
-          // Clear query params elegantly from the browser address bar without reload
-          const cleanUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-        } catch (err: any) {
-          console.error("Failed to complete passwordless sign-in", err);
-          setMagicLinkMessage({ 
-            text: err.message || "Failed to complete passwordless login. The link may have expired or was already used.", 
-            type: 'error' 
-          });
-        }
-      }
-    };
-    
-    handlePasswordlessLink();
-  }, []);
+  // Todoist Configuration
+  const [showTodoistConfig, setShowTodoistConfig] = useState(false);
+  const [todoistToken, setTodoistToken] = useState<string>(() => {
+    return localStorage.getItem('todoist_token') || '';
+  });
+  const [tokenInput, setTokenInput] = useState(todoistToken);
+  const [connectionTestStatus, setConnectionTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
+  const [connectionTestError, setConnectionTestError] = useState<string | null>(null);
 
-  // Scroll to waitlist target
-  const scrollToWaitlist = () => {
-    if (waitlistRef.current) {
-      waitlistRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Geofenced Locations state
+  const [locations, setLocations] = useState<any[]>(() => {
+    const saved = localStorage.getItem('todoist_locations');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', name: 'Office', lat: 37.7749, lng: -122.4194, radius: 100 },
+      { id: '2', name: 'Home', lat: 37.7833, lng: -122.4167, radius: 100 },
+      { id: '3', name: 'Grocery Store', lat: 37.7694, lng: -122.4464, radius: 100 }
+    ];
+  });
+  const [newLocName, setNewLocName] = useState('');
+  const [newLocLat, setNewLocLat] = useState('');
+  const [newLocLng, setNewLocLng] = useState('');
+  const [newLocRadius, setNewLocRadius] = useState('100');
+
+  // Reminders and logs state
+  const [geofenceReminders, setGeofenceReminders] = useState<any[]>(() => {
+    const saved = localStorage.getItem('todoist_geofences');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [voiceLogs, setVoiceLogs] = useState<any[]>([]);
+
+  // Post-call feedback state
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState<number>(0);
+  const [feedbackText, setFeedbackText] = useState<string>('');
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState<boolean>(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState<boolean>(false);
+
+  // Load remaining daily seconds from server entitlement route
+  const loadEntitlement = async () => {
+    try {
+      const res = await fetch('/api/quill/entitlement');
+      const data = await res.json();
+      setEntitlement(data);
+      if (data.remainingSeconds !== undefined && callState === 'idle') {
+        setTimeRemaining(data.remainingSeconds);
+      }
+    } catch (err) {
+      console.error("[Entitlement] Failed to fetch usage limits:", err);
     }
   };
 
-  // Generate lightweight random star background particles on mount
   useEffect(() => {
-    const particles: StardustNode[] = Array.from({ length: 28 }).map((_, i) => ({
-      id: i,
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      size: `${Math.random() * 2 + 1}px`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${Math.random() * 12 + 8}s`,
-    }));
-    setStardust(particles);
-
-    // Track scroll position to show scroll to top button
+    loadEntitlement();
+    // Track scroll height to show back to top
     const handleScroll = () => {
-      if (window.scrollY > 800) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleScrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Save locations to localStorage automatically
+  useEffect(() => {
+    localStorage.setItem('todoist_locations', JSON.stringify(locations));
+  }, [locations]);
+
+  // Save geofences to localStorage automatically
+  useEffect(() => {
+    localStorage.setItem('todoist_geofences', JSON.stringify(geofenceReminders));
+  }, [geofenceReminders]);
+
+  // Request call start and obtain session permission from backend
+  const handleCallButtonClick = async () => {
+    if (callState === 'active' || callState === 'connecting' || callState === 'requesting-permission') {
+      setIsVoiceCallOpen(false);
+      setCallState('idle');
+      if (sessionId) {
+        // Formally end session on server
+        await fetch('/api/quill/session/end', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        }).catch(() => {});
+      }
+      loadEntitlement();
+      // Prompt for feedback after a successful call
+      if (voiceLogs.length > 0 || timeRemaining < 290) {
+        setShowFeedbackForm(true);
+      }
+      return;
+    }
+
+    setErrorMessage(null);
+    setShowFeedbackForm(false);
+    setFeedbackSuccess(false);
+    setFeedbackRating(0);
+    setFeedbackText('');
+
+    try {
+      setCallState('connecting');
+      const res = await fetch('/api/quill/session/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Daily limit reached or active session running.');
+      }
+
+      setSessionId(data.sessionId);
+      setTimeRemaining(data.remainingSeconds || 300);
+      setIsVoiceCallOpen(true);
+    } catch (err: any) {
+      console.error("[Session] Init failed:", err);
+      setErrorMessage(err.message || 'Could not initiate voice session.');
+      setCallState('error');
+    }
   };
 
-  if (currentView === 'portal') {
-    return (
-      <MembersPortal
-        onBack={() => setCurrentView('landing')}
-        user={user}
-        accessToken={accessToken}
-        magicLinkMessage={magicLinkMessage}
-        clearMagicLinkMessage={() => setMagicLinkMessage(null)}
-        onLoginSuccess={(u, t) => {
-          setUser(u);
-          setAccessToken(t);
-        }}
-        onLogoutSuccess={() => {
-          setUser(null);
-          setAccessToken(null);
-        }}
-      />
-    );
-  }
+  const handleStateChange = (state: CallState) => {
+    setCallState(state);
+    if (state === 'ended') {
+      setIsVoiceCallOpen(false);
+      loadEntitlement();
+      if (voiceLogs.length > 0 || timeRemaining < 290) {
+        setShowFeedbackForm(true);
+      }
+    }
+  };
+
+  const handleEndCall = () => {
+    setIsVoiceCallOpen(false);
+    loadEntitlement();
+    if (voiceLogs.length > 0 || timeRemaining < 290) {
+      setShowFeedbackForm(true);
+    }
+  };
+
+  // Handle live tool response logs from Gemini Live speech stream
+  const handleToolExecuted = (msg: any) => {
+    const { toolExecuted, args, result } = msg;
+    const timestamp = new Date().toLocaleTimeString();
+    let description = '';
+
+    if (toolExecuted === 'add_reminders' && result?.success) {
+      const g = result.geofence;
+      description = `Geofenced reminder set for "${args.task_text}" at "${g.location}" (${g.lat.toFixed(4)}, ${g.lng.toFixed(4)})`;
+      setGeofenceReminders(prev => [
+        {
+          id: result.task?.id || Math.random().toString(),
+          taskText: args.task_text,
+          location: g.location,
+          lat: g.lat,
+          lng: g.lng,
+          radius: g.radius,
+          trigger: g.trigger,
+          timestamp: new Date().toLocaleString()
+        },
+        ...prev
+      ]);
+    } else if (toolExecuted === 'add_tasks' && result?.success) {
+      const count = result.created_count || 0;
+      description = `Batch created ${count} tasks: "${args.tasks.map((t: any) => t.content).join(', ')}"`;
+    } else if (toolExecuted === 'reorder_objects' && result?.success) {
+      description = `Moved task to project ID ${args.project_id}`;
+    } else if (toolExecuted === 'get_overview' && result?.projects) {
+      description = `Retrieved active projects (${result.projects.length}) and tasks (${result.tasks?.length || 0})`;
+    } else if (toolExecuted === 'find_projects' && result?.matches) {
+      description = `Found matching project list for "${args.query}" (${result.matches.length} hits)`;
+    } else {
+      description = `Executed tool ${toolExecuted} - response received.`;
+    }
+
+    setVoiceLogs(prev => [
+      {
+        id: Math.random().toString(),
+        tool: toolExecuted,
+        description,
+        timestamp
+      },
+      ...prev
+    ]);
+  };
+
+  // Test and save the Todoist API key connection
+  const handleTestConnection = async () => {
+    if (!tokenInput.trim()) {
+      setConnectionTestStatus('error');
+      setConnectionTestError('Please provide a valid Todoist API token.');
+      return;
+    }
+
+    setConnectionTestStatus('testing');
+    setConnectionTestError(null);
+
+    try {
+      const res = await fetch('/api/todoist/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: tokenInput.trim() })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setConnectionTestStatus('success');
+        localStorage.setItem('todoist_token', tokenInput.trim());
+        setTodoistToken(tokenInput.trim());
+      } else {
+        setConnectionTestStatus('error');
+        setConnectionTestError(data.error || 'Connection failed. Verify your token.');
+      }
+    } catch (err: any) {
+      setConnectionTestStatus('error');
+      setConnectionTestError(err.message || 'Server connection timed out.');
+    }
+  };
+
+  // Add custom geofenced locations manually
+  const handleAddLocation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLocName || !newLocLat || !newLocLng) return;
+    const latNum = parseFloat(newLocLat);
+    const lngNum = parseFloat(newLocLng);
+    const radNum = parseInt(newLocRadius) || 100;
+
+    if (isNaN(latNum) || isNaN(lngNum)) {
+      alert("Coordinates must be valid numbers.");
+      return;
+    }
+
+    const newLoc = {
+      id: Date.now().toString(),
+      name: newLocName.trim(),
+      lat: latNum,
+      lng: lngNum,
+      radius: radNum
+    };
+
+    setLocations(prev => [...prev, newLoc]);
+    setNewLocName('');
+    setNewLocLat('');
+    setNewLocLng('');
+    setNewLocRadius('100');
+  };
+
+  const handleRemoveLocation = (id: string) => {
+    setLocations(prev => prev.filter(loc => loc.id !== id));
+  };
+
+  // Submit session feedback
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (feedbackRating === 0) return;
+    setIsSubmittingFeedback(true);
+
+    try {
+      const res = await fetch('/api/quill/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating: feedbackRating,
+          feedbackText,
+          sessionId
+        })
+      });
+
+      if (res.ok) {
+        setFeedbackSuccess(true);
+        setTimeout(() => {
+          setShowFeedbackForm(false);
+          setFeedbackSuccess(false);
+          setFeedbackRating(0);
+          setFeedbackText('');
+        }, 2500);
+      }
+    } catch (err) {
+      console.error("[Feedback] Error submitting:", err);
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
+  // Formatting remaining time in a beautifully responsive clock
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Auto-scroll logic helper
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const startCallTrigger = () => {
+    scrollToSection('quill-playground');
+    setTimeout(() => {
+      handleCallButtonClick();
+    }, 400);
+  };
 
   return (
     <div className="relative min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 selection:font-medium">
       
-      {/* Immersive Theme: Top Rainbow Gradient Indicator */}
+      {/* 1. Dynamic Rainbow Top Border Indicator */}
       <div className="fixed top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-cyan-400 via-purple-500 via-pink-500 via-orange-400 via-yellow-300 to-green-500 z-[60]" />
 
-      {/* A. Animated Stars/Stardust Layer (ADHD-friendly, calm visual depth) */}
+      {/* 2. Starscape Visual Backdrops */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Infinite CSS Parallax Scrolling Stars (Small, Medium, Big) */}
         <ParallaxStars />
-
-        {/* Immersive Theme: Golden central halo aura */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 0%, transparent 70%)' }}></div>
-        {/* Soft rotating gradients representing background light movement */}
-        <div className="absolute top-[-10%] left-[20%] w-[50vw] h-[50vw] rounded-full bg-purple-500/5 blur-[120px] animate-pulse pointer-events-none" style={{ animationDuration: '14s' }} />
-        <div className="absolute bottom-[20%] right-[10%] w-[40vw] h-[40vw] rounded-full bg-blue-500/5 blur-[120px] animate-pulse pointer-events-none" style={{ animationDuration: '18s' }} />
+        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #D4AF37 0%, transparent 75%)' }} />
+        <div className="absolute top-[-5%] left-[25%] w-[45vw] h-[45vw] rounded-full bg-purple-500/5 blur-[120px] animate-pulse pointer-events-none" style={{ animationDuration: '16s' }} />
+        <div className="absolute bottom-[15%] right-[5%] w-[35vw] h-[35vw] rounded-full bg-blue-500/5 blur-[120px] animate-pulse pointer-events-none" style={{ animationDuration: '20s' }} />
       </div>
 
-      {/* B. Navigation Wordmark Header */}
+      {/* 3. Sticky Responsive Header Navigation */}
       <header className="fixed top-[3px] left-0 right-0 w-full z-50 py-4 px-6 sm:px-12 border-b border-white/5 backdrop-blur-md bg-black/80 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Brand Logo Wordmark */}
-          <div onClick={handleScrollToTop} className="flex items-center gap-3.5 select-none cursor-pointer group">
-            <div className="relative w-12 h-12 flex items-center justify-center rounded-full bg-black border-2 border-[#D4AF37]/45 shadow-[0_0_15px_rgba(212,175,55,0.35)] group-hover:scale-105 group-hover:border-[#D4AF37] transition-transform duration-300 overflow-hidden">
-              {/* Subtle gold backdrop glow */}
+          
+          {/* Brand Logo & Smooth scroll to top */}
+          <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-3.5 select-none cursor-pointer group">
+            <div className="relative w-11 h-11 flex items-center justify-center rounded-full bg-black border-2 border-[#D4AF37]/45 shadow-[0_0_15px_rgba(212,175,55,0.35)] group-hover:scale-105 group-hover:border-[#D4AF37] transition-transform duration-300 overflow-hidden">
               <div className="absolute inset-0.5 rounded-full bg-amber-500/10 blur-[3px]" />
-              
-              {/* Golden Shimmer Sweep */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <motion.div
-                  initial={{ x: '-150%' }}
-                  animate={{ x: '150%' }}
-                  transition={{
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    duration: 3.5,
-                    ease: "easeInOut",
-                    repeatDelay: 1.5
-                  }}
-                  className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-amber-400/20 to-transparent skew-x-12"
-                />
-              </div>
-
-              {/* Beautiful Brain Logo Icon */}
               <img
                 src={logoImg}
                 alt="AI for ADHD Icon"
-                referrerPolicy="no-referrer"
-                className="w-9 h-9 object-contain relative z-10 select-none drop-shadow-[0_0_8px_rgba(212,175,55,0.45)] group-hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.65)] group-hover:scale-110 transition-all duration-300"
+                className="w-8 h-8 object-contain relative z-10 select-none drop-shadow-[0_0_8px_rgba(212,175,55,0.45)] group-hover:drop-shadow-[0_0_15px_rgba(212,175,55,0.65)] group-hover:scale-110 transition-all duration-300"
               />
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-display font-black text-sm tracking-widest text-white block group-hover:text-amber-400 transition-colors">QUILL</span>
+              <span className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">ADHD BODY DOUBLE</span>
             </div>
           </div>
 
-          {/* Quick Header Badge */}
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold tracking-wider uppercase text-gray-400 font-sans">
+            <button onClick={() => scrollToSection('quill-playground')} className="hover:text-amber-400 transition-colors">Call Quill</button>
+            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-amber-400 transition-colors">How it works</button>
+            <button onClick={() => scrollToSection('body-doubling')} className="hover:text-amber-400 transition-colors">Body Doubling</button>
+            <button onClick={() => scrollToSection('beta-info')} className="hover:text-amber-400 transition-colors">Open Beta</button>
+          </nav>
+
+          {/* Call CTA Badge */}
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 text-[10px] text-gray-500 font-mono">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> SYSTEM STATUS: OPTIMIZED
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-500/10 border border-amber-500/20 text-amber-300 shadow-[0_0_8px_rgba(212,175,55,0.15)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              STATUS: UNDER CONSTRUCTION
-            </span>
             <button
-              onClick={() => setCurrentView('portal')}
-              className="hidden sm:inline-block border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer"
+              onClick={startCallTrigger}
+              className="border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer"
             >
-              {user ? "ENTER PORTAL" : "MEMBER'S PORTAL"}
+              STUCK? CALL QUILL
             </button>
           </div>
+
         </div>
       </header>
 
-      {/* C. HERO SECTION */}
-      <section id="hero-section" className="relative pt-24 pb-8 px-6 md:pt-28 md:pb-12 z-10">
+      {/* 4. HERO INTRODUCTION */}
+      <section className="relative pt-32 pb-16 px-6 md:pt-36 md:pb-24 z-10">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
           
-          {/* 1. Core Visual Inspiration Brain Logo */}
-          <div className="mb-6">
+          <div className="mb-6 relative">
+            {/* Visual Backlight Ring scaling to microphone volume */}
+            <div 
+              style={{ transform: `translate(-50%, -50%) scale(${1 + (userVolume + quillVolume) * 0.12})` }}
+              className="absolute top-[40%] left-[50%] w-72 h-72 rounded-full bg-amber-500/[0.04] blur-2xl transition-transform duration-100 ease-out pointer-events-none" 
+            />
             <InteractiveBrainLogo />
           </div>
 
-          {/* 2. Eyebrow */}
           <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-widest text-amber-400/90 mb-4 bg-amber-500/5 border border-amber-500/20 px-3.5 py-1 rounded-full shadow-[0_0_12px_rgba(212,175,55,0.05)]">
-            🚀 THE ADHD-AI DESTINY MASTERMIND
+            🎙️ ON-DEMAND ADHD AUDIO BODY DOUBLE
           </span>
 
-          {/* 3. Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight text-white max-w-3xl leading-[1.1] mb-6">
-            Where Your ADHD Brain <br className="hidden sm:inline" />
-            Finally Feels <span className="text-gold-gradient font-black gold-glow-text">At Home</span>
+            Stuck? <span className="text-gold-gradient font-black gold-glow-text">Call Quill.</span>
           </h1>
 
-          {/* 4. Smooth Animated Typing Line below headline */}
           <div className="mb-10 w-full max-w-lg">
             <TypingRotation />
           </div>
 
-          {/* 5. Subheadline */}
-          <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed mb-6">
-            Embrace the one technology uniquely destined for the neurodivergent mind. Learn simple, beginner-friendly ways to use AI, Todoist, and automation to turn scattered thoughts into momentum.
+          <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed mb-8">
+            When executive dysfunction makes starting feel impossible, don't write lists or organize calendars. Just talk. Quill is a highly responsive audio partner built specifically to clear neurodivergent freezing and find one clear immediate step together.
           </p>
 
-          {/* 6. Supporting compassionate line */}
-          <p className="text-neutral-500 text-xs sm:text-sm italic max-w-md font-sans">
-            "No tech background needed. No perfect routine required. No shame if you’ve started over a hundred times."
+          <button
+            onClick={startCallTrigger}
+            className="bg-gold-gradient text-neutral-950 font-display font-black tracking-wider text-sm px-8 py-4 rounded-xl shadow-[0_4px_25px_rgba(212,175,55,0.35)] hover:scale-[1.02] active:scale-95 transition-all cursor-pointer flex items-center gap-2.5"
+          >
+            <Phone className="w-4 h-4" /> START FREE CALL NOW
+          </button>
+
+          <p className="text-neutral-500 text-xs mt-4 italic font-sans max-w-sm">
+            "No login. No configuration. Just connect, speak the chaos, and gain instant momentum."
           </p>
 
         </div>
       </section>
 
-      {/* MAGICAL INTRO BANNER SECTION */}
-      <section className="py-12 px-6 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-neutral-950 via-neutral-900/60 to-neutral-950 border border-neutral-800/80 rounded-3xl p-8 sm:p-10 relative overflow-hidden shadow-2xl gold-glow">
-            {/* Ambient gold background glow */}
-            <div className="absolute -right-20 -top-20 w-60 h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      {/* 5. CORE INTERACTIVE CALL WORKSPACE (/#quill) */}
+      <section id="quill-playground" ref={quillSectionRef} className="py-16 px-6 relative z-10 border-t border-white/5 bg-neutral-950/20">
+        <div className="max-w-4xl mx-auto space-y-10">
+          
+          <div className="text-center space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+              Quill Voice Call Interface
+            </h2>
+            <p className="text-gray-400 text-xs sm:text-sm max-w-xl mx-auto">
+              Speak freely without feeling overwhelmed. Our AI body double is live right now inside your browser. Complete your 5-minute daily session to unlock your tasks.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Multi-color left border inspired by the brain logo */}
-            <div className="absolute top-0 bottom-0 left-0 w-[4px] bg-gradient-to-b from-blue-500 via-purple-500 via-pink-500 to-amber-500" />
-            
-            <div className="space-y-6">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-                <span className="text-xs font-mono font-bold tracking-wider text-amber-400 uppercase">
-                  A Quiet Movement Is Happening
-                </span>
+            {/* Primary Live Audio Controller */}
+            <div className="lg:col-span-7 bg-neutral-950/60 border border-neutral-900 rounded-3xl p-6 sm:p-8 relative shadow-2xl overflow-hidden gold-glow flex flex-col items-center justify-center min-h-[360px]">
+              
+              {/* Dynamic Aura behind Call Manager */}
+              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.02),transparent_70%)]" />
+
+              <div className="space-y-6 w-full text-center relative z-10 flex flex-col items-center">
+                
+                {/* Visual Status Indicator */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                    <span className={`w-2.5 h-2.5 rounded-full ${
+                      callState === 'active' ? 'bg-emerald-500 animate-ping' :
+                      callState === 'connecting' ? 'bg-amber-400 animate-pulse' :
+                      callState === 'requesting-permission' ? 'bg-blue-400 animate-pulse' :
+                      'bg-neutral-600'
+                    }`} />
+                    <span className="font-mono text-[10px] font-bold tracking-widest text-gray-300 uppercase">
+                      {callState === 'idle' ? 'DISCONNECTED' : callState}
+                    </span>
+                  </div>
+                  {callState === 'active' && (
+                    <span className="text-[10px] font-mono text-emerald-400 mt-1">
+                      Gemini Live Zephyr Voice Connected
+                    </span>
+                  )}
+                </div>
+
+                {/* Animated Waves representing volume scaling */}
+                <div className="h-16 flex items-center justify-center gap-1.5 w-full max-w-xs">
+                  {callState === 'active' ? (
+                    Array.from({ length: 15 }).map((_, i) => {
+                      // Alternate between user volume and quill volume
+                      const scaleVal = i % 2 === 0 ? userVolume : quillVolume;
+                      const h = 4 + (scaleVal * 45) + (Math.sin(i * 0.5) * 8);
+                      return (
+                        <motion.div
+                          key={i}
+                          animate={{ height: Math.max(4, h) }}
+                          transition={{ type: 'spring', stiffness: 220, damping: 15 }}
+                          className={`w-1 rounded-full ${i % 2 === 0 ? 'bg-cyan-500' : 'bg-amber-400'}`}
+                        />
+                      );
+                    })
+                  ) : (
+                    <div className="h-px bg-neutral-800 w-4/5" />
+                  )}
+                </div>
+
+                {/* Large Call Trigger Button */}
+                <button
+                  onClick={handleCallButtonClick}
+                  className={`w-28 h-28 rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-300 relative cursor-pointer group ${
+                    callState === 'active' || callState === 'connecting'
+                      ? 'bg-red-500/10 border-2 border-red-500/40 hover:bg-red-500/20 text-red-400'
+                      : 'bg-gold-gradient text-neutral-950 hover:opacity-90 shadow-[0_0_20px_rgba(212,175,55,0.15)]'
+                  }`}
+                >
+                  {callState === 'active' || callState === 'connecting' ? (
+                    <>
+                      <PhoneOff className="w-7 h-7 mb-1" />
+                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">END CALL</span>
+                    </>
+                  ) : (
+                    <>
+                      <Phone className="w-7 h-7 mb-1 group-hover:scale-110 transition-transform" />
+                      <span className="font-mono text-[9px] font-bold uppercase tracking-wider">CALL</span>
+                    </>
+                  )}
+                  {callState === 'active' && (
+                    <div className="absolute inset-0 rounded-full border border-emerald-500/30 animate-ping pointer-events-none" style={{ animationDuration: '2s' }} />
+                  )}
+                </button>
+
+                {/* Timer Countdown */}
+                <div className="space-y-2">
+                  <div className="font-mono text-3xl font-bold tracking-wider text-white">
+                    {formatTime(timeRemaining)}
+                  </div>
+                  <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">
+                    Session Duration Remaining
+                  </div>
+                </div>
+
+                {/* Error Banner */}
+                {errorMessage && (
+                  <div className="w-full bg-red-500/10 border border-red-500/20 text-red-400 p-3.5 rounded-xl text-xs flex items-center gap-2 justify-center">
+                    <ShieldAlert className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {/* Quota Progress Bar */}
+                <div className="w-full space-y-1.5 pt-4">
+                  <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
+                    <span>ANONYMOUS BETA VISITOR QUOTA</span>
+                    <span>{timeRemaining} / 300 SECONDS LEFT</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-amber-500 transition-all duration-1000"
+                      style={{ width: `${(timeRemaining / 300) * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-[9px] text-neutral-500 text-left">
+                    Your daily 5-minute quota resets automatically at midnight. Absolutely no registration required.
+                  </div>
+                </div>
+
               </div>
+
+              {/* Headless VoiceCallManager Integration */}
+              <VoiceCallManager
+                isOpen={isVoiceCallOpen}
+                sessionId={sessionId}
+                onStateChange={handleStateChange}
+                onTimeRemainingChange={setTimeRemaining}
+                onVolumeChange={(u, q) => {
+                  setUserVolume(u);
+                  setQuillVolume(q);
+                }}
+                onError={setErrorMessage}
+                onEnd={handleEndCall}
+                todoistToken={todoistToken}
+                locations={locations}
+                onToolExecuted={handleToolExecuted}
+              />
+
+            </div>
+
+            {/* Side Column: Workspace Sync & Config Settings */}
+            <div className="lg:col-span-5 space-y-6">
               
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-tight leading-snug">
-                Barely days old, with <span className="text-amber-300 font-extrabold underline decoration-amber-500/30 underline-offset-4">zero posts</span> and no marketing, a private circle quietly attracted <span className="text-white font-extrabold">125+ neurodivergent minds</span> who showed up anyway.
-              </h2>
+              {/* Todoist Integration Panel */}
+              <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-6 relative shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-5 h-5 text-amber-400" />
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                      Todoist Sync Settings
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setShowTodoistConfig(!showTodoistConfig)}
+                    className="text-neutral-400 hover:text-white"
+                  >
+                    <Settings className={`w-4.5 h-4.5 ${showTodoistConfig ? 'rotate-45' : ''} transition-transform`} />
+                  </button>
+                </div>
+
+                <p className="text-gray-400 text-xs leading-relaxed mb-4">
+                  Connect your real Todoist workspace anonymously. Quill will create tasks, sub-tasks, and geofenced alerts directly inside your account while you speak!
+                </p>
+
+                {/* Connection Status Badge */}
+                <div className="flex items-center gap-2 mb-4 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                  <div className={`w-2 h-2 rounded-full ${todoistToken ? 'bg-green-500 animate-pulse' : 'bg-neutral-600'}`} />
+                  <span className="text-[10px] font-mono text-gray-300">
+                    {todoistToken ? 'Todoist Active' : 'Disconnected (Offline Local Checklists Only)'}
+                  </span>
+                </div>
+
+                <AnimatePresence>
+                  {(showTodoistConfig || !todoistToken) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden space-y-4 pt-2 border-t border-white/5"
+                    >
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-mono tracking-wider text-gray-400 uppercase">
+                          Todoist API Token
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="Paste API token from Todoist Integration panel..."
+                          value={tokenInput}
+                          onChange={(e) => setTokenInput(e.target.value)}
+                          className="w-full bg-neutral-900 border border-neutral-800 rounded-lg py-2 px-3 text-xs text-gray-200 placeholder-neutral-600 focus:outline-none focus:border-amber-500/50"
+                        />
+                        <p className="text-[9px] text-neutral-500 leading-relaxed">
+                          Find this key under: Todoist settings &gt; Integrations &gt; Developer API Token. Stored entirely locally in your browser.
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleTestConnection}
+                          className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          {connectionTestStatus === 'testing' ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>CONNECTING...</span>
+                            </>
+                          ) : (
+                            <span>VALIDATE & SYNC</span>
+                          )}
+                        </button>
+                      </div>
+
+                      {connectionTestStatus === 'success' && (
+                        <div className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 py-2 px-3 rounded-lg flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>Linked successfully! Ready to call.</span>
+                        </div>
+                      )}
+
+                      {connectionTestStatus === 'error' && (
+                        <div className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{connectionTestError}</span>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+              </div>
+
+              {/* Custom Locations Config Panel */}
+              <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-6 relative shadow-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    My Geofenced Locations
+                  </h3>
+                </div>
+                <p className="text-gray-400 text-xs leading-relaxed mb-4">
+                  Add custom coordinates. When you verbally tell Quill: "Remind me to do X when I arrive at Y," the AI resolves it automatically using these settings!
+                </p>
+
+                {/* Locations list */}
+                <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                  {locations.map((loc) => (
+                    <div key={loc.id} className="flex items-center justify-between bg-white/[0.02] border border-white/5 py-1.5 px-2.5 rounded-lg text-xs">
+                      <div className="text-left">
+                        <div className="font-semibold text-gray-200">{loc.name}</div>
+                        <div className="text-[9px] font-mono text-gray-500">
+                          Lat: {loc.lat.toFixed(4)}, Lng: {loc.lng.toFixed(4)} (Radius: {loc.radius}m)
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveLocation(loc.id)}
+                        className="text-neutral-600 hover:text-red-400 text-[10px] uppercase font-mono tracking-wider font-semibold"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add location form */}
+                <form onSubmit={handleAddLocation} className="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="Location Name (e.g., Gym)"
+                    value={newLocName}
+                    onChange={(e) => setNewLocName(e.target.value)}
+                    required
+                    className="col-span-2 bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Latitude (e.g., 37.77)"
+                    value={newLocLat}
+                    onChange={(e) => setNewLocLat(e.target.value)}
+                    required
+                    className="bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Longitude (e.g., -122.4)"
+                    value={newLocLng}
+                    onChange={(e) => setNewLocLng(e.target.value)}
+                    required
+                    className="bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
+                  />
+                  <button
+                    type="submit"
+                    className="col-span-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 rounded-lg transition-colors uppercase font-bold"
+                  >
+                    Add Location Coordinates
+                  </button>
+                </form>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Feedback Form Modal Overlay / Post-Call Action Cards */}
+          <AnimatePresence>
+            {showFeedbackForm && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-neutral-950/90 border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative max-w-2xl mx-auto"
+              >
+                <div className="absolute top-4 right-4">
+                  <button
+                    onClick={() => setShowFeedbackForm(false)}
+                    className="text-neutral-500 hover:text-white"
+                  >
+                    &times; Close
+                  </button>
+                </div>
+
+                <form onSubmit={handleSubmitFeedback} className="space-y-6 text-center">
+                  <div className="mx-auto w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <MessageSquare className="w-5 h-5 animate-pulse" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <h3 className="text-xl font-display font-extrabold text-white">
+                      How was your session with Quill?
+                    </h3>
+                    <p className="text-gray-400 text-xs">
+                      Help us refine this ADHD body-double. Share your honest, shame-free feedback.
+                    </p>
+                  </div>
+
+                  {/* Interactively Glowing Star Selector */}
+                  <div className="flex items-center justify-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setFeedbackRating(star)}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        className="p-1 focus:outline-none transition-transform active:scale-90"
+                      >
+                        <Star
+                          className={`w-8 h-8 ${
+                            star <= (hoveredRating || feedbackRating)
+                              ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_#D4AF37]'
+                              : 'text-neutral-700'
+                          } transition-all`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <textarea
+                      placeholder="Was Quill patient? Did they help break down the freeze? Any weird audio silence issues? (Optional)"
+                      rows={3}
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 px-4 text-xs text-gray-200 placeholder-neutral-600 focus:outline-none focus:border-amber-500/50"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={feedbackRating === 0 || isSubmittingFeedback}
+                    className="w-full bg-gold-gradient text-neutral-950 font-display font-bold py-3 rounded-xl disabled:opacity-50 text-xs sm:text-sm shadow-md cursor-pointer transition-all uppercase"
+                  >
+                    {isSubmittingFeedback ? 'SUBMITTING...' : 'SUBMIT SHAME-FREE FEEDBACK'}
+                  </button>
+
+                  {feedbackSuccess && (
+                    <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2 rounded-xl flex items-center gap-1.5 justify-center">
+                      <Check className="w-4 h-4" />
+                      <span>Thank you! Your feedback has been saved.</span>
+                    </div>
+                  )}
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Underlay Outputs: Real-time logs and Geofenced alerts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+            
+            {/* Live Terminal Log Stream */}
+            <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-5 shadow-xl flex flex-col h-[280px]">
+              <div className="flex items-center justify-between border-b border-neutral-900 pb-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-4.5 h-4.5 text-cyan-400 animate-pulse" />
+                  <span className="text-[10px] font-mono tracking-widest text-gray-300 uppercase font-bold">
+                    Quill Live Action Logs
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono text-neutral-600">PCM STREAM LIVE</span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2.5 font-mono text-[11px] text-gray-400 text-left pr-1">
+                {voiceLogs.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-neutral-600 py-10 space-y-2">
+                    <Clock className="w-5 h-5 opacity-60" />
+                    <span>No actions recorded. Initiate a call and speak to Quill to stream tool feedback here.</span>
+                  </div>
+                ) : (
+                  voiceLogs.map((log) => (
+                    <div key={log.id} className="border-l-2 border-[#D4AF37] pl-2.5 py-0.5 space-y-0.5">
+                      <div className="flex justify-between text-[9px] text-neutral-500">
+                        <span className="text-[#D4AF37] uppercase font-bold">{log.tool}</span>
+                        <span>{log.timestamp}</span>
+                      </div>
+                      <p className="text-gray-300 leading-relaxed text-xs">{log.description}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Created Alerts List */}
+            <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-5 shadow-xl flex flex-col h-[280px]">
+              <div className="flex items-center justify-between border-b border-neutral-900 pb-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4.5 h-4.5 text-pink-400" />
+                  <span className="text-[10px] font-mono tracking-widest text-gray-300 uppercase font-bold">
+                    Active Geofences Created
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono text-neutral-600">REST V2 API</span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2.5 font-mono text-[11px] text-gray-400 text-left pr-1">
+                {geofenceReminders.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-neutral-600 py-10 space-y-2">
+                    <MapPin className="w-5 h-5 opacity-60" />
+                    <span>No geofenced reminders created yet. Tell Quill to remind you at a location.</span>
+                  </div>
+                ) : (
+                  geofenceReminders.map((g) => (
+                    <div key={g.id} className="bg-white/[0.01] border border-white/5 p-2 rounded-xl text-xs space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-neutral-500">
+                        <span className="font-semibold text-gray-200">📍 {g.location}</span>
+                        <span>{g.trigger === 'on_enter' ? 'Arriving' : 'Leaving'}</span>
+                      </div>
+                      <p className="text-gray-300 font-sans">{g.taskText}</p>
+                      <div className="text-[9px] text-neutral-500 text-right">
+                        Created: {g.timestamp}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 6. HOW IT WORKS SECTION (/#how-it-works) */}
+      <section id="how-it-works" className="py-24 px-6 relative overflow-hidden bg-neutral-950/15">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/10 to-transparent" />
+        
+        <div className="max-w-6xl mx-auto space-y-16">
+          
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
+              Traditional productivity was built for <span className="text-gold-gradient font-black gold-glow-text">linear brains</span>. <br />
+              Quill is built for you.
+            </h2>
+            <p className="text-gray-400 text-base max-w-2xl mx-auto font-light leading-relaxed">
+              When standard lists fail and calendars cause guilt, try speaking. We bypass the friction of the "start state" by giving you an active verbal partner to filter out the noise.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <div className="bg-neutral-950/40 border border-neutral-900/60 p-8 rounded-3xl relative space-y-4 shadow-md">
+              <span className="text-4xl">🎙️</span>
+              <h3 className="text-lg font-bold text-white">1. Speak the Chaos</h3>
+              <p className="text-gray-400 text-xs leading-relaxed font-light">
+                Click call, accept mic permissions, and talk. You don't need to speak clearly or structure your thoughts. Spill the raw, messy soup of what is freeze-framing your brain.
+              </p>
+            </div>
+
+            <div className="bg-neutral-950/40 border border-neutral-900/60 p-8 rounded-3xl relative space-y-4 shadow-md">
+              <span className="text-4xl">⚡</span>
+              <h3 className="text-lg font-bold text-white">2. Quill Extracts the Step</h3>
+              <p className="text-gray-400 text-xs leading-relaxed font-light">
+                Quill listens with absolute patience and empathy. Using the custom Gemini Live SDK, the assistant filters out the overwhelm, ignores rigid deadlines, and identifies exactly <em>one</em> stupidly small 5-minute action to begin.
+              </p>
+            </div>
+
+            <div className="bg-neutral-950/40 border border-neutral-900/60 p-8 rounded-3xl relative space-y-4 shadow-md">
+              <span className="text-4xl">🎯</span>
+              <h3 className="text-lg font-bold text-white">3. Synced Automatically</h3>
+              <p className="text-gray-400 text-xs leading-relaxed font-light">
+                Quill proactively calls the Todoist integration. Your new task, nested checklists, or geofenced coordinate reminders are created instantly inside your real account, ready to go whenever you are.
+              </p>
+            </div>
+
+          </div>
+
+          {/* Core visual card grid containing hacks */}
+          <CardGrid />
+
+        </div>
+      </section>
+
+      {/* 7. NEUROSCIENCE & BODY DOUBLING BENEFITS (/#body-doubling) */}
+      <section id="body-doubling" className="py-24 px-6 relative overflow-hidden border-t border-white/5 bg-black/40">
+        <div className="max-w-4xl mx-auto space-y-16">
+          
+          <div className="text-center space-y-4">
+            <div className="inline-block">
+              <span className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full shadow-[0_0_8px_rgba(212,175,55,0.1)] animate-pulse">
+                🔬 THE NEUROSCIENCE OF MOMENTUM
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
+              Why Body-Doubling Works
+            </h2>
+            <p className="text-gray-400 text-sm max-w-xl mx-auto leading-relaxed font-light">
+              ADHD task paralysis is not a failure of character or willpower. It is a neurological roadblock in executive regulation. A "body double" bridges that gap.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-r from-neutral-950 via-neutral-900/40 to-neutral-950 border border-neutral-800/60 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl">
+            <div className="absolute top-0 bottom-0 left-0 w-[4px] bg-gradient-to-b from-cyan-400 via-purple-500 to-pink-500" />
+            
+            <div className="space-y-6 text-gray-300 text-xs sm:text-sm leading-relaxed font-sans font-light">
+              <p className="text-base sm:text-lg text-white font-medium leading-normal italic">
+                “Having another calm, non-judgmental entity present—even virtually—reduces the cortical noise that causes freeze states. It acts as a cognitive scaffold, letting the ADHD brain transition into execution.”
+              </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 text-gray-400 text-xs sm:text-sm leading-relaxed font-sans font-light">
-                <div className="space-y-3 border-r border-white/5 pr-0 md:pr-6">
-                  <p>
-                    <strong>Why?</strong> Because people like us can instantly feel when something is being built specifically for us—not to "fix" or "manage" us, but to <strong>unleash</strong> us. 
-                  </p>
-                  <p>
-                    This mastermind is that <em>deeper room</em>. The place where your ADHD stops being the daily barrier you fight and becomes the catalyst that lifts you.
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wider">The Cortical Brake</h4>
+                  <p className="text-gray-400">
+                    ADHD brains struggle with dopamine regulation, which governs task transitions. When a task is ambiguous or daunting, the brain registers it as a threat, locking you in "paralysis." Quill bypasses this by breaking down ambiguity verbally in real-time.
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <p>
-                    <strong>The ADHD-AI Destiny:</strong> For decades, traditional productivity has demanded rigid, linear logic from non-linear brains. It failed because it forced you to spend precious executive energy keeping lists tidy.
-                  </p>
-                  <p>
-                    But AI is different. It is a highly fluid, non-judgmental, responsive thinking partner. It excels at sorting raw mental chaos, ignoring the friction of start states, and bridging the gap between intention and action in real-time.
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wider">Zero Judgment, Total Flow</h4>
+                  <p className="text-gray-400">
+                    Traditional body doubling relies on other humans, which introduces social anxiety, performance pressure, or scheduling friction. Quill is always available, endlessly patient, completely free of shame, and hyper-focused on your momentum.
                   </p>
                 </div>
               </div>
             </div>
           </div>
+
+          <ClarityTimeline />
+
         </div>
       </section>
 
-      {/* D. "WHAT THIS HELPS WITH" SECTION */}
-      <CardGrid />
-
-      {/* E. "THE AI FOR ADHD SYSTEM" SECTION */}
-      <SystemStack />
-
-      {/* F. "THREE WEEKS OF C.L.A.R.I.T.Y." SECTION */}
-      <ClarityTimeline />
-
-      {/* G. "YOU BELONG HERE" SECTION */}
-      <BelongSection />
-
-      {/* H. FINAL CALL-TO-ACTION (CTA) SECTION */}
-      <section id="final-cta-section" className="py-16 sm:py-20 px-6 relative overflow-hidden bg-gradient-to-b from-black to-neutral-950">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-amber-500/5 blur-3xl pointer-events-none" />
-
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <div className="mx-auto w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-6 text-amber-400">
-            <Sparkles className="w-6 h-6 animate-pulse" />
-          </div>
-
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-white tracking-tight mb-4">
-            Ready to <span className="text-gold-gradient font-black gold-glow-text">Unlock Clarity</span>?
-          </h2>
-
-          <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
-            Access the private member’s space for ADHD-friendly prompts, voice-memo organization workflows, and custom neural systems.
-          </p>
-
-          <div ref={waitlistRef} className="w-full scroll-mt-24">
-            <button
-              onClick={() => setCurrentView('portal')}
-              className="bg-gold-gradient hover:opacity-90 active:scale-95 text-neutral-950 font-display font-bold py-3.5 px-8 rounded-xl shadow-[0_4px_20px_rgba(212,175,55,0.25)] inline-flex items-center gap-2 cursor-pointer transition-all duration-300 text-sm sm:text-base"
-            >
-              Access Member's Portal <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* VOCAL SUPPORT WIDGET SECTION */}
-      <section id="vocal-support" className="py-20 px-6 relative overflow-hidden bg-black/40 border-t border-white/5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(212,175,55,0.03),transparent_50%)]" />
-        <div className="max-w-3xl mx-auto relative z-10 text-center space-y-8">
-          {/* Header on top */}
-          <div className="max-w-2xl mx-auto space-y-4">
-            <div className="inline-block">
-              <span className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
-                🧠 ADHD-Friendly Support
-              </span>
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
-              Prefer Speaking Over Typing?
-            </h3>
-            <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
-              Writing out emails or typing long paragraphs can feel exhausting when your brain is already working overtime. We understand.
-            </p>
-            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
-              If you prefer to verbally detail your support requests, feedback, or custom suggestions, just use the audio recorder below to speak directly to us. No typing or layout pressure required.
+      {/* 8. OPEN BETA & PRIVACY MATTERS (/#beta-info) */}
+      <section id="beta-info" className="py-24 px-6 relative overflow-hidden border-t border-white/5 bg-neutral-950/25">
+        <div className="max-w-4xl mx-auto space-y-12">
+          
+          <div className="text-center space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
+              Secure, Private Open Beta
+            </h2>
+            <p className="text-gray-400 text-xs sm:text-sm max-w-xl mx-auto font-light leading-relaxed">
+              We operate with a simple, strict code of honor regarding your cognitive data. Read our parameters transparently.
             </p>
           </div>
 
-          {/* Widget below */}
-          <div className="max-w-xl mx-auto bg-neutral-950/60 border border-neutral-900 rounded-2xl p-6 sm:p-8 shadow-2xl relative">
-            <div 
-              className="w-full flex items-center justify-center text-center"
-              dangerouslySetInnerHTML={{ __html: '<vocal-form code="61716902464373899"></vocal-form>' }} 
-            />
-            <div className="flex items-center justify-center gap-2 text-neutral-500 text-[10px] font-mono mt-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span>Audio Support Active — Click microphone to begin</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div className="border border-neutral-900 bg-black/60 p-6 rounded-2xl space-y-3 text-left">
+              <span className="text-2xl">⏳</span>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">300s Daily Quota</h4>
+              <p className="text-neutral-500 text-[11px] leading-relaxed">
+                Anonymous visitors receive 300 seconds of active calling daily to distribute server loads. Verified and reset authorizations are managed entirely securely on our backend.
+              </p>
             </div>
+
+            <div className="border border-neutral-900 bg-black/60 p-6 rounded-2xl space-y-3 text-left">
+              <span className="text-2xl">🔒</span>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Absolute Privacy</h4>
+              <p className="text-neutral-500 text-[11px] leading-relaxed">
+                We track analytical event timestamps to optimize server loads, but we <strong>NEVER</strong> store, transmit, or record any audio files, transcripts, or personal conversation context.
+              </p>
+            </div>
+
+            <div className="border border-neutral-900 bg-black/60 p-6 rounded-2xl space-y-3 text-left">
+              <span className="text-2xl">📍</span>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Local Storage Stored</h4>
+              <p className="text-neutral-500 text-[11px] leading-relaxed">
+                Your Todoist access keys, custom coordinate locations, and completed lists are saved exclusively in your browser’s local storage. Your keys never hit our server logs.
+              </p>
+            </div>
+
           </div>
+
+          <SystemStack />
+
         </div>
       </section>
 
-      {/* I. COMPASSIONATE FOOTER */}
+      {/* 9. PORTAL INFRASTRUCTURE CTAS & DEEPER CAPSULES (Honeydepot placeholder / hidden member controls) */}
+      <div className="hidden border border-neutral-800 p-8 text-center max-w-md mx-auto rounded-3xl" id="hidden-portal-auth">
+        {/* Keeps account infrastructure and Firebase bindings intact behind the scenes for potential future use */}
+        <h3 className="font-bold text-neutral-500">System Core Authenticator Ready</h3>
+        <p className="text-xs text-neutral-600">Secure Token Exchanger: {todoistToken ? 'Active' : 'Empty'}</p>
+      </div>
+
+      {/* 10. COMPASSIONATE FOOTER & LEGAL MODALS */}
       <footer className="border-t border-white/5 py-12 px-6 sm:px-12 bg-black text-xs text-neutral-400 z-10 relative">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
-          {/* Left Column: Quote & Tag bubbles */}
+          {/* Left: Quotes */}
           <div className="lg:col-span-8 space-y-4 text-left">
             <p className="text-[#D4AF37] font-serif italic text-lg sm:text-xl leading-snug border-l-2 border-[#D4AF37]/30 pl-4">
               “Your brain is not broken. The system just needs to be built differently.”
@@ -402,13 +1089,13 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Column: Status & Copyright */}
+          {/* Right: Disclaimer and Contacts */}
           <div className="lg:col-span-4 lg:text-right space-y-4">
             <p className="font-mono text-[10px] text-neutral-500 tracking-wider uppercase">
-              Built for ADHD brains, with absolute respect for your cognitive battery.
+              Built for ADHD brains, with absolute respect for your executive battery.
             </p>
             <p className="font-sans font-light text-[11px] text-neutral-500 leading-normal max-w-md lg:ml-auto">
-              AI for ADHD does not make medical claims or diagnostic statements. AI is presented solely as a supportive cognitive scaffold.
+              Quill and AI for ADHD do not make medical claims, prescriptions, or diagnostic statements. AI is presented solely as a supportive cognitive scaffold.
             </p>
             <p className="font-mono text-[11px] text-[#D4AF37] font-bold tracking-wider uppercase">
               Support: CONTACT US: SUPPORT@AIFORADHD.XYZ
@@ -438,24 +1125,28 @@ export default function App() {
         </div>
       </footer>
 
-      {/* J. UTILITY INTERACTIVE FLOATING ELEMENTS */}
-
-      {/* Floating Animated Member's Portal Button (Bottom-Center) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <button 
-          type="button" 
-          onClick={() => setCurrentView('portal')}
-          className="btn"
+      {/* Floating Action Call Button (Bottom Right) */}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="w-10 h-10 rounded-full bg-neutral-950/90 border border-neutral-800 text-gray-400 hover:text-white flex items-center justify-center cursor-pointer shadow-lg transition-colors backdrop-blur-sm"
+            >
+              <ArrowUp className="w-4 h-4" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+        
+        {/* Glowing floating Call Quill button */}
+        <button
+          onClick={startCallTrigger}
+          className="bg-gold-gradient hover:opacity-90 active:scale-95 text-neutral-950 font-display font-black text-xs px-5 py-3 rounded-full shadow-[0_4px_15px_rgba(212,175,55,0.4)] flex items-center gap-1.5 cursor-pointer border border-[#D4AF37]/30"
         >
-          <strong>MEMBER'S PORTAL</strong>
-          <div id="container-stars">
-            <div id="stars"></div>
-          </div>
-
-          <div id="glow">
-            <div className="circle"></div>
-            <div className="circle"></div>
-          </div>
+          <Phone className="w-3.5 h-3.5" /> STUCK? CALL QUILL
         </button>
       </div>
 
@@ -465,21 +1156,6 @@ export default function App() {
         onClose={() => setLegalModalType(null)} 
         type={legalModalType} 
       />
-
-      {/* Floating Scroll to Top trigger */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={handleScrollToTop}
-            className="fixed bottom-6 right-6 w-10 h-10 rounded-full bg-neutral-950/80 border border-neutral-800 text-gray-400 hover:text-white flex items-center justify-center cursor-pointer shadow-lg transition-colors z-40 backdrop-blur-sm"
-          >
-            <ArrowUp className="w-4 h-4" />
-          </motion.button>
-        )}
-      </AnimatePresence>
 
     </div>
   );
