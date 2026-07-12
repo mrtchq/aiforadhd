@@ -33,6 +33,7 @@ import BelongSection from './components/BelongSection';
 import LegalModals from './components/LegalModals';
 import ParallaxStars from './components/ParallaxStars';
 import VoiceCallManager, { CallState } from './components/VoiceCallManager';
+import { initAuth, googleSignIn, logout } from './lib/firebase';
 
 const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png";
 
@@ -52,18 +53,15 @@ export default function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entitlement, setEntitlement] = useState<any>(null);
 
-  // Todoist Configuration
-  const [showTodoistConfig, setShowTodoistConfig] = useState(false);
-  const [todoistToken, setTodoistToken] = useState<string>(() => {
-    return localStorage.getItem('todoist_token') || '';
-  });
-  const [tokenInput, setTokenInput] = useState(todoistToken);
-  const [connectionTestStatus, setConnectionTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-  const [connectionTestError, setConnectionTestError] = useState<string | null>(null);
+  // Google Workspace Authentication state
+  const [googleUser, setGoogleUser] = useState<any>(null);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Geofenced Locations state
   const [locations, setLocations] = useState<any[]>(() => {
-    const saved = localStorage.getItem('todoist_locations');
+    const saved = localStorage.getItem('quill_locations');
     return saved ? JSON.parse(saved) : [
       { id: '1', name: 'Office', lat: 37.7749, lng: -122.4194, radius: 100 },
       { id: '2', name: 'Home', lat: 37.7833, lng: -122.4167, radius: 100 },
@@ -77,7 +75,7 @@ export default function App() {
 
   // Reminders and logs state
   const [geofenceReminders, setGeofenceReminders] = useState<any[]>(() => {
-    const saved = localStorage.getItem('todoist_geofences');
+    const saved = localStorage.getItem('quill_geofences');
     return saved ? JSON.parse(saved) : [];
   });
   const [voiceLogs, setVoiceLogs] = useState<any[]>([]);
@@ -111,17 +109,35 @@ export default function App() {
       setShowScrollTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Initialize Google Auth listener
+    const unsubscribe = initAuth(
+      (user, token) => {
+        setGoogleUser(user);
+        setGoogleToken(token);
+        setNeedsAuth(false);
+      },
+      () => {
+        setGoogleUser(null);
+        setGoogleToken(null);
+        setNeedsAuth(true);
+      }
+    );
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      unsubscribe();
+    };
   }, []);
 
   // Save locations to localStorage automatically
   useEffect(() => {
-    localStorage.setItem('todoist_locations', JSON.stringify(locations));
+    localStorage.setItem('quill_locations', JSON.stringify(locations));
   }, [locations]);
 
   // Save geofences to localStorage automatically
   useEffect(() => {
-    localStorage.setItem('todoist_geofences', JSON.stringify(geofenceReminders));
+    localStorage.setItem('quill_geofences', JSON.stringify(geofenceReminders));
   }, [geofenceReminders]);
 
   // Request call start and obtain session permission from backend
@@ -213,15 +229,25 @@ export default function App() {
         },
         ...prev
       ]);
-    } else if (toolExecuted === 'add_tasks' && result?.success) {
-      const count = result.created_count || 0;
-      description = `Batch created ${count} tasks: "${args.tasks.map((t: any) => t.content).join(', ')}"`;
-    } else if (toolExecuted === 'reorder_objects' && result?.success) {
-      description = `Moved task to project ID ${args.project_id}`;
-    } else if (toolExecuted === 'get_overview' && result?.projects) {
-      description = `Retrieved active projects (${result.projects.length}) and tasks (${result.tasks?.length || 0})`;
-    } else if (toolExecuted === 'find_projects' && result?.matches) {
-      description = `Found matching project list for "${args.query}" (${result.matches.length} hits)`;
+    } else if (toolExecuted === 'add_google_tasks' && result?.success) {
+      const count = result.tasks?.length || 0;
+      description = `Batch created ${count} Google Tasks: "${args.tasks.map((t: any) => t.content).join(', ')}"`;
+    } else if (toolExecuted === 'get_workspace_overview') {
+      const taskCount = result.tasks?.length || 0;
+      const eventCount = result.calendarEvents?.length || 0;
+      description = `Retrieved Workspace Overview: ${taskCount} active Google Tasks, ${eventCount} today's Calendar events`;
+    } else if (toolExecuted === 'create_calendar_event' && result?.success) {
+      description = `Scheduled Google Calendar Event: "${result.summary}" starting at ${new Date(result.startTime).toLocaleTimeString()}`;
+    } else if (toolExecuted === 'write_google_doc' && result?.success) {
+      description = `Saved thoughts to Google Doc "${result.title}" (Document ID: ${result.documentId})`;
+    } else if (toolExecuted === 'create_gmail_draft' && result?.success) {
+      description = `Drafted email in Gmail for "${args.to}" with subject: "${args.subject}"`;
+    } else if (toolExecuted === 'manage_keep_notes' && result?.success) {
+      if (args.action === 'get') {
+        description = `Retrieved ${result.notes?.length || 0} Keep note cards from Google Drive`;
+      } else {
+        description = `Saved ${result.count || 0} Keep note cards back to Google Drive`;
+      }
     } else {
       description = `Executed tool ${toolExecuted} - response received.`;
     }
@@ -237,36 +263,33 @@ export default function App() {
     ]);
   };
 
-  // Test and save the Todoist API key connection
-  const handleTestConnection = async () => {
-    if (!tokenInput.trim()) {
-      setConnectionTestStatus('error');
-      setConnectionTestError('Please provide a valid Todoist API token.');
-      return;
-    }
-
-    setConnectionTestStatus('testing');
-    setConnectionTestError(null);
-
+  // Google login & logout helper functions
+  const handleGoogleLogin = async () => {
+    setIsLoggingIn(true);
+    setErrorMessage(null);
     try {
-      const res = await fetch('/api/todoist/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: tokenInput.trim() })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setConnectionTestStatus('success');
-        localStorage.setItem('todoist_token', tokenInput.trim());
-        setTodoistToken(tokenInput.trim());
-      } else {
-        setConnectionTestStatus('error');
-        setConnectionTestError(data.error || 'Connection failed. Verify your token.');
+      const result = await googleSignIn();
+      if (result) {
+        setGoogleUser(result.user);
+        setGoogleToken(result.accessToken);
+        setNeedsAuth(false);
       }
     } catch (err: any) {
-      setConnectionTestStatus('error');
-      setConnectionTestError(err.message || 'Server connection timed out.');
+      console.error('Login failed:', err);
+      setErrorMessage(err.message || 'Google Sign-In failed.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleGoogleLogout = async () => {
+    try {
+      await logout();
+      setGoogleUser(null);
+      setGoogleToken(null);
+      setNeedsAuth(true);
+    } catch (err) {
+      console.error('Logout failed:', err);
     }
   };
 
@@ -593,7 +616,7 @@ export default function App() {
                 }}
                 onError={setErrorMessage}
                 onEnd={handleEndCall}
-                todoistToken={todoistToken}
+                googleAccessToken={googleToken}
                 locations={locations}
                 onToolExecuted={handleToolExecuted}
               />
@@ -603,91 +626,95 @@ export default function App() {
             {/* Side Column: Workspace Sync & Config Settings */}
             <div className="lg:col-span-5 space-y-6">
               
-              {/* Todoist Integration Panel */}
+              {/* Google Workspace Integration Panel */}
               <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-6 relative shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Database className="w-5 h-5 text-amber-400" />
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                      Todoist Sync Settings
+                      Google Workspace Sync
                     </h3>
                   </div>
-                  <button
-                    onClick={() => setShowTodoistConfig(!showTodoistConfig)}
-                    className="text-neutral-400 hover:text-white"
-                  >
-                    <Settings className={`w-4.5 h-4.5 ${showTodoistConfig ? 'rotate-45' : ''} transition-transform`} />
-                  </button>
                 </div>
 
                 <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                  Connect your real Todoist workspace anonymously. Quill will create tasks, sub-tasks, and geofenced alerts directly inside your account while you speak!
+                  Connect your real Google account to let Quill orchestrate your days. As you speak, the AI automatically schedules Calendar blocks, registers Tasks, appends outlines to Google Docs, drafts Gmail drafts, and updates Keep note cards.
                 </p>
 
                 {/* Connection Status Badge */}
                 <div className="flex items-center gap-2 mb-4 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
-                  <div className={`w-2 h-2 rounded-full ${todoistToken ? 'bg-green-500 animate-pulse' : 'bg-neutral-600'}`} />
+                  <div className={`w-2 h-2 rounded-full ${googleToken ? 'bg-green-500 animate-pulse' : 'bg-neutral-600'}`} />
                   <span className="text-[10px] font-mono text-gray-300">
-                    {todoistToken ? 'Todoist Active' : 'Disconnected (Offline Local Checklists Only)'}
+                    {googleToken ? `Linked as ${googleUser?.displayName || 'Active Workspace'}` : 'Disconnected (Offline Demo Mode)'}
                   </span>
                 </div>
 
-                <AnimatePresence>
-                  {(showTodoistConfig || !todoistToken) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden space-y-4 pt-2 border-t border-white/5"
+                {needsAuth ? (
+                  <div className="space-y-4 pt-2 border-t border-white/5">
+                    <button
+                      onClick={handleGoogleLogin}
+                      disabled={isLoggingIn}
+                      className="w-full bg-white text-neutral-950 font-sans font-bold text-xs py-2.5 px-4 rounded-xl shadow-md hover:bg-neutral-100 transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-mono tracking-wider text-gray-400 uppercase">
-                          Todoist API Token
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="Paste API token from Todoist Integration panel..."
-                          value={tokenInput}
-                          onChange={(e) => setTokenInput(e.target.value)}
-                          className="w-full bg-neutral-900 border border-neutral-800 rounded-lg py-2 px-3 text-xs text-gray-200 placeholder-neutral-600 focus:outline-none focus:border-amber-500/50"
-                        />
-                        <p className="text-[9px] text-neutral-500 leading-relaxed">
-                          Find this key under: Todoist settings &gt; Integrations &gt; Developer API Token. Stored entirely locally in your browser.
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleTestConnection}
-                          className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                        >
-                          {connectionTestStatus === 'testing' ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>CONNECTING...</span>
-                            </>
-                          ) : (
-                            <span>VALIDATE & SYNC</span>
-                          )}
-                        </button>
-                      </div>
-
-                      {connectionTestStatus === 'success' && (
-                        <div className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/20 py-2 px-3 rounded-lg flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                          <span>Linked successfully! Ready to call.</span>
-                        </div>
+                      {isLoggingIn ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-neutral-600" />
+                          <span>AUTHENTICATING...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-4 h-4 mr-1">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                          </svg>
+                          <span>Sign in with Google</span>
+                        </>
                       )}
-
-                      {connectionTestStatus === 'error' && (
-                        <div className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg flex items-center gap-1.5">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{connectionTestError}</span>
+                    </button>
+                    <p className="text-[9px] text-neutral-500 leading-relaxed text-center">
+                      Authorizes secure API access for your Google Tasks, Calendar, Drive, Docs, and Gmail compose scopes. Tokens are cached entirely in memory.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 pt-2 border-t border-white/5">
+                    <div className="space-y-2">
+                      <div className="text-[10px] font-mono tracking-wider text-gray-400 uppercase">
+                        Enabled Integrations:
+                      </div>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          <span>Google Tasks (Quill ADHD List)</span>
                         </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          <span>Google Calendar Syncing</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          <span>Google Drive Note Persistence</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          <span>Gmail Draft Generation</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          <span>Google Docs Brainstorming</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleGoogleLogout}
+                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 font-mono text-xs py-2 rounded-xl transition-colors cursor-pointer"
+                    >
+                      DISCONNECT WORKSPACE
+                    </button>
+                  </div>
+                )}
 
               </div>
 
@@ -1054,7 +1081,7 @@ export default function App() {
               <span className="text-2xl">📍</span>
               <h4 className="text-sm font-bold text-white uppercase tracking-wider">Local Storage Stored</h4>
               <p className="text-neutral-500 text-[11px] leading-relaxed">
-                Your Todoist access keys, custom coordinate locations, and completed lists are saved exclusively in your browser’s local storage. Your keys never hit our server logs.
+                Your custom coordinate locations and completed lists are saved exclusively in your browser’s local storage. Your credentials never hit our server logs.
               </p>
             </div>
 
@@ -1069,7 +1096,7 @@ export default function App() {
       <div className="hidden border border-neutral-800 p-8 text-center max-w-md mx-auto rounded-3xl" id="hidden-portal-auth">
         {/* Keeps account infrastructure and Firebase bindings intact behind the scenes for potential future use */}
         <h3 className="font-bold text-neutral-500">System Core Authenticator Ready</h3>
-        <p className="text-xs text-neutral-600">Secure Token Exchanger: {todoistToken ? 'Active' : 'Empty'}</p>
+        <p className="text-xs text-neutral-600">Secure Token Exchanger: {googleToken ? 'Active' : 'Empty'}</p>
       </div>
 
       {/* 10. COMPASSIONATE FOOTER & LEGAL MODALS */}

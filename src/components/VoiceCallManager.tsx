@@ -10,7 +10,7 @@ interface VoiceCallManagerProps {
   onVolumeChange: (userVol: number, quillVol: number) => void;
   onError: (msg: string | null) => void;
   onEnd: () => void;
-  todoistToken?: string | null;
+  googleAccessToken?: string | null;
   locations?: any[];
   onToolExecuted?: (data: { toolExecuted: string; args: any; result: any }) => void;
 }
@@ -74,7 +74,7 @@ export default function VoiceCallManager({
   onVolumeChange,
   onError,
   onEnd,
-  todoistToken = null,
+  googleAccessToken = null,
   locations = [],
   onToolExecuted,
 }: VoiceCallManagerProps) {
@@ -252,8 +252,8 @@ export default function VoiceCallManager({
       if (sessionId) {
         queryParams.append('sessionId', sessionId);
       }
-      if (todoistToken) {
-        queryParams.append('todoist_token', todoistToken);
+      if (googleAccessToken) {
+        queryParams.append('google_access_token', googleAccessToken);
       }
       if (locations && locations.length > 0) {
         queryParams.append('locations', encodeURIComponent(JSON.stringify(locations)));

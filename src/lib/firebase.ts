@@ -1,43 +1,35 @@
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
-  onAuthStateChanged, 
-  User,
-  signOut,
-  createUserWithEmailAndPassword,
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink
-} from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// Reuse app instance if already initialized to prevent duplicate initialization
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 const provider = new GoogleAuthProvider();
+// Add required Google Workspace scopes
+provider.addScope('https://www.googleapis.com/auth/tasks');
+provider.addScope('https://www.googleapis.com/auth/calendar');
+provider.addScope('https://www.googleapis.com/auth/drive.file');
+provider.addScope('https://www.googleapis.com/auth/documents');
+provider.addScope('https://www.googleapis.com/auth/gmail.compose');
 
-// Flag to indicate if we are in the middle of a sign-in flow
+// Flag to indicate if we are in the middle of a sign-in flow.
 let isSigningIn = false;
-// Cache the access token in-memory to prevent exposing it to localStorage
+// Cache the access token in memory.
 let cachedAccessToken: string | null = null;
 
-// Initialize auth state listener
+// Initialize auth state listener. Call this on app load.
 export const initAuth = (
-  onAuthSuccess?: (user: any, token: string) => void,
+  onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
 ) => {
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
       if (cachedAccessToken) {
         if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else {
-        cachedAccessToken = 'local-session';
-        if (onAuthSuccess) onAuthSuccess(user, 'local-session');
+      } else if (!isSigningIn) {
+        cachedAccessToken = null;
+        if (onAuthFailure) onAuthFailure();
       }
     } else {
       cachedAccessToken = null;
@@ -53,74 +45,16 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
     if (!credential?.accessToken) {
-      throw new Error('Failed to get access token from Google OAuth provider.');
+      throw new Error('Failed to get access token from Google Workspace login');
     }
 
     cachedAccessToken = credential.accessToken;
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
-    console.error('Google Sign-In Error:', error);
+    console.error('Sign in error:', error);
     throw error;
   } finally {
     isSigningIn = false;
-  }
-};
-
-// Live standard Email/Password Sign Up
-export const emailSignUp = async (email: string, password: string): Promise<User> => {
-  const normalizedEmail = email.trim().toLowerCase();
-  try {
-    isSigningIn = true;
-    const result = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
-    cachedAccessToken = 'local-session';
-    return result.user;
-  } catch (error: any) {
-    console.error('Email Sign-Up Error:', error);
-    throw error;
-  } finally {
-    isSigningIn = false;
-  }
-};
-
-// Live standard Passwordless Magic Sign-In link dispatcher
-export const sendPasswordlessSignInLink = async (email: string): Promise<{ success: boolean; method: 'firebase' }> => {
-  const normalizedEmail = email.trim().toLowerCase();
-  const currentOrigin = window.location.origin;
-  
-  // Save email locally for verification on return
-  window.localStorage.setItem('emailForSignIn', normalizedEmail);
-
-  const actionCodeSettings = {
-    // Redirect back to current origin
-    url: `${currentOrigin}/?email_signin_link=true`,
-    handleCodeInApp: true,
-  };
-
-  try {
-    await sendSignInLinkToEmail(auth, normalizedEmail, actionCodeSettings);
-    return { success: true, method: 'firebase' };
-  } catch (error: any) {
-    console.error('Firebase sendSignInLinkToEmail failed:', error);
-    throw error;
-  }
-};
-
-// Live standard verification check
-export const checkIsSignInLink = (url: string): boolean => {
-  return isSignInWithEmailLink(auth, url);
-};
-
-// Live standard sign-in callback handler
-export const completeSignInWithLink = async (email: string, href: string): Promise<User> => {
-  const normalizedEmail = email.trim().toLowerCase();
-  try {
-    const result = await signInWithEmailLink(auth, normalizedEmail, href);
-    cachedAccessToken = 'local-session';
-    window.localStorage.removeItem('emailForSignIn');
-    return result.user;
-  } catch (error: any) {
-    console.error('Passwordless completeSignInWithLink error:', error);
-    throw error;
   }
 };
 
@@ -129,8 +63,6 @@ export const getAccessToken = async (): Promise<string | null> => {
 };
 
 export const logout = async () => {
-  await signOut(auth);
+  await auth.signOut();
   cachedAccessToken = null;
 };
-
-export { app, auth, db };

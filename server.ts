@@ -297,86 +297,7 @@ async function startServer() {
     }
   });
 
-  // Secure Todoist OAuth 2.0 Code Exchange Proxy
-  app.post("/api/todoist/exchange", async (req, res) => {
-    try {
-      const { code, client_id, client_secret, redirect_uri } = req.body;
-      
-      if (!code || !client_id || !client_secret || !redirect_uri) {
-        return res.status(400).json({ error: "Missing required parameters (code, client_id, client_secret, or redirect_uri)" });
-      }
-
-      console.log(`[OAuthProxy] Exchanging code for token using Client ID: ${client_id}`);
-
-      const response = await fetch("https://todoist.com/oauth/access_token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-          client_id,
-          client_secret,
-          code,
-          redirect_uri
-        }).toString()
-      });
-
-      const data: any = await response.json();
-      
-      if (!response.ok) {
-        console.error("[OAuthProxy] Exchange failed from Todoist:", data);
-        return res.status(response.status).json({ error: data.error || "Failed to exchange code" });
-      }
-
-      console.log("[OAuthProxy] Access token retrieved successfully!");
-      return res.json(data);
-
-    } catch (err: any) {
-      console.error("[OAuthProxy] Error in proxy endpoint:", err);
-      return res.status(500).json({ error: err.message || "Internal server error during exchange" });
-    }
-  });
-
-  // Secure Todoist Connection Verification Test Endpoint
-  app.post("/api/todoist/test", async (req, res) => {
-    try {
-      const { token } = req.body;
-      if (!token) {
-        return res.status(400).json({ error: "Missing Todoist API token to test" });
-      }
-      
-      console.log("[TodoistTest] Verifying connectivity for token...");
-      const response = await fetch("https://api.todoist.com/api/v1/projects", {
-        headers: { Authorization: `Bearer ${token.trim()}` }
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        console.warn(`[TodoistTest] Token verification failed: ${response.statusText} (Status ${response.status})`);
-        return res.json({ 
-          success: false, 
-          error: `${response.statusText} (${response.status})${errorText ? ': ' + errorText : ''}` 
-        });
-      }
-      
-      const rawText = await response.text().catch(() => "");
-      let projects;
-      try {
-        projects = JSON.parse(rawText);
-      } catch (e: any) {
-        throw new Error(`Invalid response: Failed to parse JSON from Todoist. Raw: ${rawText.substring(0, 500)}`);
-      }
-      
-      if (!Array.isArray(projects)) {
-        throw new Error(`Invalid response: Expected an array of projects from Todoist. Got type: ${typeof projects}, Raw response: ${rawText.substring(0, 500)}`);
-      }
-      console.log(`[TodoistTest] Verification successful. Retrieved ${projects.length} projects.`);
-      return res.json({ success: true, projects_count: projects.length });
-    } catch (err: any) {
-      console.error("[TodoistTest] Error validating token:", err);
-      return res.json({ success: false, error: err.message || "Connection failed unexpectedly" });
-    }
-  });
+  // Google Workspace API connectivity is tested and initiated directly on the client side using Firebase Auth.
 
   // Handle WebSocket upgrades for speech call
   server.on("upgrade", (request, socket, head) => {
@@ -397,95 +318,127 @@ async function startServer() {
     }
   });
 
-  // Helper handlers for Todoist API calls
+  // Helper handlers for Google Workspace API calls
 
-  async function handleGetOverview(token: string | null) {
-    if (!token) {
-      throw new Error("Todoist API token is missing. Please connect your Todoist account.");
+  async function handleGetWorkspaceOverview(googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
     }
-    const cleanToken = token.trim();
+    const cleanToken = googleAccessToken.trim();
     
-    const projectsRes = await fetch("https://api.todoist.com/api/v1/projects", {
-      headers: { Authorization: `Bearer ${cleanToken}` }
-    });
-    if (!projectsRes.ok) {
-      const errorText = await projectsRes.text().catch(() => "");
-      throw new Error(`Todoist projects fetch failed: ${projectsRes.statusText} (${projectsRes.status})${errorText ? ' - ' + errorText : ''}`);
-    }
-    const rawProjects = await projectsRes.text().catch(() => "");
-    let projects;
+    // 1. Get task list or find "Quill ADHD" list
+    let listId = "@default";
     try {
-      projects = JSON.parse(rawProjects);
-    } catch (e: any) {
-      throw new Error(`Todoist projects JSON parse failed. Raw: ${rawProjects.substring(0, 500)}`);
+      const listsRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
+        headers: { Authorization: `Bearer ${cleanToken}` }
+      });
+      if (listsRes.ok) {
+        const listsData = await listsRes.json();
+        const quillList = listsData.items?.find((l: any) => l.title === "Quill ADHD");
+        if (quillList) {
+          listId = quillList.id;
+        } else {
+          // Create "Quill ADHD" list
+          const createListRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${cleanToken}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ title: "Quill ADHD" })
+          });
+          if (createListRes.ok) {
+            const newList = await createListRes.json();
+            listId = newList.id;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[Workspace] Failed to find or create Quill ADHD task list, falling back to @default:", err);
     }
-    if (!Array.isArray(projects)) {
-      throw new Error(`Invalid response: Expected projects array, got: ${rawProjects.substring(0, 500)}`);
+
+    // 2. Fetch tasks from our list
+    let tasks: any[] = [];
+    try {
+      const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks?showCompleted=false`, {
+        headers: { Authorization: `Bearer ${cleanToken}` }
+      });
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json();
+        tasks = (tasksData.items || []).map((t: any) => ({
+          id: t.id,
+          content: t.title,
+          description: t.notes || "",
+          project_id: listId,
+          parent_id: t.parent || null
+        }));
+      }
+    } catch (err) {
+      console.error("[Workspace] Failed to fetch Google tasks:", err);
     }
-    
-    const tasksRes = await fetch("https://api.todoist.com/api/v1/tasks", {
-      headers: { Authorization: `Bearer ${cleanToken}` }
-    });
-    if (!tasksRes.ok) {
-      const errorText = await tasksRes.text().catch(() => "");
-      throw new Error(`Todoist tasks fetch failed: ${tasksRes.statusText} (${tasksRes.status})${errorText ? ' - ' + errorText : ''}`);
+
+    // 3. Fetch upcoming Google Calendar events
+    let events: any[] = [];
+    try {
+      const nowISO = new Date().toISOString();
+      const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${nowISO}&maxResults=10&singleEvents=true&orderBy=startTime`, {
+        headers: { Authorization: `Bearer ${cleanToken}` }
+      });
+      if (calRes.ok) {
+        const calData = await calRes.json();
+        events = (calData.items || []).map((e: any) => ({
+          id: e.id,
+          summary: e.summary,
+          description: e.description || "",
+          startTime: e.start?.dateTime || e.start?.date,
+          endTime: e.end?.dateTime || e.end?.date,
+          location: e.location || ""
+        }));
+      }
+    } catch (err) {
+      console.error("[Workspace] Failed to fetch Google Calendar events:", err);
     }
-    const tasks = await tasksRes.json();
-    if (!Array.isArray(tasks)) {
-      throw new Error(`Invalid response: Expected tasks array, got: ${JSON.stringify(tasks)}`);
-    }
-    
-    return {
-      projects: projects.map((p: any) => ({ id: p.id, name: p.name })),
-      tasks: tasks.map((t: any) => ({
-        id: t.id,
-        content: t.content,
-        description: t.description,
-        project_id: t.project_id,
-        parent_id: t.parent_id,
-        priority: t.priority
-      }))
-    };
+
+    return { tasks, events, listId };
   }
 
-  async function handleAddTasks(args: any, token: string | null) {
-    if (!token) {
-      throw new Error("Todoist API token is missing. Please connect your Todoist account.");
+  async function handleAddGoogleTasks(args: any, googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
     }
-    const cleanToken = token.trim();
+    const cleanToken = googleAccessToken.trim();
     const tasksToAdd = args.tasks;
     if (!Array.isArray(tasksToAdd)) {
       throw new Error("Invalid arguments: 'tasks' must be an array.");
     }
-    
+
+    // Get "Quill ADHD" task list id
+    let listId = "@default";
+    try {
+      const listsRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
+        headers: { Authorization: `Bearer ${cleanToken}` }
+      });
+      if (listsRes.ok) {
+        const listsData = await listsRes.json();
+        const quillList = listsData.items?.find((l: any) => l.title === "Quill ADHD");
+        if (quillList) listId = quillList.id;
+      }
+    } catch (e) {}
+
     const createdTasks = [];
     const errors = [];
+
     for (const task of tasksToAdd) {
-      // Defensive ID check: Todoist IDs are strictly numeric strings.
-      // Omit placeholder or non-numeric values (like "Inbox", "null", "undefined", or empty string)
-      let projectId = undefined;
-      if (task.project_id && typeof task.project_id === "string" && /^\d+$/.test(task.project_id)) {
-        projectId = task.project_id;
-      }
-      
-      let parentId = undefined;
-      if (task.parent_id && typeof task.parent_id === "string" && /^\d+$/.test(task.parent_id)) {
-        parentId = task.parent_id;
-      }
-
       const bodyPayload: any = {
-        content: task.content,
+        title: task.content,
       };
-      if (projectId) bodyPayload.project_id = projectId;
-      if (parentId) bodyPayload.parent_id = parentId;
-      if (task.description) bodyPayload.description = task.description;
-      if (task.priority && typeof task.priority === "number" && task.priority >= 1 && task.priority <= 4) {
-        bodyPayload.priority = task.priority;
-      }
+      if (task.description) bodyPayload.notes = task.description;
+      if (task.due) bodyPayload.due = task.due;
+      if (task.parent_id) bodyPayload.parent = task.parent_id;
 
-      console.log("[LiveSpeech] Creating task in Todoist:", bodyPayload);
+      console.log("[Workspace] Creating Google task:", bodyPayload);
 
-      const response = await fetch("https://api.todoist.com/api/v1/tasks", {
+      const response = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${cleanToken}`,
@@ -493,115 +446,297 @@ async function startServer() {
         },
         body: JSON.stringify(bodyPayload)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text().catch(() => "");
-        const errMsg = `Failed to add task "${task.content}": ${response.statusText} (Status ${response.status})${errorText ? ' - ' + errorText : ''}`;
+        const errMsg = `Failed to add Google task "${task.content}": ${response.statusText} (Status ${response.status})${errorText ? ' - ' + errorText : ''}`;
         console.error(errMsg);
         errors.push(errMsg);
         continue;
       }
-      
+
       const data = await response.json();
       createdTasks.push({
         id: data.id,
-        content: data.content,
-        project_id: data.project_id,
-        parent_id: data.parent_id,
-        priority: data.priority
+        content: data.title,
+        description: data.notes || "",
+        parent_id: data.parent || null
       });
     }
-    
+
     if (createdTasks.length === 0 && errors.length > 0) {
       return { success: false, error: errors.join("; "), created_count: 0, tasks: [] };
     }
-    
-    return { 
-      success: true, 
-      created_count: createdTasks.length, 
+
+    return {
+      success: true,
+      created_count: createdTasks.length,
       tasks: createdTasks,
       errors: errors.length > 0 ? errors : undefined
     };
   }
 
-  async function handleFindProjects(args: any, token: string | null) {
-    if (!token) {
-      throw new Error("Todoist API token is missing. Please connect your Todoist account.");
+  async function handleCreateCalendarEvent(args: any, googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
     }
-    const cleanToken = token.trim();
-    const query = (args.query || "").toLowerCase();
-    
-    const response = await fetch("https://api.todoist.com/api/v1/projects", {
-      headers: { Authorization: `Bearer ${cleanToken}` }
-    });
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new Error(`Todoist projects fetch failed: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
-    }
-    const projects = await response.json();
-    if (!Array.isArray(projects)) {
-      throw new Error(`Invalid response: Expected projects array, got: ${JSON.stringify(projects)}`);
-    }
-    
-    const matches = projects
-      .filter((p: any) => p.name && p.name.toLowerCase().includes(query))
-      .map((p: any) => ({ id: p.id, name: p.name }));
-      
-    return { matches };
-  }
+    const cleanToken = googleAccessToken.trim();
+    const { summary, description, startTime, endTime } = args;
+    if (!summary) throw new Error("Missing 'summary' parameter.");
+    if (!startTime) throw new Error("Missing 'startTime' parameter.");
+    if (!endTime) throw new Error("Missing 'endTime' parameter.");
 
-  async function handleReorderObjects(args: any, token: string | null) {
-    if (!token) {
-      throw new Error("Todoist API token is missing. Please connect your Todoist account.");
-    }
-    const cleanToken = token.trim();
-    const { task_id, project_id, parent_id } = args;
-    if (!task_id) throw new Error("Missing 'task_id' parameter.");
-    
-    const body: any = {};
-    if (project_id && typeof project_id === "string" && /^\d+$/.test(project_id)) {
-      body.project_id = project_id;
-    }
-    if (parent_id && typeof parent_id === "string" && /^\d+$/.test(parent_id)) {
-      body.parent_id = parent_id;
-    }
-    
-    const response = await fetch(`https://api.todoist.com/api/v1/tasks/${task_id}`, {
+    const bodyPayload = {
+      summary,
+      description: description || "",
+      start: { dateTime: startTime },
+      end: { dateTime: endTime }
+    };
+
+    const response = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${cleanToken}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(bodyPayload)
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => "");
-      throw new Error(`Failed to move/reorder task: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
+      throw new Error(`Failed to create calendar event: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
     }
-    
+
     const data = await response.json();
-    return { success: true, task_id: data.id, project_id: data.project_id, parent_id: data.parent_id };
+    return {
+      success: true,
+      id: data.id,
+      summary: data.summary,
+      startTime: data.start?.dateTime,
+      endTime: data.end?.dateTime,
+      htmlLink: data.htmlLink
+    };
   }
 
-  async function handleAddReminders(args: any, token: string | null, locations: any[]) {
-    if (!token) {
-      throw new Error("Todoist API token is missing. Please connect your Todoist account.");
+  async function handleWriteGoogleDoc(args: any, googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
     }
-    const cleanToken = token.trim();
+    const cleanToken = googleAccessToken.trim();
+    const { title, text, documentId } = args;
+    if (!text) throw new Error("Missing 'text' parameter.");
+
+    let docId = documentId;
+    let actualTitle = title || "Quill ADHD Brainstorm";
+
+    if (!docId) {
+      // Create document
+      const createRes = await fetch("https://docs.googleapis.com/v1/documents", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title: actualTitle })
+      });
+      if (!createRes.ok) {
+        const errorText = await createRes.text().catch(() => "");
+        throw new Error(`Failed to create Google Doc: ${createRes.statusText} (${createRes.status})${errorText ? ' - ' + errorText : ''}`);
+      }
+      const newDoc = await createRes.json();
+      docId = newDoc.documentId;
+    }
+
+    // Append text to document
+    const appendBody = {
+      requests: [
+        {
+          insertText: {
+            text: text + "\n",
+            endOfSegmentLocation: {}
+          }
+        }
+      ]
+    };
+
+    const updateRes = await fetch(`https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(appendBody)
+    });
+
+    if (!updateRes.ok) {
+      const errorText = await updateRes.text().catch(() => "");
+      throw new Error(`Failed to write text to Google Doc: ${updateRes.statusText} (${updateRes.status})${errorText ? ' - ' + errorText : ''}`);
+    }
+
+    return {
+      success: true,
+      documentId: docId,
+      title: actualTitle,
+      appendedLength: text.length
+    };
+  }
+
+  async function handleCreateGmailDraft(args: any, googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
+    }
+    const cleanToken = googleAccessToken.trim();
+    const { to, subject, body } = args;
+    if (!to) throw new Error("Missing 'to' parameter.");
+    if (!subject) throw new Error("Missing 'subject' parameter.");
+    if (!body) throw new Error("Missing 'body' parameter.");
+
+    const emailLines = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      '',
+      body
+    ];
+    const email = emailLines.join('\r\n');
+    const base64Safe = Buffer.from(email).toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/drafts", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${cleanToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: {
+          raw: base64Safe
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      throw new Error(`Failed to create Gmail draft: ${response.statusText} (${response.status})${errorText ? ' - ' + errorText : ''}`);
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      id: data.id,
+      messageId: data.message?.id
+    };
+  }
+
+  async function handleManageKeepNotes(args: any, googleAccessToken: string | null) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
+    }
+    const cleanToken = googleAccessToken.trim();
+    const { action, notes } = args;
+    if (!action) throw new Error("Missing 'action' parameter.");
+
+    // Search for quill_keep_notes.json
+    let fileId: string | null = null;
+    try {
+      const query = encodeURIComponent("name='quill_keep_notes.json' and trashed=false");
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
+        headers: { Authorization: `Bearer ${cleanToken}` }
+      });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.files && searchData.files.length > 0) {
+          fileId = searchData.files[0].id;
+        }
+      }
+    } catch (err) {
+      console.error("[Drive] Failed to search for notes file:", err);
+    }
+
+    if (action === "get") {
+      if (fileId) {
+        // Fetch file contents
+        const contentRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${cleanToken}` }
+        });
+        if (contentRes.ok) {
+          try {
+            const data = await contentRes.json();
+            return { success: true, notes: Array.isArray(data) ? data : [] };
+          } catch (e) {
+            return { success: true, notes: [] };
+          }
+        }
+      }
+      return { success: true, notes: [] };
+    } else if (action === "save") {
+      if (!notes || !Array.isArray(notes)) {
+        throw new Error("Missing or invalid 'notes' parameter for action 'save'.");
+      }
+
+      if (!fileId) {
+        // Create file
+        const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${cleanToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: "quill_keep_notes.json",
+            mimeType: "application/json"
+          })
+        });
+        if (createRes.ok) {
+          const fileData = await createRes.json();
+          fileId = fileData.id;
+        } else {
+          const errorText = await createRes.text().catch(() => "");
+          throw new Error(`Failed to create Keep notes file on Google Drive: ${createRes.statusText} (${createRes.status}) - ${errorText}`);
+        }
+      }
+
+      // Upload content
+      const uploadRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(notes)
+      });
+
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text().catch(() => "");
+        throw new Error(`Failed to write note data to Google Drive: ${uploadRes.statusText} (${uploadRes.status}) - ${errorText}`);
+      }
+
+      return { success: true, count: notes.length };
+    }
+
+    throw new Error(`Unknown action: ${action}`);
+  }
+
+  async function handleAddGoogleReminders(args: any, googleAccessToken: string | null, locations: any[]) {
+    if (!googleAccessToken) {
+      throw new Error("Google access token is missing. Please sign in with Google.");
+    }
+    const cleanToken = googleAccessToken.trim();
     const { task_text, location, trigger = "on_enter" } = args;
     if (!task_text) throw new Error("Missing 'task_text' parameter.");
     if (!location) throw new Error("Missing 'location' parameter.");
-    
+
     const locNameNormalized = location.toLowerCase();
     const matchedLocation = locations.find((l: any) => l.name.toLowerCase() === locNameNormalized);
-    
+
     let lat = 37.7749;
     let lng = -122.4194;
     let radius = 100;
     let resolvedName = location;
     let isResolved = false;
-    
+
     if (matchedLocation) {
       lat = matchedLocation.lat;
       lng = matchedLocation.lng;
@@ -609,35 +744,22 @@ async function startServer() {
       resolvedName = matchedLocation.name;
       isResolved = true;
     }
-    
+
     const description = `📍 Geofence Reminder: Trigger ${trigger} at ${resolvedName} (${lat}, ${lng}) with radius ${radius}m.`;
-    const taskResponse = await fetch("https://api.todoist.com/api/v1/tasks", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
+    
+    // Create as a task in Google Tasks under "Quill ADHD"
+    const addArgs = {
+      tasks: [{
         content: task_text,
-        description,
-        labels: ["Geofence", resolvedName.replace(/\s+/g, "_")]
-      })
-    });
+        description
+      }]
+    };
     
-    if (!taskResponse.ok) {
-      const errorText = await taskResponse.text().catch(() => "");
-      throw new Error(`Failed to create task in Todoist: ${taskResponse.statusText} (${taskResponse.status})${errorText ? ' - ' + errorText : ''}`);
-    }
-    
-    const createdTask = await taskResponse.json();
+    const taskRes = await handleAddGoogleTasks(addArgs, cleanToken);
     
     return {
       success: true,
-      task: {
-        id: createdTask.id,
-        content: createdTask.content,
-        description: createdTask.description
-      },
+      task: taskRes.tasks?.[0] || { content: task_text, description },
       geofence: {
         location: resolvedName,
         lat,
@@ -686,7 +808,7 @@ async function startServer() {
         } catch (err) {}
       }, remainingSeconds * 1000);
 
-      const todoistToken = parsedUrl.searchParams.get("todoist_token");
+      const googleAccessToken = parsedUrl.searchParams.get("google_access_token");
       const rawLocations = parsedUrl.searchParams.get("locations");
       
       let locations = [];
@@ -698,7 +820,7 @@ async function startServer() {
         }
       }
 
-      console.log(`[LiveSpeech] Client loaded credentials: ${todoistToken ? "Todoist connected (token present)" : "Todoist NOT connected"}. Location count: ${locations.length}`);
+      console.log(`[LiveSpeech] Client loaded credentials: ${googleAccessToken ? "Google Workspace connected (token present)" : "Google Workspace NOT connected"}. Location count: ${locations.length}`);
 
       const ai = getGeminiClient();
 
@@ -712,7 +834,7 @@ async function startServer() {
               functionDeclarations: [
                 {
                   name: "add_reminders",
-                  description: "Create a geofenced reminder for a task at a specific location (e.g. office, home). This resolves the location to coordinates, radius, and trigger.",
+                  description: "Create a geofenced reminder for a task at a specific location (e.g. office, home). This resolves the location to coordinates, radius, and trigger, and saves the task in Google Tasks.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {
@@ -724,16 +846,16 @@ async function startServer() {
                   }
                 },
                 {
-                  name: "get_overview",
-                  description: "Queries the complete project and task structure from the user's Todoist account to get an overview of active projects, sections, and tasks.",
+                  name: "get_workspace_overview",
+                  description: "Queries active Google Tasks (from the 'Quill ADHD' task list) and Google Calendar events (for today) to give the user a clear picture of their active focus items.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {}
                   }
                 },
                 {
-                  name: "add_tasks",
-                  description: "Batch create one or more tasks or sub-tasks in Todoist. Perfect for 'Brain Dump' list-speaking or adding a structured breakdown of a project.",
+                  name: "add_google_tasks",
+                  description: "Batch create one or more tasks or sub-tasks in Google Tasks under the 'Quill ADHD' list. Great for brain dumps, breaking down goals, or planning schedules.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {
@@ -743,11 +865,10 @@ async function startServer() {
                         items: {
                           type: Type.OBJECT,
                           properties: {
-                            content: { type: Type.STRING, description: "The task content" },
-                            parent_id: { type: Type.STRING, description: "Optional parent task ID to nest this task under" },
-                            project_id: { type: Type.STRING, description: "Optional project ID to create this task in" },
-                            description: { type: Type.STRING, description: "Optional task description" },
-                            priority: { type: Type.INTEGER, description: "Priority level 1-4 (1 is normal, 4 is urgent)" }
+                            content: { type: Type.STRING, description: "The task title/content" },
+                            description: { type: Type.STRING, description: "Optional notes/details for the task" },
+                            due: { type: Type.STRING, description: "Optional due date in ISO format, e.g., '2026-07-12T00:00:00.000Z'" },
+                            parent_id: { type: Type.STRING, description: "Optional parent task ID to nest this task under" }
                           },
                           required: ["content"]
                         }
@@ -757,27 +878,69 @@ async function startServer() {
                   }
                 },
                 {
-                  name: "find_projects",
-                  description: "Searches for projects in the user's Todoist account that match a search string.",
+                  name: "create_calendar_event",
+                  description: "Creates a calendar event on the user's Google Calendar. Perfect for helping them block out time for a specific task immediately to defeat procrastination.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {
-                      query: { type: Type.STRING, description: "The name or search term of the project to find" }
+                      summary: { type: Type.STRING, description: "The event title" },
+                      description: { type: Type.STRING, description: "Optional details/description of the event" },
+                      startTime: { type: Type.STRING, description: "ISO 8601 date-time string, e.g., '2026-07-12T10:00:00Z'" },
+                      endTime: { type: Type.STRING, description: "ISO 8601 date-time string, e.g., '2026-07-12T11:00:00Z'" }
                     },
-                    required: ["query"]
+                    required: ["summary", "startTime", "endTime"]
                   }
                 },
                 {
-                  name: "reorder_objects",
-                  description: "Moves a task to a different project or parent task in Todoist. Useful for organizing tasks during brain dump sweeps.",
+                  name: "write_google_doc",
+                  description: "Creates a new Google Doc or appends text to an existing Google Doc. Excellent for brainstorming, outlining projects, or compiling thoughts from the verbal call.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {
-                      task_id: { type: Type.STRING, description: "The unique ID of the task to move" },
-                      project_id: { type: Type.STRING, description: "The target project ID to move the task into" },
-                      parent_id: { type: Type.STRING, description: "Optional target parent task ID to nest the task under" }
+                      title: { type: Type.STRING, description: "Optional title when creating a new document (e.g. 'Project Outline')" },
+                      text: { type: Type.STRING, description: "The text content to append or write to the document" },
+                      documentId: { type: Type.STRING, description: "Optional document ID to append to if a document is already active" }
                     },
-                    required: ["task_id", "project_id"]
+                    required: ["text"]
+                  }
+                },
+                {
+                  name: "create_gmail_draft",
+                  description: "Creates an email draft in Gmail to help the user follow up or send a message. Extremely ADHD-friendly for starting emails they've been procrastinating on.",
+                  parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                      to: { type: Type.STRING, description: "Recipient email address" },
+                      subject: { type: Type.STRING, description: "The subject line of the email" },
+                      body: { type: Type.STRING, description: "The body content of the email draft" }
+                    },
+                    required: ["to", "subject", "body"]
+                  }
+                },
+                {
+                  name: "manage_keep_notes",
+                  description: "Manages the user's ADHD Keep Note-Cards (which are synced to Google Drive). Retrieve existing note cards, or save the entire board after updating tags, pins, or contents.",
+                  parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                      action: { type: Type.STRING, description: "The action to perform: 'get' to retrieve notes, 'save' to overwrite notes with updated data", enum: ["get", "save"] },
+                      notes: {
+                        type: Type.ARRAY,
+                        description: "The list of notes to save (required for action='save')",
+                        items: {
+                          type: Type.OBJECT,
+                          properties: {
+                            id: { type: Type.STRING, description: "Unique note identifier" },
+                            title: { type: Type.STRING, description: "Note title" },
+                            content: { type: Type.STRING, description: "Note text content" },
+                            color: { type: Type.STRING, description: "Color class/tag for the card (e.g. 'slate', 'blue', 'amber', 'rose')" },
+                            isPinned: { type: Type.BOOLEAN, description: "Whether this note card is pinned to the top" }
+                          },
+                          required: ["id", "title", "content"]
+                        }
+                      }
+                    },
+                    required: ["action"]
                   }
                 }
               ]
@@ -788,32 +951,37 @@ async function startServer() {
           },
           systemInstruction: `You are Quill, an extremely warm, empathetic, and friendly ADHD coaching assistant. Speak directly and concisely because ADHD brains appreciate brevity, clear structure, and direct answers.
 
-Help the user clear their mental clutter, break down massive overwhelming tasks into simple immediate micro-steps, and schedule location-based reminders. Be incredibly encouraging, shame-free, and practical. Always ask one simple question at a time to keep the user from getting overwhelmed. Always be supportive of starting over. Your core motto is: "Your brain is not broken. The system just needs to be built differently."
+Help the user clear their mental clutter, break down massive overwhelming tasks into simple immediate micro-steps, schedule calendar blocks, and save note-cards. Be incredibly encouraging, shame-free, and practical. Always ask one simple question at a time to keep the user from getting overwhelmed. Always be supportive of starting over. Your core motto is: "Your brain is not broken. The system just needs to be built differently."
 
-You have access to 5 powerful tools linked to the user's real Todoist workspace. You must use them proactively to execute user requests live as they speak!
+You have access to 7 powerful tools linked to the user's real Google Workspace. You must use them proactively to execute user requests live as they speak!
 
-STRICT ACTION GUIDELINES FOR YOUR 3 CORE VOICE SKILLS:
+STRICT ACTION GUIDELINES FOR YOUR CORE VOICE SKILLS:
 
 1. Skill 1: Context-Aware Verbal Reminder & Location Geofencer
    - Trigger: When the user says things like: "Remind me to grab the files when I arrive at the office" or "Remind me to do X at Y".
-   - Action: Proactively call the 'add_reminders' tool. It will resolve the location, set the coordinate, radius, and trigger ('on_enter'), and create the task in Todoist!
-   - Verbal feedback: Confirm to the user which coordinates and trigger you are setting in their Todoist task, like: "Perfect, I've created that reminder for you! When you arrive at the office, I'll make sure you're prompted to grab those files."
+   - Action: Proactively call the 'add_reminders' tool. It will resolve the location, set the coordinate, radius, and trigger, and save the task in Google Tasks!
+   - Verbal feedback: Confirm to the user which location and trigger you are setting, like: "Perfect, I've created that geofenced reminder! When you arrive at the office, I'll make sure you're prompted to grab those files."
 
 2. Skill 2: "Stupid Small" Task Demolisher (Micro-Goal Builder)
    - Trigger: When the user expresses overwhelm about a project or a big task (e.g. "I have this huge paper to write and I can't start").
    - Action:
-     - First, call 'get_overview' to fetch their projects and tasks.
+     - First, call 'get_workspace_overview' to fetch their active focus tasks and calendar.
      - Once you get the response, use your intelligence to break the project down into a nested sub-task hierarchy of "stupid small" steps (taking less than 5 minutes, e.g. "Open Google Docs", "Write title").
-     - Call 'add_tasks' with these sub-tasks, nesting them under the parent task by specifying the parent_id.
+     - Call 'add_google_tasks' with these sub-tasks to save them under 'Quill ADHD'.
      - Guide the user: present these steps one by one, walking them through the first immediate micro-goal.
 
-3. Skill 3: Guided "Brain Dump" Inbox Sweeper
+3. Skill 3: Guided "Brain Dump" Inbox Sweeper & Google Docs Brainstormer
    - Trigger: When the user says: "I need to brain dump" or "My head is full".
    - Action:
      - Invite them to list-speak their scattered thoughts. Listen supportively.
-     - Once they list-speak, extract individual tasks and call 'add_tasks' to batch-create them in their Todoist Inbox (no project specified, so they default to Inbox).
-     - Once added, guide the user: verbally present the tasks one by one and ask where they should go (e.g. "Okay, let's process: 'Buy groceries'. Which project should this go to?").
-     - When they tell you the project (e.g. "Groceries"), search for it if needed using 'find_projects', and then call 'reorder_objects' to move the task into that project!
+     - Once they list-speak, extract individual tasks and call 'add_google_tasks' to save them in their Google Tasks list.
+     - If they are brainstorming ideas (e.g. planning a party or a product), call 'write_google_doc' to save these ideas in a beautifully titled Google Document so they don't lose them!
+     - If they have writer's block on an email, call 'create_gmail_draft' to write it for them in Gmail!
+     - If they need to schedule a dedicated focus session, call 'create_calendar_event' to lock it in immediately.
+
+4. Skill 4: Interactive Notes Board (Google Keep-style cards)
+   - Trigger: When the user says "Save a note card", "Let me see my notes", or wants to update notes.
+   - Action: Call 'manage_keep_notes' with 'get' or 'save' to view, create, or update note cards backed up to Google Drive.
 
 Keep your tone deeply compassionate, brief, and supportive. Always take direct action with these tools when requested!`,
         },
@@ -839,16 +1007,20 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
 
                 let result = {};
                 try {
-                  if (name === "add_reminders") {
-                    result = await handleAddReminders(args, todoistToken, locations);
-                  } else if (name === "get_overview") {
-                    result = await handleGetOverview(todoistToken);
-                  } else if (name === "add_tasks") {
-                    result = await handleAddTasks(args, todoistToken);
-                  } else if (name === "find_projects") {
-                    result = await handleFindProjects(args, todoistToken);
-                  } else if (name === "reorder_objects") {
-                    result = await handleReorderObjects(args, todoistToken);
+                  if (name === "get_workspace_overview") {
+                    result = await handleGetWorkspaceOverview(googleAccessToken);
+                  } else if (name === "add_google_tasks") {
+                    result = await handleAddGoogleTasks(args, googleAccessToken);
+                  } else if (name === "create_calendar_event") {
+                    result = await handleCreateCalendarEvent(args, googleAccessToken);
+                  } else if (name === "write_google_doc") {
+                    result = await handleWriteGoogleDoc(args, googleAccessToken);
+                  } else if (name === "create_gmail_draft") {
+                    result = await handleCreateGmailDraft(args, googleAccessToken);
+                  } else if (name === "manage_keep_notes") {
+                    result = await handleManageKeepNotes(args, googleAccessToken);
+                  } else if (name === "add_reminders") {
+                    result = await handleAddGoogleReminders(args, googleAccessToken, locations);
                   } else {
                     result = { error: "Unsupported tool call" };
                   }
