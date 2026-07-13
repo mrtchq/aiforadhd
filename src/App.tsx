@@ -734,17 +734,15 @@ export default function App() {
                                     {integration.description}
                                   </p>
                                 </div>
-                                <button
-                                  onClick={() => handleConnectWorkspace(integration.key)}
-                                  disabled={isConnecting}
-                                  className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-mono transition-colors cursor-pointer ${
-                                    enabled
-                                      ? 'bg-white/5 border border-white/10 text-neutral-300 hover:bg-white/10'
-                                      : 'bg-amber-400 text-neutral-950 hover:bg-amber-300'
-                                  } disabled:opacity-60`}
-                                >
-                                  {isConnecting ? 'OPENING...' : enabled ? 'EXPAND' : 'CONNECT'}
-                                </button>
+                                {!enabled && (
+                                  <button
+                                    onClick={() => handleConnectWorkspace(integration.key)}
+                                    disabled={isConnecting}
+                                    className="shrink-0 rounded-lg bg-amber-400 px-2.5 py-1.5 text-[10px] font-mono text-neutral-950 transition-colors hover:bg-amber-300 cursor-pointer disabled:opacity-60"
+                                  >
+                                    {isConnecting ? 'OPENING...' : 'CONNECT'}
+                                  </button>
+                                )}
                               </div>
                             </div>
                           );
