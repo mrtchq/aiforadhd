@@ -10,7 +10,7 @@ interface VoiceCallManagerProps {
   onVolumeChange: (userVol: number, quillVol: number) => void;
   onError: (msg: string | null) => void;
   onEnd: () => void;
-  googleAccessToken?: string | null;
+  getWorkspaceAuthTicket?: () => Promise<string | null>;
   locations?: any[];
   onToolExecuted?: (data: { toolExecuted: string; args: any; result: any }) => void;
 }
@@ -74,7 +74,7 @@ export default function VoiceCallManager({
   onVolumeChange,
   onError,
   onEnd,
-  googleAccessToken = null,
+  getWorkspaceAuthTicket,
   locations = [],
   onToolExecuted,
 }: VoiceCallManagerProps) {
@@ -102,6 +102,7 @@ export default function VoiceCallManager({
   const onErrorRef = useRef(onError);
   const onEndRef = useRef(onEnd);
   const onToolExecutedRef = useRef(onToolExecuted);
+  const getWorkspaceAuthTicketRef = useRef(getWorkspaceAuthTicket);
 
   useEffect(() => {
     onVolumeChangeRef.current = onVolumeChange;
@@ -110,7 +111,8 @@ export default function VoiceCallManager({
     onErrorRef.current = onError;
     onEndRef.current = onEnd;
     onToolExecutedRef.current = onToolExecuted;
-  }, [onVolumeChange, onTimeRemainingChange, onStateChange, onError, onEnd, onToolExecuted]);
+    getWorkspaceAuthTicketRef.current = getWorkspaceAuthTicket;
+  }, [onVolumeChange, onTimeRemainingChange, onStateChange, onError, onEnd, onToolExecuted, getWorkspaceAuthTicket]);
 
   // Stop all active model audio playbacks
   const stopAllAudio = () => {
@@ -246,21 +248,22 @@ export default function VoiceCallManager({
       inputAudioCtxRef.current = inputAudioCtx;
       outputAudioCtxRef.current = outputAudioCtx;
 
-      // 3. Connect to server-side WebSocket proxy with credentials and parameters
+      // 3. Connect to server-side WebSocket proxy with a short-lived auth ticket and call parameters
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const queryParams = new URLSearchParams();
       if (sessionId) {
         queryParams.append('sessionId', sessionId);
       }
-      if (googleAccessToken) {
-        queryParams.append('google_access_token', googleAccessToken);
+      const authTicket = getWorkspaceAuthTicketRef.current ? await getWorkspaceAuthTicketRef.current() : null;
+      if (authTicket) {
+        queryParams.append('auth_ticket', authTicket);
       }
       if (locations && locations.length > 0) {
         queryParams.append('locations', encodeURIComponent(JSON.stringify(locations)));
       }
       const queryStr = queryParams.toString();
       const wsUrl = `${protocol}//${window.location.host}/api/live-ws${queryStr ? '?' + queryStr : ''}`;
-      console.log('[CallManager] Connecting to live socket:', wsUrl);
+      console.log('[CallManager] Connecting to live socket.');
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 

@@ -31,9 +31,15 @@ import BelongSection from './components/BelongSection';
 import LegalModals from './components/LegalModals';
 import ParallaxStars from './components/ParallaxStars';
 import VoiceCallManager, { CallState } from './components/VoiceCallManager';
-import { initAuth, googleSignIn, logout } from './lib/firebase';
+import { connectWorkspace, createLiveAuthTicket, disconnectWorkspace, getWorkspaceStatus, initAuth, googleSignIn, logout, WorkspaceIntegration, WorkspaceStatus } from './lib/firebase';
 
 const logoImg = "https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png";
+
+const workspaceIntegrations: Array<{ key: WorkspaceIntegration; label: string; description: string }> = [
+  { key: 'tasks', label: 'Tasks', description: 'Create task lists, subtasks, and geofenced reminders.' },
+  { key: 'calendar', label: 'Calendar', description: 'Create focus blocks and review upcoming events.' },
+  { key: 'drive_docs', label: 'Drive & Docs', description: 'Save note cards and write brainstorms into Docs.' },
+];
 
 export default function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -53,9 +59,9 @@ export default function App() {
 
   // Google Workspace Authentication state
   const [googleUser, setGoogleUser] = useState<any>(null);
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
-  const [needsAuth, setNeedsAuth] = useState(true);
+  const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>({ connected: false });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [connectingIntegration, setConnectingIntegration] = useState<WorkspaceIntegration | null>(null);
 
   // Geofenced Locations state
   const [locations, setLocations] = useState<any[]>(() => {
@@ -110,17 +116,24 @@ export default function App() {
 
     // Initialize Google Auth listener
     const unsubscribe = initAuth(
-      (user, token) => {
+      (user, status) => {
         setGoogleUser(user);
-        setGoogleToken(token);
-        setNeedsAuth(false);
+        setWorkspaceStatus(status);
       },
       () => {
         setGoogleUser(null);
-        setGoogleToken(null);
-        setNeedsAuth(true);
+        setWorkspaceStatus({ connected: false });
       }
     );
+
+    const workspaceResult = new URLSearchParams(window.location.search).get('workspace');
+    if (workspaceResult === 'connected') {
+      setTimeout(() => refreshWorkspaceStatus(), 500);
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    } else if (workspaceResult === 'error') {
+      setErrorMessage('Google Workspace connection failed. Please try connecting again.');
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -238,8 +251,6 @@ export default function App() {
       description = `Scheduled Google Calendar Event: "${result.summary}" starting at ${new Date(result.startTime).toLocaleTimeString()}`;
     } else if (toolExecuted === 'write_google_doc' && result?.success) {
       description = `Saved thoughts to Google Doc "${result.title}" (Document ID: ${result.documentId})`;
-    } else if (toolExecuted === 'create_gmail_draft' && result?.success) {
-      description = `Drafted email in Gmail for "${args.to}" with subject: "${args.subject}"`;
     } else if (toolExecuted === 'manage_keep_notes' && result?.success) {
       if (args.action === 'get') {
         description = `Retrieved ${result.notes?.length || 0} Keep note cards from Google Drive`;
@@ -266,12 +277,9 @@ export default function App() {
     setIsLoggingIn(true);
     setErrorMessage(null);
     try {
-      const result = await googleSignIn();
-      if (result) {
-        setGoogleUser(result.user);
-        setGoogleToken(result.accessToken);
-        setNeedsAuth(false);
-      }
+      const user = await googleSignIn();
+      setGoogleUser(user);
+      await refreshWorkspaceStatus();
     } catch (err: any) {
       console.error('Login failed:', err);
       setErrorMessage(err.message || 'Google Sign-In failed.');
@@ -280,14 +288,44 @@ export default function App() {
     }
   };
 
+  const handleConnectWorkspace = async (integration: WorkspaceIntegration) => {
+    setConnectingIntegration(integration);
+    setErrorMessage(null);
+    try {
+      await connectWorkspace([integration]);
+    } catch (err: any) {
+      console.error('Workspace authorization failed:', err);
+      setErrorMessage(err.message || 'Google Workspace authorization failed.');
+      setConnectingIntegration(null);
+    }
+  };
+
+  const handleDisconnectWorkspace = async () => {
+    try {
+      await disconnectWorkspace();
+      await refreshWorkspaceStatus();
+    } catch (err: any) {
+      console.error('Workspace disconnect failed:', err);
+      setErrorMessage(err.message || 'Could not disconnect Google Workspace.');
+    }
+  };
+
   const handleGoogleLogout = async () => {
     try {
       await logout();
       setGoogleUser(null);
-      setGoogleToken(null);
-      setNeedsAuth(true);
+      setWorkspaceStatus({ connected: false });
     } catch (err) {
       console.error('Logout failed:', err);
+    }
+  };
+
+  const refreshWorkspaceStatus = async () => {
+    try {
+      const status = await getWorkspaceStatus();
+      setWorkspaceStatus(status);
+    } catch {
+      setWorkspaceStatus({ connected: false });
     }
   };
 
@@ -377,6 +415,8 @@ export default function App() {
       handleCallButtonClick();
     }, 400);
   };
+
+  const connectedIntegrations = new Set(workspaceStatus.connectedIntegrations || []);
 
   return (
     <div className="relative min-h-screen bg-[#050505] text-gray-100 overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-200 selection:font-medium">
@@ -614,7 +654,7 @@ export default function App() {
                 }}
                 onError={setErrorMessage}
                 onEnd={handleEndCall}
-                googleAccessToken={googleToken}
+                getWorkspaceAuthTicket={createLiveAuthTicket}
                 locations={locations}
                 onToolExecuted={handleToolExecuted}
               />
@@ -636,18 +676,18 @@ export default function App() {
                 </div>
 
                 <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                  Connect your real Google account to let Quill orchestrate your days. As you speak, the AI automatically schedules Calendar blocks, registers Tasks, appends outlines to Google Docs, drafts Gmail drafts, and updates Keep note cards.
+                  Sign in with Google first, then choose exactly which Workspace services Quill can use for task capture, calendar blocking, note cards, and Docs brainstorming.
                 </p>
 
                 {/* Connection Status Badge */}
                 <div className="flex items-center gap-2 mb-4 bg-white/5 px-3 py-2 rounded-xl border border-white/5">
-                  <div className={`w-2 h-2 rounded-full ${googleToken ? 'bg-green-500 animate-pulse' : 'bg-neutral-600'}`} />
+                  <div className={`w-2 h-2 rounded-full ${workspaceStatus.connected ? 'bg-green-500 animate-pulse' : 'bg-neutral-600'}`} />
                   <span className="text-[10px] font-mono text-gray-300">
-                    {googleToken ? `Linked as ${googleUser?.displayName || 'Active Workspace'}` : 'Disconnected (Offline Demo Mode)'}
+                    {googleUser ? `Signed in as ${workspaceStatus.email || googleUser.email || googleUser.displayName || 'Google user'}` : 'Signed out'}
                   </span>
                 </div>
 
-                {needsAuth ? (
+                {!googleUser ? (
                   <div className="space-y-4 pt-2 border-t border-white/5">
                     <button
                       onClick={handleGoogleLogin}
@@ -671,46 +711,62 @@ export default function App() {
                         </>
                       )}
                     </button>
-                    <p className="text-[9px] text-neutral-500 leading-relaxed text-center">
-                      Authorizes secure API access for your Google Tasks, Calendar, Drive, Docs, and Gmail compose scopes. Tokens are cached entirely in memory.
-                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4 pt-2 border-t border-white/5">
                     <div className="space-y-2">
                       <div className="text-[10px] font-mono tracking-wider text-gray-400 uppercase">
-                        Enabled Integrations:
+                        Workspace Integrations
                       </div>
-                      <div className="grid grid-cols-1 gap-1.5">
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <span>Google Tasks (Quill ADHD List)</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <span>Google Calendar Syncing</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <span>Google Drive Note Persistence</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <span>Gmail Draft Generation</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                          <span>Google Docs Brainstorming</span>
-                        </div>
+                      <div className="grid grid-cols-1 gap-2">
+                        {workspaceIntegrations.map((integration) => {
+                          const enabled = connectedIntegrations.has(integration.key);
+                          const isConnecting = connectingIntegration === integration.key;
+                          return (
+                            <div key={integration.key} className="border border-white/10 bg-white/[0.03] rounded-xl p-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5 text-xs text-gray-200">
+                                    <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${enabled ? 'text-green-500' : 'text-neutral-600'}`} />
+                                    <span className="font-bold">{integration.label}</span>
+                                  </div>
+                                  <p className="mt-1 text-[10px] leading-relaxed text-neutral-500">
+                                    {integration.description}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => handleConnectWorkspace(integration.key)}
+                                  disabled={isConnecting}
+                                  className={`shrink-0 rounded-lg px-2.5 py-1.5 text-[10px] font-mono transition-colors cursor-pointer ${
+                                    enabled
+                                      ? 'bg-white/5 border border-white/10 text-neutral-300 hover:bg-white/10'
+                                      : 'bg-amber-400 text-neutral-950 hover:bg-amber-300'
+                                  } disabled:opacity-60`}
+                                >
+                                  {isConnecting ? 'OPENING...' : enabled ? 'EXPAND' : 'CONNECT'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleGoogleLogout}
-                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 font-mono text-xs py-2 rounded-xl transition-colors cursor-pointer"
-                    >
-                      DISCONNECT WORKSPACE
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <button
+                        onClick={handleDisconnectWorkspace}
+                        disabled={!workspaceStatus.connected}
+                        className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-neutral-300 font-mono text-xs py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        DISCONNECT WORKSPACE
+                      </button>
+                      <button
+                        onClick={handleGoogleLogout}
+                        className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-neutral-400 font-mono text-xs py-2 rounded-xl transition-colors cursor-pointer"
+                      >
+                        SIGN OUT
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1087,7 +1143,7 @@ export default function App() {
       <div className="hidden border border-neutral-800 p-8 text-center max-w-md mx-auto rounded-3xl" id="hidden-portal-auth">
         {/* Keeps account infrastructure and Firebase bindings intact behind the scenes for potential future use */}
         <h3 className="font-bold text-neutral-500">System Core Authenticator Ready</h3>
-        <p className="text-xs text-neutral-600">Secure Token Exchanger: {googleToken ? 'Active' : 'Empty'}</p>
+        <p className="text-xs text-neutral-600">Secure Token Exchanger: {workspaceStatus.connected ? 'Active' : 'Empty'}</p>
       </div>
 
       {/* 10. COMPASSIONATE FOOTER & LEGAL MODALS */}
