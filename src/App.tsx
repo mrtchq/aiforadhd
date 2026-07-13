@@ -1214,14 +1214,7 @@ export default function App() {
             </motion.button>
           )}
         </AnimatePresence>
-        
-        {/* Glowing floating Call Quill button */}
-        <button
-          onClick={startCallTrigger}
-          className="bg-gold-gradient hover:opacity-90 active:scale-95 text-neutral-950 font-display font-black text-xs px-5 py-3 rounded-full shadow-[0_4px_15px_rgba(212,175,55,0.4)] flex items-center gap-1.5 cursor-pointer border border-[#D4AF37]/30"
-        >
-          <Phone className="w-3.5 h-3.5" /> STUCK? CALL QUILL
-        </button>
+
       </div>
 
       {/* Legal pages modals */}
