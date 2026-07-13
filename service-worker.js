@@ -1,7 +1,13 @@
-const CACHE_NAME = 'ai-for-adhd-cache-v2';
+const CACHE_NAME = 'ai-for-adhd-cache-v3';
 const ASSETS = [
   './',
   './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/maskable-192.png',
+  './icons/maskable-512.png',
+  './icons/apple-touch-icon.png',
   'https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/8efcf85b-cc3a-42b7-a2e5-168705e77dab.png'
 ];
 
