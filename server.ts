@@ -1485,6 +1485,9 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
 
       console.log("[LiveSpeech] Successfully connected to Gemini Live session");
 
+      // Signal readiness only after the upstream model session is available.
+      clientWs.send(JSON.stringify({ type: "ready" }));
+
       // Give Quill the first turn so callers are not met with silence. This is
       // sent only after the Live session is ready, and turnComplete explicitly
       // asks Gemini to generate the opening audio response immediately.

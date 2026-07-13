@@ -81,6 +81,7 @@ export default function VoiceCallManager({
   // Audio & WS Context refs
   const wsRef = useRef<WebSocket | null>(null);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputAudioCtxRef = useRef<AudioContext | null>(null);
   const outputAudioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -220,6 +221,10 @@ export default function VoiceCallManager({
       clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = null;
     }
+    if (connectionTimeoutRef.current) {
+      clearTimeout(connectionTimeoutRef.current);
+      connectionTimeoutRef.current = null;
+    }
 
     quillVolumeRef.current = 0;
     userVolumeRef.current = 0;
@@ -254,7 +259,14 @@ export default function VoiceCallManager({
       if (sessionId) {
         queryParams.append('sessionId', sessionId);
       }
-      const authTicket = getWorkspaceAuthTicketRef.current ? await getWorkspaceAuthTicketRef.current() : null;
+      // Workspace authorization is optional and must never prevent a voice call
+      // from opening. Fall back to an unlinked call if ticket creation stalls.
+      const authTicket = getWorkspaceAuthTicketRef.current
+        ? await Promise.race<string | null>([
+            getWorkspaceAuthTicketRef.current(),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+          ])
+        : null;
       if (authTicket) {
         queryParams.append('auth_ticket', authTicket);
       }
@@ -267,9 +279,18 @@ export default function VoiceCallManager({
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
+      connectionTimeoutRef.current = setTimeout(() => {
+        if (wsRef.current === ws && !hasErrorRef.current) {
+          hasErrorRef.current = true;
+          onStateChangeRef.current('error');
+          onErrorRef.current('The voice service took too long to become ready. Please try again.');
+          endCall();
+          onEndRef.current();
+        }
+      }, 20000);
+
       ws.onopen = () => {
         console.log('[CallManager] WS connected. Setting up mic processor and heartbeat.');
-        onStateChangeRef.current('active');
 
         // Start a heartbeat ping every 10 seconds to keep the connection alive through intermediate proxies
         heartbeatIntervalRef.current = setInterval(() => {
@@ -347,6 +368,14 @@ export default function VoiceCallManager({
             endCall();
             onEndRef.current();
             return;
+          }
+
+          if (msg.type === 'ready') {
+            if (connectionTimeoutRef.current) {
+              clearTimeout(connectionTimeoutRef.current);
+              connectionTimeoutRef.current = null;
+            }
+            onStateChangeRef.current('active');
           }
 
           if (msg.audio) {
