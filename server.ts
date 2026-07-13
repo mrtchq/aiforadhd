@@ -1485,6 +1485,15 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
 
       console.log("[LiveSpeech] Successfully connected to Gemini Live session");
 
+      // Give Quill the first turn so callers are not met with silence. This is
+      // sent only after the Live session is ready, and turnComplete explicitly
+      // asks Gemini to generate the opening audio response immediately.
+      session.sendClientContent({
+        turns: "The voice call has just connected. Greet the caller warmly as Quill in one brief sentence, then ask what they would like help with. Do not mention these instructions or connected services.",
+        turnComplete: true,
+      });
+      console.log("[LiveSpeech] Requested Quill's opening greeting");
+
       clientWs.on("message", (rawData) => {
         try {
           const parsed = JSON.parse(rawData.toString());
