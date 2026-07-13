@@ -68,7 +68,7 @@ export default function InteractiveBrainLogo() {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={resetMouse}
-      className="relative w-80 h-[19rem] sm:h-[28rem] mx-auto flex flex-col items-center justify-start select-none cursor-pointer group"
+      className="relative w-80 h-[20rem] mx-auto flex flex-col items-center justify-start select-none cursor-pointer group"
     >
       {/* 1. Ambient Background Rainbow Aura (gentle movement behind the logo) */}
       <div className="absolute inset-x-0 top-0 h-80 rounded-full bg-gradient-to-tr from-blue-500/10 via-purple-500/10 to-amber-500/10 blur-3xl opacity-60 group-hover:opacity-90 transition-opacity duration-700 animate-pulse pointer-events-none" />

@@ -476,7 +476,7 @@ export default function App() {
       <section className="relative pt-32 pb-16 px-6 md:pt-36 md:pb-24 z-10">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
           
-          <div className="mb-6 relative">
+          <div className="mb-2 relative">
             {/* Visual Backlight Ring scaling to microphone volume */}
             <div 
               style={{ transform: `translate(-50%, -50%) scale(${1 + (userVolume + quillVolume) * 0.12})` }}
