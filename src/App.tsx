@@ -457,6 +457,7 @@ export default function App() {
             <button onClick={() => scrollToSection('how-it-works')} className="hover:text-amber-400 transition-colors">How it works</button>
             <button onClick={() => scrollToSection('body-doubling')} className="hover:text-amber-400 transition-colors">Body Doubling</button>
             <button onClick={() => scrollToSection('beta-info')} className="hover:text-amber-400 transition-colors">Open Beta</button>
+            <a href="https://blog.aiforadhd.xyz/" className="hover:text-amber-400 transition-colors">Blog</a>
           </nav>
 
           {/* Call CTA Badge */}
