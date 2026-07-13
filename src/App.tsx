@@ -43,6 +43,9 @@ const workspaceIntegrations: Array<{ key: WorkspaceIntegration; label: string; d
 export default function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const naraviSectionRef = useRef<HTMLDivElement>(null);
+  const supportEmail = window.location.hostname === 'naravi.org' || window.location.hostname === 'www.naravi.org'
+    ? 'support@naravi.org'
+    : 'support@aiforadhd.xyz';
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
 
@@ -1056,8 +1059,11 @@ export default function App() {
             <p className="font-sans font-light text-[11px] text-neutral-500 leading-normal max-w-md lg:ml-auto">
               Naravi and AI for ADHD do not make medical claims, prescriptions, or diagnostic statements. AI is presented solely as a supportive cognitive scaffold.
             </p>
-            <p className="font-mono text-[11px] text-[#D4AF37] font-bold tracking-wider uppercase">
-              Support: CONTACT US: SUPPORT@AIFORADHD.XYZ
+            <p className="font-mono text-[11px] text-[#D4AF37] font-bold tracking-wider">
+              Support:{' '}
+              <a className="underline underline-offset-4 hover:text-amber-300 transition-colors" href={`mailto:${supportEmail}`}>
+                {supportEmail}
+              </a>
             </p>
             <div className="pt-4 text-neutral-600 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between lg:justify-end gap-3 sm:gap-6">
               <div className="flex gap-4">
