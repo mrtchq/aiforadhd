@@ -4,9 +4,10 @@ console.log("[PWA] Initializing installation manager...");
 // 1. Register Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js?v=4', { updateViaCache: 'none' })
       .then((reg) => {
         console.log('[PWA] Service Worker registered successfully with scope:', reg.scope);
+        return reg.update();
       })
       .catch((err) => {
         console.error('[PWA] Service Worker registration failed:', err);
