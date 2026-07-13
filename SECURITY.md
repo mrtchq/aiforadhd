@@ -2,7 +2,7 @@
 
 ## Google Workspace OAuth
 
-Quill uses Firebase Authentication for app sign-in and a separate server-side Google OAuth 2.0 authorization-code flow for Workspace access. Firebase Google sign-in requests only `openid`, `email`, and `profile`; it does not start Workspace OAuth.
+Naravi uses Firebase Authentication for app sign-in and a separate server-side Google OAuth 2.0 authorization-code flow for Workspace access. Firebase Google sign-in requests only `openid`, `email`, and `profile`; it does not start Workspace OAuth.
 
 The Google callback is always derived from `APP_URL`:
 

@@ -42,7 +42,7 @@ const workspaceIntegrations: Array<{ key: WorkspaceIntegration; label: string; d
 
 export default function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const quillSectionRef = useRef<HTMLDivElement>(null);
+  const naraviSectionRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | null>(null);
 
@@ -52,7 +52,7 @@ export default function App() {
   const [timeRemaining, setTimeRemaining] = useState(300);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userVolume, setUserVolume] = useState(0);
-  const [quillVolume, setQuillVolume] = useState(0);
+  const [naraviVolume, setNaraviVolume] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [entitlement, setEntitlement] = useState<any>(null);
 
@@ -64,7 +64,7 @@ export default function App() {
 
   // Geofenced Locations state
   const [locations, setLocations] = useState<any[]>(() => {
-    const saved = localStorage.getItem('quill_locations');
+    const saved = localStorage.getItem('naravi_locations');
     return saved ? JSON.parse(saved) : [
       { id: '1', name: 'Office', lat: 37.7749, lng: -122.4194, radius: 100 },
       { id: '2', name: 'Home', lat: 37.7833, lng: -122.4167, radius: 100 },
@@ -78,7 +78,7 @@ export default function App() {
 
   // Reminders and logs state
   const [geofenceReminders, setGeofenceReminders] = useState<any[]>(() => {
-    const saved = localStorage.getItem('quill_geofences');
+    const saved = localStorage.getItem('naravi_geofences');
     return saved ? JSON.parse(saved) : [];
   });
   const [voiceLogs, setVoiceLogs] = useState<any[]>([]);
@@ -94,7 +94,7 @@ export default function App() {
   // Load remaining daily seconds from server entitlement route
   const loadEntitlement = async () => {
     try {
-      const res = await fetch('/api/quill/entitlement');
+      const res = await fetch('/api/naravi/entitlement');
       const data = await res.json();
       setEntitlement(data);
       if (data.remainingSeconds !== undefined && callState === 'idle') {
@@ -142,12 +142,12 @@ export default function App() {
 
   // Save locations to localStorage automatically
   useEffect(() => {
-    localStorage.setItem('quill_locations', JSON.stringify(locations));
+    localStorage.setItem('naravi_locations', JSON.stringify(locations));
   }, [locations]);
 
   // Save geofences to localStorage automatically
   useEffect(() => {
-    localStorage.setItem('quill_geofences', JSON.stringify(geofenceReminders));
+    localStorage.setItem('naravi_geofences', JSON.stringify(geofenceReminders));
   }, [geofenceReminders]);
 
   // Request call start and obtain session permission from backend
@@ -157,7 +157,7 @@ export default function App() {
       setCallState('idle');
       if (sessionId) {
         // Formally end session on server
-        await fetch('/api/quill/session/end', {
+        await fetch('/api/naravi/session/end', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId })
@@ -179,7 +179,7 @@ export default function App() {
 
     try {
       setCallState('connecting');
-      const res = await fetch('/api/quill/session/start', {
+      const res = await fetch('/api/naravi/session/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -367,7 +367,7 @@ export default function App() {
     setIsSubmittingFeedback(true);
 
     try {
-      const res = await fetch('/api/quill/feedback', {
+      const res = await fetch('/api/naravi/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -409,7 +409,7 @@ export default function App() {
   };
 
   const startCallTrigger = () => {
-    scrollToSection('quill-playground');
+    scrollToSection('naravi-playground');
     setTimeout(() => {
       handleCallButtonClick();
     }, 400);
@@ -446,29 +446,19 @@ export default function App() {
               />
             </div>
             <div className="hidden sm:block">
-              <span className="font-display font-black text-sm tracking-widest text-white block group-hover:text-amber-400 transition-colors">QUILL</span>
+              <span className="font-display font-black text-sm tracking-widest text-white block group-hover:text-amber-400 transition-colors">NARAVI</span>
               <span className="font-mono text-[9px] text-gray-500 uppercase tracking-widest">ADHD BODY DOUBLE</span>
             </div>
           </div>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold tracking-wider uppercase text-gray-400 font-sans">
-            <button onClick={() => scrollToSection('quill-playground')} className="hover:text-amber-400 transition-colors">Call Quill</button>
+            <button onClick={() => scrollToSection('naravi-playground')} className="hover:text-amber-400 transition-colors">Call Naravi</button>
             <button onClick={() => scrollToSection('how-it-works')} className="hover:text-amber-400 transition-colors">How it works</button>
             <button onClick={() => scrollToSection('body-doubling')} className="hover:text-amber-400 transition-colors">Body Doubling</button>
             <button onClick={() => scrollToSection('beta-info')} className="hover:text-amber-400 transition-colors">Open Beta</button>
             <a href="https://blog.aiforadhd.xyz/" className="hover:text-amber-400 transition-colors">Blog</a>
           </nav>
-
-          {/* Call CTA Badge */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={startCallTrigger}
-              className="border border-[#D4AF37] text-[#D4AF37] px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_10px_rgba(212,175,55,0.2)] cursor-pointer"
-            >
-              STUCK? CALL QUILL
-            </button>
-          </div>
 
         </div>
       </header>
@@ -480,7 +470,7 @@ export default function App() {
           <div className="mb-2 relative">
             {/* Visual Backlight Ring scaling to microphone volume */}
             <div 
-              style={{ transform: `translate(-50%, -50%) scale(${1 + (userVolume + quillVolume) * 0.12})` }}
+              style={{ transform: `translate(-50%, -50%) scale(${1 + (userVolume + naraviVolume) * 0.12})` }}
               className="absolute top-[40%] left-[50%] w-72 h-72 rounded-full bg-amber-500/[0.04] blur-2xl transition-transform duration-100 ease-out pointer-events-none" 
             />
             <InteractiveBrainLogo />
@@ -491,7 +481,7 @@ export default function App() {
           </span>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-extrabold tracking-tight text-white max-w-3xl leading-[1.1] mb-6">
-            Stuck? <span className="text-gold-gradient font-black gold-glow-text">Call Quill.</span>
+            Stuck? <span className="text-gold-gradient font-black gold-glow-text">Call Naravi.</span>
           </h1>
 
           <div className="mb-10 w-full max-w-lg">
@@ -499,7 +489,7 @@ export default function App() {
           </div>
 
           <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed mb-8">
-            When executive dysfunction makes starting feel impossible, don't write lists or organize calendars. Just talk. Quill is a highly responsive audio partner built specifically to clear neurodivergent freezing and find one clear immediate step together.
+            When executive dysfunction makes starting feel impossible, don't write lists or organize calendars. Just talk. Naravi is a highly responsive audio partner built specifically to clear neurodivergent freezing and find one clear immediate step together.
           </p>
 
           <button
@@ -516,13 +506,13 @@ export default function App() {
         </div>
       </section>
 
-      {/* 5. CORE INTERACTIVE CALL WORKSPACE (/#quill) */}
-      <section id="quill-playground" ref={quillSectionRef} className="py-16 px-6 relative z-10 border-t border-white/5 bg-neutral-950/20">
+      {/* 5. CORE INTERACTIVE CALL WORKSPACE (/#naravi) */}
+      <section id="naravi-playground" ref={naraviSectionRef} className="py-16 px-6 relative z-10 border-t border-white/5 bg-neutral-950/20">
         <div className="max-w-4xl mx-auto space-y-10">
           
           <div className="text-center space-y-3">
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white tracking-tight">
-              Quill Voice Call Interface
+              Naravi Voice Call Interface
             </h2>
             <p className="text-gray-400 text-xs sm:text-sm max-w-xl mx-auto">
               Speak freely without feeling overwhelmed. Our AI body double is live right now inside your browser. Complete your 5-minute daily session to unlock your tasks.
@@ -563,8 +553,8 @@ export default function App() {
                 <div className="h-16 flex items-center justify-center gap-1.5 w-full max-w-xs">
                   {callState === 'active' ? (
                     Array.from({ length: 15 }).map((_, i) => {
-                      // Alternate between user volume and quill volume
-                      const scaleVal = i % 2 === 0 ? userVolume : quillVolume;
+                      // Alternate between user volume and naravi volume
+                      const scaleVal = i % 2 === 0 ? userVolume : naraviVolume;
                       const h = 4 + (scaleVal * 45) + (Math.sin(i * 0.5) * 8);
                       return (
                         <motion.div
@@ -650,7 +640,7 @@ export default function App() {
                 onTimeRemainingChange={setTimeRemaining}
                 onVolumeChange={(u, q) => {
                   setUserVolume(u);
-                  setQuillVolume(q);
+                  setNaraviVolume(q);
                 }}
                 onError={setErrorMessage}
                 onEnd={handleEndCall}
@@ -676,7 +666,7 @@ export default function App() {
                 </div>
 
                 <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                  Sign in with Google first, then choose exactly which Workspace services Quill can use for task capture, calendar blocking, note cards, and Docs brainstorming.
+                  Sign in with Google first, then choose exactly which Workspace services Naravi can use for task capture, calendar blocking, note cards, and Docs brainstorming.
                 </p>
 
                 {/* Connection Status Badge */}
@@ -799,7 +789,7 @@ export default function App() {
 
                   <div className="space-y-1.5">
                     <h3 className="text-xl font-display font-extrabold text-white">
-                      How was your session with Quill?
+                      How was your session with Naravi?
                     </h3>
                     <p className="text-gray-400 text-xs">
                       Help us refine this ADHD body-double. Share your honest, shame-free feedback.
@@ -830,7 +820,7 @@ export default function App() {
 
                   <div className="space-y-2">
                     <textarea
-                      placeholder="Was Quill patient? Did they help break down the freeze? Any weird audio silence issues? (Optional)"
+                      placeholder="Was Naravi patient? Did they help break down the freeze? Any weird audio silence issues? (Optional)"
                       rows={3}
                       value={feedbackText}
                       onChange={(e) => setFeedbackText(e.target.value)}
@@ -866,7 +856,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <Terminal className="w-4.5 h-4.5 text-cyan-400 animate-pulse" />
                   <span className="text-[10px] font-mono tracking-widest text-gray-300 uppercase font-bold">
-                    Quill Live Action Logs
+                    Naravi Live Action Logs
                   </span>
                 </div>
                 <span className="text-[9px] font-mono text-neutral-600">PCM STREAM LIVE</span>
@@ -876,7 +866,7 @@ export default function App() {
                 {voiceLogs.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center text-neutral-600 py-10 space-y-2">
                     <Clock className="w-5 h-5 opacity-60" />
-                    <span>No actions recorded. Initiate a call and speak to Quill to stream tool feedback here.</span>
+                    <span>No actions recorded. Initiate a call and speak to Naravi to stream tool feedback here.</span>
                   </div>
                 ) : (
                   voiceLogs.map((log) => (
@@ -906,7 +896,7 @@ export default function App() {
           <div className="text-center space-y-3">
             <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
               Traditional productivity was built for <span className="text-gold-gradient font-black gold-glow-text">linear brains</span>. <br />
-              Quill is built for you.
+              Naravi is built for you.
             </h2>
             <p className="text-gray-400 text-base max-w-2xl mx-auto font-light leading-relaxed">
               When standard lists fail and calendars cause guilt, try speaking. We bypass the friction of the "start state" by giving you an active verbal partner to filter out the noise.
@@ -925,9 +915,9 @@ export default function App() {
 
             <div className="bg-neutral-950/40 border border-neutral-900/60 p-8 rounded-3xl relative space-y-4 shadow-md">
               <span className="text-4xl">⚡</span>
-              <h3 className="text-lg font-bold text-white">2. Quill Extracts the Step</h3>
+              <h3 className="text-lg font-bold text-white">2. Naravi Extracts the Step</h3>
               <p className="text-gray-400 text-xs leading-relaxed font-light">
-                Quill listens with absolute patience and empathy. Using the custom Gemini Live SDK, the assistant filters out the overwhelm, ignores rigid deadlines, and identifies exactly <em>one</em> stupidly small 5-minute action to begin.
+                Naravi listens with absolute patience and empathy. Using the custom Gemini Live SDK, the assistant filters out the overwhelm, ignores rigid deadlines, and identifies exactly <em>one</em> stupidly small 5-minute action to begin.
               </p>
             </div>
 
@@ -935,7 +925,7 @@ export default function App() {
               <span className="text-4xl">🎯</span>
               <h3 className="text-lg font-bold text-white">3. Synced Automatically</h3>
               <p className="text-gray-400 text-xs leading-relaxed font-light">
-                Quill proactively calls the Todoist integration. Your new task, nested checklists, or geofenced coordinate reminders are created instantly inside your real account, ready to go whenever you are.
+                Naravi proactively calls the Todoist integration. Your new task, nested checklists, or geofenced coordinate reminders are created instantly inside your real account, ready to go whenever you are.
               </p>
             </div>
 
@@ -974,13 +964,13 @@ export default function App() {
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">The Cortical Brake</h4>
                   <p className="text-gray-400">
-                    ADHD brains struggle with dopamine regulation, which governs task transitions. When a task is ambiguous or daunting, the brain registers it as a threat, locking you in "paralysis." Quill bypasses this by breaking down ambiguity verbally in real-time.
+                    ADHD brains struggle with dopamine regulation, which governs task transitions. When a task is ambiguous or daunting, the brain registers it as a threat, locking you in "paralysis." Naravi bypasses this by breaking down ambiguity verbally in real-time.
                   </p>
                 </div>
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">Zero Judgment, Total Flow</h4>
                   <p className="text-gray-400">
-                    Traditional body doubling relies on other humans, which introduces social anxiety, performance pressure, or scheduling friction. Quill is always available, endlessly patient, completely free of shame, and hyper-focused on your momentum.
+                    Traditional body doubling relies on other humans, which introduces social anxiety, performance pressure, or scheduling friction. Naravi is always available, endlessly patient, completely free of shame, and hyper-focused on your momentum.
                   </p>
                 </div>
               </div>
@@ -1064,7 +1054,7 @@ export default function App() {
               Built for ADHD brains, with absolute respect for your executive battery.
             </p>
             <p className="font-sans font-light text-[11px] text-neutral-500 leading-normal max-w-md lg:ml-auto">
-              Quill and AI for ADHD do not make medical claims, prescriptions, or diagnostic statements. AI is presented solely as a supportive cognitive scaffold.
+              Naravi and AI for ADHD do not make medical claims, prescriptions, or diagnostic statements. AI is presented solely as a supportive cognitive scaffold.
             </p>
             <p className="font-mono text-[11px] text-[#D4AF37] font-bold tracking-wider uppercase">
               Support: CONTACT US: SUPPORT@AIFORADHD.XYZ

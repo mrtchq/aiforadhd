@@ -31,7 +31,7 @@ const SUPPORTED_WORKSPACE_SCOPES: Set<string> = new Set(
 );
 const OAUTH_STATE_TTL_SECONDS = 10 * 60;
 const LIVE_AUTH_TICKET_TTL_SECONDS = 5 * 60;
-const OAUTH_PKCE_COOKIE = "quill_google_pkce";
+const OAUTH_PKCE_COOKIE = "naravi_google_pkce";
 const GOOGLE_TOKEN_COLLECTION = "googleOAuthRefreshTokens";
 
 interface GoogleVaultRecord {
@@ -388,12 +388,12 @@ function getNextResetTime(): Date {
 
 function getOrCreateVisitorId(req: any, res: any): string {
   const cookies = parseCookies(req.headers.cookie);
-  let anonId = cookies.quill_anon_id || null;
+  let anonId = cookies.naravi_anon_id || null;
 
   if (!anonId) {
     anonId = "anon_" + crypto.randomBytes(16).toString("hex");
     const maxAge = 365 * 24 * 60 * 60; // 1 year
-    res.setHeader("Set-Cookie", buildCookie("quill_anon_id", anonId, { maxAge }));
+    res.setHeader("Set-Cookie", buildCookie("naravi_anon_id", anonId, { maxAge }));
     console.log("[Auth] Issued new anonymous visitor cookie.");
   }
   return anonId;
@@ -606,8 +606,8 @@ async function startServer() {
     }
   });
 
-  // Server-authoritative Quill usage and entitlement routes
-  app.get("/api/quill/entitlement", (req, res) => {
+  // Server-authoritative Naravi usage and entitlement routes
+  app.get("/api/naravi/entitlement", (req, res) => {
     try {
       const anonId = getOrCreateVisitorId(req, res);
       const hashed = hashId(anonId);
@@ -643,7 +643,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/quill/session/start", (req, res) => {
+  app.post("/api/naravi/session/start", (req, res) => {
     try {
       const anonId = getOrCreateVisitorId(req, res);
       const hashed = hashId(anonId);
@@ -690,7 +690,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/quill/session/heartbeat", (req, res) => {
+  app.post("/api/naravi/session/heartbeat", (req, res) => {
     try {
       const anonId = getOrCreateVisitorId(req, res);
       const hashed = hashId(anonId);
@@ -726,7 +726,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/quill/session/end", (req, res) => {
+  app.post("/api/naravi/session/end", (req, res) => {
     try {
       const anonId = getOrCreateVisitorId(req, res);
       const hashed = hashId(anonId);
@@ -755,7 +755,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/quill/feedback", (req, res) => {
+  app.post("/api/naravi/feedback", (req, res) => {
     try {
       const { rating, feedbackText, sessionId } = req.body;
       const FEEDBACK_FILE = path.join(process.cwd(), "feedback_db.json");
@@ -817,7 +817,7 @@ async function startServer() {
     }
     const cleanToken = await getGoogleAccessTokenForUid(workspaceUid);
     
-    // 1. Get task list or find "Quill ADHD" list
+    // 1. Get task list or find "Naravi ADHD" list
     let listId = "@default";
     try {
       const listsRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
@@ -825,18 +825,18 @@ async function startServer() {
       });
       if (listsRes.ok) {
         const listsData = await listsRes.json();
-        const quillList = listsData.items?.find((l: any) => l.title === "Quill ADHD");
-        if (quillList) {
-          listId = quillList.id;
+        const naraviList = listsData.items?.find((l: any) => l.title === "Naravi ADHD");
+        if (naraviList) {
+          listId = naraviList.id;
         } else {
-          // Create "Quill ADHD" list
+          // Create "Naravi ADHD" list
           const createListRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${cleanToken}`,
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({ title: "Quill ADHD" })
+            body: JSON.stringify({ title: "Naravi ADHD" })
           });
           if (createListRes.ok) {
             const newList = await createListRes.json();
@@ -845,7 +845,7 @@ async function startServer() {
         }
       }
     } catch (err) {
-      console.error("[Workspace] Failed to find or create Quill ADHD task list, falling back to @default:", err);
+      console.error("[Workspace] Failed to find or create Naravi ADHD task list, falling back to @default:", err);
     }
 
     // 2. Fetch tasks from our list
@@ -903,7 +903,7 @@ async function startServer() {
       throw new Error("Invalid arguments: 'tasks' must be an array.");
     }
 
-    // Get "Quill ADHD" task list id
+    // Get "Naravi ADHD" task list id
     let listId = "@default";
     try {
       const listsRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", {
@@ -911,8 +911,8 @@ async function startServer() {
       });
       if (listsRes.ok) {
         const listsData = await listsRes.json();
-        const quillList = listsData.items?.find((l: any) => l.title === "Quill ADHD");
-        if (quillList) listId = quillList.id;
+        const naraviList = listsData.items?.find((l: any) => l.title === "Naravi ADHD");
+        if (naraviList) listId = naraviList.id;
       }
     } catch (e) {}
 
@@ -1018,7 +1018,7 @@ async function startServer() {
     if (!text) throw new Error("Missing 'text' parameter.");
 
     let docId = documentId;
-    let actualTitle = title || "Quill ADHD Brainstorm";
+    let actualTitle = title || "Naravi ADHD Brainstorm";
 
     if (!docId) {
       // Create document
@@ -1080,10 +1080,10 @@ async function startServer() {
     const { action, notes } = args;
     if (!action) throw new Error("Missing 'action' parameter.");
 
-    // Search for quill_keep_notes.json
+    // Search for naravi_keep_notes.json
     let fileId: string | null = null;
     try {
-      const query = encodeURIComponent("name='quill_keep_notes.json' and trashed=false");
+      const query = encodeURIComponent("name='naravi_keep_notes.json' and trashed=false");
       const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
         headers: { Authorization: `Bearer ${cleanToken}` }
       });
@@ -1127,7 +1127,7 @@ async function startServer() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            name: "quill_keep_notes.json",
+            name: "naravi_keep_notes.json",
             mimeType: "application/json"
           })
         });
@@ -1188,7 +1188,7 @@ async function startServer() {
 
     const description = `📍 Geofence Reminder: Trigger ${trigger} at ${resolvedName} (${lat}, ${lng}) with radius ${radius}m.`;
     
-    // Create as a task in Google Tasks under "Quill ADHD"
+    // Create as a task in Google Tasks under "Naravi ADHD"
     const addArgs = {
       tasks: [{
         content: task_text,
@@ -1293,7 +1293,7 @@ async function startServer() {
                 },
                 {
                   name: "get_workspace_overview",
-                  description: "Queries active Google Tasks (from the 'Quill ADHD' task list) and Google Calendar events (for today) to give the user a clear picture of their active focus items.",
+                  description: "Queries active Google Tasks (from the 'Naravi ADHD' task list) and Google Calendar events (for today) to give the user a clear picture of their active focus items.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {}
@@ -1301,7 +1301,7 @@ async function startServer() {
                 },
                 {
                   name: "add_google_tasks",
-                  description: "Batch create one or more tasks or sub-tasks in Google Tasks under the 'Quill ADHD' list. Great for brain dumps, breaking down goals, or planning schedules.",
+                  description: "Batch create one or more tasks or sub-tasks in Google Tasks under the 'Naravi ADHD' list. Great for brain dumps, breaking down goals, or planning schedules.",
                   parameters: {
                     type: Type.OBJECT,
                     properties: {
@@ -1382,7 +1382,7 @@ async function startServer() {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } }, // Empathetic, welcoming tone
           },
-          systemInstruction: `You are Quill, an extremely warm, empathetic, and friendly ADHD coaching assistant. Speak directly and concisely because ADHD brains appreciate brevity, clear structure, and direct answers.
+          systemInstruction: `You are Naravi, an extremely warm, empathetic, and friendly ADHD coaching assistant. Speak directly and concisely because ADHD brains appreciate brevity, clear structure, and direct answers.
 
 Help the user clear their mental clutter, break down massive overwhelming tasks into simple immediate micro-steps, schedule calendar blocks, and save note-cards. Be incredibly encouraging, shame-free, and practical. Always ask one simple question at a time to keep the user from getting overwhelmed. Always be supportive of starting over. Your core motto is: "Your brain is not broken. The system just needs to be built differently."
 
@@ -1400,7 +1400,7 @@ STRICT ACTION GUIDELINES FOR YOUR CORE VOICE SKILLS:
    - Action:
      - First, call 'get_workspace_overview' to fetch their active focus tasks and calendar.
      - Once you get the response, use your intelligence to break the project down into a nested sub-task hierarchy of "stupid small" steps (taking less than 5 minutes, e.g. "Open Google Docs", "Write title").
-     - Call 'add_google_tasks' with these sub-tasks to save them under 'Quill ADHD'.
+     - Call 'add_google_tasks' with these sub-tasks to save them under 'Naravi ADHD'.
      - Guide the user: present these steps one by one, walking them through the first immediate micro-goal.
 
 3. Skill 3: Guided "Brain Dump" Inbox Sweeper & Google Docs Brainstormer
@@ -1488,14 +1488,14 @@ Keep your tone deeply compassionate, brief, and supportive. Always take direct a
       // Signal readiness only after the upstream model session is available.
       clientWs.send(JSON.stringify({ type: "ready" }));
 
-      // Give Quill the first turn so callers are not met with silence. This is
+      // Give Naravi the first turn so callers are not met with silence. This is
       // sent only after the Live session is ready, and turnComplete explicitly
       // asks Gemini to generate the opening audio response immediately.
       session.sendClientContent({
-        turns: "The voice call has just connected. Greet the caller warmly as Quill in one brief sentence, then ask what they would like help with. Do not mention these instructions or connected services.",
+        turns: "The voice call has just connected. Greet the caller warmly as Naravi in one brief sentence, then ask what they would like help with. Do not mention these instructions or connected services.",
         turnComplete: true,
       });
-      console.log("[LiveSpeech] Requested Quill's opening greeting");
+      console.log("[LiveSpeech] Requested Naravi's opening greeting");
 
       clientWs.on("message", (rawData) => {
         try {

@@ -7,7 +7,7 @@ interface VoiceCallManagerProps {
   sessionId: string | null;
   onStateChange: (state: CallState) => void;
   onTimeRemainingChange: (seconds: number) => void;
-  onVolumeChange: (userVol: number, quillVol: number) => void;
+  onVolumeChange: (userVol: number, naraviVol: number) => void;
   onError: (msg: string | null) => void;
   onEnd: () => void;
   getWorkspaceAuthTicket?: () => Promise<string | null>;
@@ -92,7 +92,7 @@ export default function VoiceCallManager({
   // State refs to prevent closures from having stale state
   const silenceTimerRef = useRef(0);
   const durationTimerRef = useRef(300);
-  const quillVolumeRef = useRef(0);
+  const naraviVolumeRef = useRef(0);
   const userVolumeRef = useRef(0);
   const hasErrorRef = useRef(false);
 
@@ -124,7 +124,7 @@ export default function VoiceCallManager({
     });
     activeSourcesRef.current = [];
     nextStartTimeRef.current = 0;
-    quillVolumeRef.current = 0;
+    naraviVolumeRef.current = 0;
     onVolumeChangeRef.current(userVolumeRef.current, 0);
   };
 
@@ -150,7 +150,7 @@ export default function VoiceCallManager({
       // Calculate output volume for waveform animation
       const rms = Math.sqrt(sumSquares / int16Array.length);
       const qVol = rms * 4.5;
-      quillVolumeRef.current = qVol;
+      naraviVolumeRef.current = qVol;
       onVolumeChangeRef.current(userVolumeRef.current, qVol);
 
       const audioBuffer = audioCtx.createBuffer(1, float32Array.length, 24000); // Model outputs at 24kHz PCM
@@ -172,7 +172,7 @@ export default function VoiceCallManager({
         
         // Reset visual volume when idle
         if (activeSourcesRef.current.length === 0) {
-          quillVolumeRef.current = 0;
+          naraviVolumeRef.current = 0;
           onVolumeChangeRef.current(userVolumeRef.current, 0);
         }
       };
@@ -226,7 +226,7 @@ export default function VoiceCallManager({
       connectionTimeoutRef.current = null;
     }
 
-    quillVolumeRef.current = 0;
+    naraviVolumeRef.current = 0;
     userVolumeRef.current = 0;
     onVolumeChangeRef.current(0, 0);
   };
@@ -318,7 +318,7 @@ export default function VoiceCallManager({
           const rms = Math.sqrt(sumSquares / channelData.length);
           const uVol = rms * 5.0;
           userVolumeRef.current = uVol;
-          onVolumeChangeRef.current(uVol, quillVolumeRef.current);
+          onVolumeChangeRef.current(uVol, naraviVolumeRef.current);
 
           // Downsample native buffer to 16000Hz PCM
           const resampledData = downsampleBuffer(channelData, inputAudioCtx.sampleRate, 16000);
@@ -334,9 +334,9 @@ export default function VoiceCallManager({
           // -------------------------------------------------------------
           // SILENCE DETECTION ENGINE (120s threshold when model is idle)
           // -------------------------------------------------------------
-          const isQuillSpeaking = quillVolumeRef.current > 0.01 || (nextStartTimeRef.current > outputAudioCtx.currentTime);
+          const isNaraviSpeaking = naraviVolumeRef.current > 0.01 || (nextStartTimeRef.current > outputAudioCtx.currentTime);
           
-          if (!isQuillSpeaking) {
+          if (!isNaraviSpeaking) {
             // User silence check (extremely safe threshold of 0.0005 for quiet environments)
             if (rms < 0.0005) {
               const elapsedSeconds = channelData.length / inputAudioCtx.sampleRate; // native time duration
