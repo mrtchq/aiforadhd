@@ -9,9 +9,8 @@ import {
   CheckCircle2, 
   ArrowRight, 
   Phone, 
-  PhoneOff, 
-  MapPin, 
-  Settings, 
+  PhoneOff,
+  Settings,
   Terminal, 
   Star, 
   MessageSquare, 
@@ -772,74 +771,6 @@ export default function App() {
 
               </div>
 
-              {/* Custom Locations Config Panel */}
-              <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-6 relative shadow-xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="w-5 h-5 text-cyan-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                    My Geofenced Locations
-                  </h3>
-                </div>
-                <p className="text-gray-400 text-xs leading-relaxed mb-4">
-                  Add custom coordinates. When you verbally tell Quill: "Remind me to do X when I arrive at Y," the AI resolves it automatically using these settings!
-                </p>
-
-                {/* Locations list */}
-                <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-                  {locations.map((loc) => (
-                    <div key={loc.id} className="flex items-center justify-between bg-white/[0.02] border border-white/5 py-1.5 px-2.5 rounded-lg text-xs">
-                      <div className="text-left">
-                        <div className="font-semibold text-gray-200">{loc.name}</div>
-                        <div className="text-[9px] font-mono text-gray-500">
-                          Lat: {loc.lat.toFixed(4)}, Lng: {loc.lng.toFixed(4)} (Radius: {loc.radius}m)
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveLocation(loc.id)}
-                        className="text-neutral-600 hover:text-red-400 text-[10px] uppercase font-mono tracking-wider font-semibold"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add location form */}
-                <form onSubmit={handleAddLocation} className="mt-4 pt-3 border-t border-white/5 grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    placeholder="Location Name (e.g., Gym)"
-                    value={newLocName}
-                    onChange={(e) => setNewLocName(e.target.value)}
-                    required
-                    className="col-span-2 bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Latitude (e.g., 37.77)"
-                    value={newLocLat}
-                    onChange={(e) => setNewLocLat(e.target.value)}
-                    required
-                    className="bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Longitude (e.g., -122.4)"
-                    value={newLocLng}
-                    onChange={(e) => setNewLocLng(e.target.value)}
-                    required
-                    className="bg-neutral-900 border border-neutral-800 rounded-lg py-1.5 px-2.5 text-xs text-gray-200"
-                  />
-                  <button
-                    type="submit"
-                    className="col-span-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-mono text-[10px] py-1.5 rounded-lg transition-colors uppercase font-bold"
-                  >
-                    Add Location Coordinates
-                  </button>
-                </form>
-
-              </div>
-
             </div>
 
           </div>
@@ -927,8 +858,8 @@ export default function App() {
             )}
           </AnimatePresence>
 
-          {/* Underlay Outputs: Real-time logs and Geofenced alerts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          {/* Underlay Output: Real-time logs */}
+          <div className="pt-4">
             
             {/* Live Terminal Log Stream */}
             <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-5 shadow-xl flex flex-col h-[280px]">
@@ -956,41 +887,6 @@ export default function App() {
                         <span>{log.timestamp}</span>
                       </div>
                       <p className="text-gray-300 leading-relaxed text-xs">{log.description}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Created Alerts List */}
-            <div className="bg-neutral-950/60 border border-neutral-900 rounded-3xl p-5 shadow-xl flex flex-col h-[280px]">
-              <div className="flex items-center justify-between border-b border-neutral-900 pb-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4.5 h-4.5 text-pink-400" />
-                  <span className="text-[10px] font-mono tracking-widest text-gray-300 uppercase font-bold">
-                    Active Geofences Created
-                  </span>
-                </div>
-                <span className="text-[9px] font-mono text-neutral-600">REST V2 API</span>
-              </div>
-
-              <div className="flex-1 overflow-y-auto space-y-2.5 font-mono text-[11px] text-gray-400 text-left pr-1">
-                {geofenceReminders.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-neutral-600 py-10 space-y-2">
-                    <MapPin className="w-5 h-5 opacity-60" />
-                    <span>No geofenced reminders created yet. Tell Quill to remind you at a location.</span>
-                  </div>
-                ) : (
-                  geofenceReminders.map((g) => (
-                    <div key={g.id} className="bg-white/[0.01] border border-white/5 p-2 rounded-xl text-xs space-y-1">
-                      <div className="flex items-center justify-between text-[10px] text-neutral-500">
-                        <span className="font-semibold text-gray-200">📍 {g.location}</span>
-                        <span>{g.trigger === 'on_enter' ? 'Arriving' : 'Leaving'}</span>
-                      </div>
-                      <p className="text-gray-300 font-sans">{g.taskText}</p>
-                      <div className="text-[9px] text-neutral-500 text-right">
-                        Created: {g.timestamp}
-                      </div>
                     </div>
                   ))
                 )}
