@@ -1,0 +1,8 @@
+{
+  "name": "AI for ADHD: The Cognitive Co-Pilot",
+  "description": "The world's first neuro-adaptive cognitive co-pilot pairing structured executive logic with radiant non-linear creative flow.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
