@@ -197,10 +197,259 @@
       min-height: 44px;
       min-width: 44px;
     }
+
+    /* ============================================================
+     * CIRCULAR SPACE ANIMATED BUTTON (Google Sign-In)
+     * ============================================================ */
+    .btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 8rem;
+      height: 8rem;
+      overflow: hidden;
+      background-size: 300% 300%;
+      cursor: pointer;
+      backdrop-filter: blur(1rem);
+      -webkit-backdrop-filter: blur(1rem);
+      border-radius: 50%;
+      transition: 0.5s;
+      animation: gradient_301 5s ease infinite;
+      border: double 4px transparent;
+      background-image: linear-gradient(#212121, #212121),
+          linear-gradient(
+              137.48deg,
+              #0b0b0a 10%,
+              #ffffff 45%,
+              #171617 67%,
+              #0044ff 87%
+          );
+      background-origin: border-box;
+      background-clip: content-box, border-box;
+      position: relative;
+    }
+
+    #container-stars {
+      position: absolute;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      transition: 0.5s;
+      backdrop-filter: blur(1rem);
+      -webkit-backdrop-filter: blur(1rem);
+      border-radius: 50%;
+    }
+
+    #glow {
+      position: absolute;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .circle {
+      width: 100%;
+      height: 100%;
+      filter: blur(2rem);
+      animation: pulse_3011 4s infinite;
+      z-index: -1;
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .circle:nth-of-type(1) {
+      background: rgba(9, 9, 9, 0.636);
+    }
+
+    .circle:nth-of-type(2) {
+      background: rgba(11, 11, 11, 0.704);
+      animation-delay: 1s;
+    }
+
+    .btn:hover #container-stars {
+      z-index: 2;
+      background-color: #212121;
+    }
+
+    .btn:hover {
+      transform: scale(1.1);
+    }
+
+    .btn:active {
+      border: double 4px #f5f1f2;
+      background-origin: border-box;
+      background-clip: content-box, border-box;
+      animation: none;
+    }
+
+    .btn:active .circle {
+      background: #060606;
+    }
+
+    #container-stars #stars-btn {
+      position: relative;
+      background: transparent;
+      width: 200rem;
+      height: 200rem;
+      top: -50%; 
+      left: -50%;
+      transform: translate(-25%, -25%);
+    }
+
+    #container-stars #stars-btn::after {
+      content: "";
+      position: absolute;
+      top: -10rem;
+      left: -100rem;
+      width: 100%;
+      height: 100%;
+      animation: animStarRotate 90s linear infinite;
+      background-image: radial-gradient(#fbfafa 1px, transparent 1%);
+      background-size: 50px 50px;
+    }
+
+    #container-stars #stars-btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 170%;
+      height: 500%;
+      animation: animBtnStar 60s linear infinite;
+      background-image: radial-gradient(#ffffff 1px, transparent 1%);
+      background-size: 50px 50px;
+      opacity: 0.5;
+    }
+
+    @keyframes animBtnStar {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(-135rem);
+      }
+    }
+
+    @keyframes animStarRotate {
+      from {
+        transform: rotate(360deg);
+      }
+      to {
+        transform: rotate(0);
+      }
+    }
+
+    @keyframes gradient_301 {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    @keyframes pulse_3011 {
+      0% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+      }
+      100% {
+        transform: scale(0.75);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+      }
+    }
   </style>
 </head>
 
 <body class="h-full w-full font-sans antialiased text-slate-100 flex flex-col justify-between relative overflow-hidden">
+
+  <!-- ================= SPLASH PAGE (First view users see when accessing the app) ================= -->
+  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-between p-6 sm:p-10 bg-space-950/95 backdrop-blur-2xl overflow-y-auto slide-scroll transition-opacity duration-700">
+    
+    <!-- Ambient Nebulae for the Splash Screen -->
+    <div class="absolute inset-0 pointer-events-none opacity-60">
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gold-500/15 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Top Status Indicator -->
+    <div class="w-full max-w-xl flex justify-between items-center text-[11px] font-mono tracking-widest text-slate-400 uppercase shrink-0 pt-2 relative z-10">
+      <span class="flex items-center gap-1.5">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        AI FOR ADHD // NEURO-ADAPTIVE
+      </span>
+      <span class="text-gold-400">COGNITIVE CO-PILOT</span>
+    </div>
+
+    <!-- Mid-Top Centered Logo and Animated Google Button right below -->
+    <div class="my-auto flex flex-col items-center justify-center text-center max-w-xl w-full relative z-10 py-4">
+      
+      <!-- 1) Attached Logo Image at Mid-Top and Centered -->
+      <div class="relative group mb-6 transition-transform duration-500 hover:scale-[1.02]">
+        <div class="absolute -inset-6 bg-gradient-to-r from-gold-500/20 via-purple-600/20 to-chroma-cyan/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition duration-700"></div>
+        <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png"
+             alt="AI for ADHD: The Cognitive Co-Pilot"
+             class="relative max-h-56 sm:max-h-72 w-auto object-contain filter drop-shadow-[0_12px_36px_rgba(255,209,89,0.35)] select-none pointer-events-none" />
+      </div>
+
+      <!-- 2) Animated Button Right Below the Centered Logo with Google Icon in the Center -->
+      <div class="flex flex-col items-center space-y-4">
+        <button type="button" class="btn group" id="googleSignInBtn" aria-label="Sign in with Google">
+          <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png"
+               alt="Google Sign-In"
+               class="w-16 h-16 object-contain relative z-20 drop-shadow-[0_0_16px_rgba(255,255,255,0.85)] pointer-events-none select-none transition-transform duration-300 group-hover:scale-105" />
+          <div id="container-stars">
+            <div id="stars-btn"></div>
+          </div>
+          <div id="glow">
+            <div class="circle"></div>
+            <div class="circle"></div>
+          </div>
+        </button>
+
+        <!-- Status & helper text -->
+        <div id="authStatusText" class="text-xs font-rajdhani font-semibold tracking-widest text-gold-300 uppercase flex items-center space-x-2">
+          <span>SIGN IN WITH GOOGLE TO INITIALIZE CO-PILOT</span>
+        </div>
+
+        <!-- Auth Error Banner -->
+        <div id="authErrorMsg" class="hidden text-xs text-rose-300 font-mono max-w-sm text-center bg-rose-950/80 border border-rose-500/40 rounded-xl px-4 py-2 shadow-lg"></div>
+
+        <!-- Signed in profile card (when already authenticated) -->
+        <div id="signedInPreview" class="hidden items-center gap-3 p-2.5 px-5 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-xl">
+          <img id="splashUserAvatar" src="" alt="User Avatar" class="w-9 h-9 rounded-full border border-gold-400 object-cover" />
+          <div class="text-left text-xs">
+            <div id="splashUserName" class="font-bold text-white leading-tight"></div>
+            <div id="splashUserEmail" class="text-[10px] text-slate-400 leading-tight"></div>
+          </div>
+          <button id="enterAppDirectBtn" class="ml-3 px-4 py-1.5 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-gold-400 to-amber-500 text-space-950 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20">
+            ENTER CO-PILOT
+          </button>
+        </div>
+
+        <!-- Subtle Guest / Demo Bypass Option -->
+        <button id="guestBypassBtn" class="pt-2 text-xs font-rajdhani tracking-wider text-slate-400 hover:text-gold-400 transition-colors flex items-center space-x-1.5 underline underline-offset-4 cursor-pointer">
+          <span>Or explore slides as guest</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Footer Meta -->
+    <div class="w-full text-center text-[11px] font-mono text-slate-500 py-2 relative z-10">
+      AUTHENTICATED BY GOOGLE FIREBASE // PRIVATE & SECURE // CLICK GOOGLE BUTTON TO BEGIN
+    </div>
+  </div>
 
   <!-- Ambient Space, Dual-Nebula & Starfield -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -249,12 +498,27 @@
       <button onclick="jumpToSlide(4)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="4">05. EARLY ACCESS</button>
     </nav>
 
-    <!-- Zone 3: Audio Toggle & Quick CTA -->
+    <!-- Zone 3: Audio Toggle, Auth Status & Quick CTA -->
     <div class="flex items-center space-x-2 sm:space-x-3">
       <!-- Sector Pill for Mobile -->
       <div class="md:hidden flex items-center px-2 py-1 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
         <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>05
       </div>
+
+      <!-- User Auth State Pill (when signed in) -->
+      <div id="headerUserPill" class="hidden items-center space-x-2 px-2.5 py-1 rounded-full bg-space-850/90 border border-gold-400/40 text-xs text-slate-200 glass-hud">
+        <img id="headerUserAvatar" src="" alt="Avatar" class="w-5 h-5 rounded-full border border-gold-400 object-cover" />
+        <span id="headerUserName" class="hidden sm:inline font-semibold text-gold-300 max-w-[90px] truncate"></span>
+        <button id="headerSignOutBtn" onclick="window.firebaseSignOut()" class="text-[10px] font-mono text-slate-400 hover:text-rose-400 pl-1.5 border-l border-slate-700 transition-colors" title="Sign Out">
+          LOGOUT
+        </button>
+      </div>
+
+      <!-- Welcome / Re-open Splash Button -->
+      <button id="splashToggleBtn" onclick="window.showSplashScreen()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Welcome Splash Screen">
+        <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png" class="w-3.5 h-3.5" alt="Google" />
+        <span id="headerAuthLabel" class="hidden sm:inline">SIGN IN</span>
+      </button>
 
       <!-- SFX Audio Toggle Button -->
       <button id="audioToggle" onclick="toggleAudio()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Toggle Sound Feedback">
@@ -1213,6 +1477,271 @@
       initDynamicStarfields();
       selectMode(0);
       updateCarousel();
+    });
+  </script>
+
+  <!-- ============================================================
+   * FIREBASE AUTH & FIRESTORE INTEGRATION
+   * ============================================================ -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { 
+      getAuth, 
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      onAuthStateChanged, 
+      signOut 
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      setDoc, 
+      updateDoc, 
+      serverTimestamp,
+      getDocFromServer 
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    // Firebase App Configuration from firebase-applet-config.json
+    const firebaseConfig = {
+      projectId: "ai-podcasting-472523",
+      appId: "1:520825105178:web:533d9797f07354066c9aa3",
+      apiKey: "AIzaSyBigVw-pOfn9G-X_84nWC_seUFOuoHDdNM",
+      authDomain: "ai-podcasting-472523.firebaseapp.com",
+      firestoreDatabaseId: "ai-studio-aiforadhd-122197b5-9502-4475-99ec-3cd08d7a2d60",
+      storageBucket: "ai-podcasting-472523.firebasestorage.app",
+      messagingSenderId: "520825105178",
+      oAuthClientId: "520825105178-r386c6gd2le51vanpa802eqduckrhouk.apps.googleusercontent.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
+    export const auth = getAuth(app);
+
+    // Error handler conforming to FirestoreErrorInfo
+    const OperationType = {
+      CREATE: 'create',
+      UPDATE: 'update',
+      DELETE: 'delete',
+      LIST: 'list',
+      GET: 'get',
+      WRITE: 'write',
+    };
+
+    function handleFirestoreError(error, operationType, path) {
+      const errInfo = {
+        error: error instanceof Error ? error.message : String(error),
+        authInfo: {
+          userId: auth.currentUser?.uid,
+          email: auth.currentUser?.email,
+          emailVerified: auth.currentUser?.emailVerified,
+          isAnonymous: auth.currentUser?.isAnonymous,
+          tenantId: auth.currentUser?.tenantId,
+          providerInfo: auth.currentUser?.providerData?.map(provider => ({
+            providerId: provider.providerId,
+            email: provider.email,
+          })) || []
+        },
+        operationType,
+        path
+      };
+      console.error('Firestore Error: ', JSON.stringify(errInfo));
+      throw new Error(JSON.stringify(errInfo));
+    }
+
+    // Validate Connection to Firestore at boot
+    async function testConnection() {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('the client is offline')) {
+          console.error("Please check your Firebase configuration.");
+        }
+      }
+    }
+    testConnection();
+
+    // DOM UI Bindings
+    const splashScreen = document.getElementById('splashScreen');
+    const googleBtn = document.getElementById('googleSignInBtn');
+    const guestBtn = document.getElementById('guestBypassBtn');
+    const enterAppBtn = document.getElementById('enterAppDirectBtn');
+    const authStatus = document.getElementById('authStatusText');
+    const authError = document.getElementById('authErrorMsg');
+    const signedInPreview = document.getElementById('signedInPreview');
+    const splashUserAvatar = document.getElementById('splashUserAvatar');
+    const splashUserName = document.getElementById('splashUserName');
+    const splashUserEmail = document.getElementById('splashUserEmail');
+    const headerUserPill = document.getElementById('headerUserPill');
+    const headerUserAvatar = document.getElementById('headerUserAvatar');
+    const headerUserName = document.getElementById('headerUserName');
+    const headerAuthLabel = document.getElementById('headerAuthLabel');
+
+    window.showSplashScreen = function() {
+      if (!splashScreen) return;
+      splashScreen.classList.remove('opacity-0', 'pointer-events-none');
+      splashScreen.classList.add('opacity-100');
+    };
+
+    window.hideSplashScreen = function() {
+      if (!splashScreen) return;
+      splashScreen.classList.remove('opacity-100');
+      splashScreen.classList.add('opacity-0', 'pointer-events-none');
+    };
+
+    window.firebaseSignOut = async function() {
+      try {
+        await signOut(auth);
+        window.showSplashScreen();
+      } catch (err) {
+        console.error('Sign out error:', err);
+      }
+    };
+
+    // Google Sign-In with Popup
+    async function handleGoogleSignIn() {
+      if (authError) authError.classList.add('hidden');
+      
+      // If already signed in, simply enter the app
+      if (auth.currentUser) {
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(880, 'sine', 0.2, 0.05);
+        }
+        window.hideSplashScreen();
+        return;
+      }
+
+      if (authStatus) {
+        authStatus.innerHTML = `<span class="text-gold-400 animate-pulse">CONNECTING TO GOOGLE AUTHENTICATION...</span>`;
+      }
+      
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        // Upsert user profile in Firestore
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userDocRef);
+          if (!userSnap.exists()) {
+            await setDoc(userDocRef, {
+              userId: user.uid,
+              email: user.email || '',
+              displayName: user.displayName || 'Explorer',
+              photoURL: user.photoURL || '',
+              role: 'Explorer',
+              createdAt: serverTimestamp(),
+              lastLoginAt: serverTimestamp()
+            });
+          } else {
+            await updateDoc(userDocRef, {
+              displayName: user.displayName || userSnap.data().displayName || 'Explorer',
+              photoURL: user.photoURL || userSnap.data().photoURL || '',
+              lastLoginAt: serverTimestamp()
+            });
+          }
+        } catch (dbErr) {
+          console.warn('User profile sync notice:', dbErr);
+        }
+
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(587, 'sine', 0.12, 0.04);
+          setTimeout(() => window.playSynthBeep(880, 'triangle', 0.2, 0.06), 100);
+        }
+
+        if (authStatus) {
+          authStatus.innerHTML = `<span class="text-emerald-400 font-bold">WELCOME ${user.displayName ? user.displayName.toUpperCase() : 'EXPLORER'}! LAUNCHING...</span>`;
+        }
+
+        setTimeout(() => {
+          window.hideSplashScreen();
+        }, 700);
+
+      } catch (error) {
+        console.error('Google Sign-In Error:', error);
+        if (authStatus) {
+          authStatus.innerHTML = `<span>SIGN IN WITH GOOGLE TO INITIALIZE CO-PILOT</span>`;
+        }
+        if (authError) {
+          let msg = error.message || 'Sign in was cancelled or failed.';
+          if (error.code === 'auth/popup-closed-by-user') {
+            msg = 'Sign-in popup was closed before completing. Please try again.';
+          } else if (error.code === 'auth/popup-blocked') {
+            msg = 'Popup was blocked by your browser. Please allow popups for this site.';
+          }
+          authError.innerText = msg;
+          authError.classList.remove('hidden');
+        }
+      }
+    }
+
+    if (googleBtn) {
+      googleBtn.addEventListener('click', handleGoogleSignIn);
+    }
+    if (guestBtn) {
+      guestBtn.addEventListener('click', () => {
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(440, 'triangle', 0.1, 0.03);
+        }
+        window.hideSplashScreen();
+      });
+    }
+    if (enterAppBtn) {
+      enterAppBtn.addEventListener('click', () => {
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(659, 'sine', 0.15, 0.04);
+        }
+        window.hideSplashScreen();
+      });
+    }
+
+    // Monitor Firebase Auth State
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in
+        if (headerUserPill) {
+          headerUserPill.classList.remove('hidden');
+          headerUserPill.classList.add('flex');
+        }
+        if (headerUserAvatar) headerUserAvatar.src = user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+        if (headerUserName) headerUserName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorer';
+        if (headerAuthLabel) headerAuthLabel.innerText = "ACCOUNT";
+
+        if (signedInPreview) {
+          signedInPreview.classList.remove('hidden');
+          signedInPreview.classList.add('flex');
+        }
+        if (splashUserAvatar) splashUserAvatar.src = user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
+        if (splashUserName) splashUserName.innerText = user.displayName || 'Authorized Explorer';
+        if (splashUserEmail) splashUserEmail.innerText = user.email || '';
+
+        if (authStatus) {
+          authStatus.innerHTML = `<span class="text-gold-300">CONNECTED AS ${user.displayName ? user.displayName.toUpperCase() : (user.email || 'USER')}</span>`;
+        }
+
+        // Auto-fill waitlist email input if blank
+        const waitlistEmailInput = document.querySelector('input[name="email"]');
+        if (waitlistEmailInput && !waitlistEmailInput.value && user.email) {
+          waitlistEmailInput.value = user.email;
+        }
+      } else {
+        // User is signed out
+        if (headerUserPill) {
+          headerUserPill.classList.add('hidden');
+          headerUserPill.classList.remove('flex');
+        }
+        if (headerAuthLabel) headerAuthLabel.innerText = "SIGN IN";
+        if (signedInPreview) {
+          signedInPreview.classList.add('hidden');
+          signedInPreview.classList.remove('flex');
+        }
+        if (authStatus) {
+          authStatus.innerHTML = `<span>SIGN IN WITH GOOGLE TO INITIALIZE CO-PILOT</span>`;
+        }
+      }
     });
   </script>
 </body>
