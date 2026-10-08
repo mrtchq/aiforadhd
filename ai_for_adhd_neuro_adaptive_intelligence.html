@@ -1037,29 +1037,223 @@
     </div>
   </footer>
 
-  <!-- ================= MOBILE FIXED BOTTOM TAB BAR (Thumb Zone Pattern, Height <= 56px) ================= -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-space-950/95 backdrop-blur-xl border-t border-gold-400/20 grid grid-cols-5 items-center h-14 pb-safe shrink-0 shadow-2xl">
-    <button onclick="jumpToSlide(0)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-gold-400 font-bold transition-all touch-target" data-index="0">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Vision</span>
+  <!-- ================= DOCKED BOTTOM TAB: GOOGLE TASKS ================= -->
+  <div id="tasksBottomDock" class="fixed bottom-16 md:bottom-3 left-1/2 -translate-x-1/2 z-40 transition-all duration-300">
+    <button id="openTasksTabBtn" onclick="window.openTasksModal()" class="touch-target px-4 sm:px-6 py-2 rounded-full bg-space-900/90 hover:bg-space-850 border border-gold-400/50 hover:border-gold-300 text-slate-100 glass-hud flex items-center space-x-2.5 shadow-2xl shadow-gold-500/25 group transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xl" aria-label="Open Google Tasks">
+      <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/40">
+        <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+      </div>
+      <span class="font-orbitron text-[11px] sm:text-xs font-bold tracking-wider text-gold-300">GOOGLE TASKS</span>
+      <span id="tasksDockCount" class="hidden px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 font-bold border border-blue-400/30">0</span>
+      <div class="flex items-center text-[10px] font-mono text-slate-400 group-hover:text-gold-300 transition-colors">
+        <span class="hidden sm:inline pl-1">SWIPE UP // TAP</span>
+        <svg class="w-3.5 h-3.5 ml-1 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/>
+        </svg>
+      </div>
     </button>
-    <button onclick="jumpToSlide(1)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="1">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Brain</span>
-    </button>
-    <button onclick="jumpToSlide(2)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="2">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Modes</span>
-    </button>
-    <button onclick="jumpToSlide(3)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="3">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Metrics</span>
-    </button>
-    <button onclick="jumpToSlide(4)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="4">
-      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Access</span>
-    </button>
-  </nav>
+  </div>
+
+  <!-- ================= GOOGLE TASKS FULL SCREEN OVERLAY ================= -->
+  <div id="googleTasksModal" class="fixed inset-0 z-50 bg-space-950/95 backdrop-blur-2xl flex flex-col transition-all duration-500 opacity-0 pointer-events-none translate-y-full" role="dialog" aria-modal="true" aria-labelledby="googleTasksTitle">
+    
+    <!-- Ambient Space Glow -->
+    <div class="absolute inset-0 pointer-events-none opacity-40">
+      <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-1/4 left-1/4 w-80 h-80 bg-gold-500/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Modal Header -->
+    <header class="relative z-10 h-16 px-4 sm:px-8 flex items-center justify-between border-b border-gold-400/20 glass-hud shrink-0">
+      <!-- Brand & Task List Selector -->
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 p-[1.5px] flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+          <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span id="googleTasksTitle" class="font-orbitron font-bold text-sm sm:text-base text-white tracking-wider">GOOGLE TASKS</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-400/30">NEURO-SYNC</span>
+          </div>
+          <div class="flex items-center space-x-2 text-[10px] font-rajdhani tracking-wider text-slate-400">
+            <label for="taskListSelect" class="uppercase">List:</label>
+            <select id="taskListSelect" onchange="window.onTaskListChanged(this.value)" class="bg-space-900 border border-slate-700 rounded px-2 py-0.5 text-gold-300 font-sans text-xs outline-none focus:border-gold-400">
+              <option value="@default">My Tasks (Default)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons + Prominent Close Button -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Sync Refresh -->
+        <button id="refreshTasksBtn" onclick="window.fetchGoogleTasks()" class="touch-target px-3 py-1.5 rounded-lg bg-space-850 hover:bg-space-800 border border-slate-700 hover:border-gold-400 text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Sync with Google Tasks">
+          <svg id="refreshTasksIcon" class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span class="hidden sm:inline">SYNC</span>
+        </button>
+
+        <!-- New Task Button -->
+        <button id="toggleNewTaskBtn" onclick="window.toggleNewTaskForm()" class="touch-target px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/50 text-xs font-rajdhani font-bold tracking-wider text-blue-200 transition-all flex items-center space-x-1">
+          <span class="text-base leading-none font-mono">+</span>
+          <span class="hidden sm:inline">ADD TASK</span>
+        </button>
+
+        <!-- PROMINENT CLOSE BUTTON -->
+        <button id="closeTasksModalBtn" onclick="window.closeTasksModal()" class="touch-target px-4 py-1.5 rounded-xl bg-space-850 hover:bg-rose-950/70 border border-slate-700 hover:border-rose-400 text-slate-200 hover:text-rose-300 font-orbitron text-xs font-bold transition-all flex items-center space-x-2 shadow-lg group" title="Close Task List (ESC or Swipe Down)">
+          <span>CLOSE</span>
+          <svg class="w-4 h-4 transform group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Modal Scrollable Content -->
+    <div class="relative z-10 flex-1 overflow-y-auto slide-scroll p-4 sm:p-8 max-w-4xl w-full mx-auto flex flex-col space-y-6">
+      
+      <!-- Unauthenticated View (if user is not signed in with Google) -->
+      <div id="tasksAuthPrompt" class="hidden flex-col items-center justify-center text-center py-16 px-4 bg-space-900/60 border border-slate-800 rounded-3xl glass-hud">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-600 p-[2px] flex items-center justify-center mb-5 shadow-xl shadow-blue-500/20">
+          <div class="w-full h-full bg-space-950 rounded-[14px] flex items-center justify-center">
+            <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png" alt="Google" class="w-8 h-8 object-contain" />
+          </div>
+        </div>
+        <h3 class="font-orbitron text-xl sm:text-2xl font-bold text-white mb-2">Connect Google Tasks</h3>
+        <p class="text-sm font-sans text-slate-400 max-w-md mb-6">
+          Sign in with your Google account to view, organize, and check off your personal Google Tasks directly inside the AI for ADHD Co-Pilot.
+        </p>
+        <button onclick="window.handleTasksGoogleSignIn()" class="px-6 py-3 rounded-xl font-orbitron text-xs font-bold tracking-wider text-space-950 bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 transition-all shadow-lg shadow-gold-500/25 flex items-center space-x-2">
+          <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png" class="w-4 h-4" alt="Google" />
+          <span>SIGN IN & SYNC GOOGLE TASKS</span>
+        </button>
+      </div>
+
+      <!-- Authenticated View -->
+      <div id="tasksMainContent" class="flex flex-col space-y-6">
+        
+        <!-- ADHD Dopamine Progress Bar Card -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-space-900/80 border border-gold-400/30 glass-hud shadow-xl flex flex-col space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-chroma-lime animate-pulse"></span>
+              <span class="font-orbitron text-xs font-bold tracking-wider text-gold-300 uppercase">DOPAMINE MOMENTUM METER</span>
+            </div>
+            <div id="dopamineStatsLabel" class="text-xs font-mono text-slate-300">
+              0 / 0 TASKS COMPLETED (0%)
+            </div>
+          </div>
+          <!-- Progress Track -->
+          <div class="w-full h-3 rounded-full bg-space-950 border border-slate-700/60 overflow-hidden p-0.5">
+            <div id="dopamineProgressBar" class="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-lime transition-all duration-500 shadow-sm" style="width: 0%;"></div>
+          </div>
+          <div class="text-[11px] font-rajdhani text-slate-400 flex items-center justify-between">
+            <span id="dopamineMotivationalText">Ready to tackle your next micro-action.</span>
+            <span class="font-mono text-gold-400 text-[10px]">REAL-TIME GOOGLE TASKS CLOUD</span>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center space-x-1.5 bg-space-900/90 p-1 rounded-xl border border-slate-800">
+            <button onclick="window.setTasksFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all">ALL</button>
+            <button onclick="window.setTasksFilter('needsAction')" id="filterBtnPending" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">NEEDS ACTION</button>
+            <button onclick="window.setTasksFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">COMPLETED</button>
+          </div>
+
+          <div class="text-xs font-mono text-slate-400">
+            <span id="taskCountSummary">Loading tasks...</span>
+          </div>
+        </div>
+
+        <!-- Add Task Form (Collapsible) -->
+        <div id="newTaskFormContainer" class="hidden p-4 sm:p-5 rounded-2xl bg-space-850/90 border border-blue-500/30 glass-hud flex flex-col space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-orbitron text-xs font-bold text-blue-300 tracking-wider">NEW GOOGLE TASK</span>
+            <button onclick="window.toggleNewTaskForm()" class="text-xs font-mono text-slate-500 hover:text-slate-300">CANCEL</button>
+          </div>
+          <form onsubmit="window.handleCreateTaskSubmit(event)" class="flex flex-col space-y-3">
+            <div>
+              <input id="newTaskTitleInput" type="text" placeholder="Task title (e.g., Review cognitive metrics report)..." required class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 outline-none transition-all font-sans" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input id="newTaskNotesInput" type="text" placeholder="Optional notes / executive context..." class="bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all font-sans" />
+              <input id="newTaskDueInput" type="date" class="bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-all font-mono" />
+            </div>
+            <div class="flex justify-end pt-1">
+              <button type="submit" id="saveTaskSubmitBtn" class="px-5 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white shadow-md shadow-blue-500/25 transition-all">
+                ADD TO GOOGLE TASKS
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Loading State -->
+        <div id="tasksLoadingState" class="hidden flex-col items-center justify-center py-12 space-y-3">
+          <div class="w-8 h-8 border-2 border-gold-400 border-t-transparent rounded-full animate-spin"></div>
+          <span class="font-rajdhani text-xs tracking-widest text-gold-300 uppercase">Synchronizing with Google Tasks...</span>
+        </div>
+
+        <!-- Task List Items Container -->
+        <div id="tasksListContainer" class="flex flex-col space-y-2.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="tasksEmptyState" class="hidden flex-col items-center justify-center py-12 px-4 text-center rounded-2xl bg-space-900/40 border border-slate-800">
+          <svg class="w-12 h-12 text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          <div class="font-orbitron text-sm font-semibold text-slate-300 mb-1">No Tasks in this Filter</div>
+          <div class="text-xs text-slate-500 max-w-sm">Use "+ Add Task" above to add your next focus objective or switch lists.</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Modal Footer Hint -->
+    <footer class="relative z-10 px-6 py-3 border-t border-slate-800/80 bg-space-950/80 flex items-center justify-between text-[11px] font-mono text-slate-500 shrink-0">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span>CONNECTED VIA GOOGLE TASKS API</span>
+      </div>
+      <div>
+        <span>SWIPE DOWN OR PRESS ESC TO CLOSE</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Custom In-App Confirmation Modal for Destructive Operations (Mandatory by Workspace Integration) -->
+  <div id="tasksConfirmModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-space-900 border border-rose-500/40 rounded-2xl p-6 max-w-md w-full glass-hud shadow-2xl flex flex-col space-y-4">
+      <div class="flex items-center space-x-3 text-rose-400">
+        <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <h4 class="font-orbitron font-bold text-sm text-white">Confirm Google Task Deletion</h4>
+      </div>
+      <p id="tasksConfirmMessage" class="text-xs font-sans text-slate-300 leading-relaxed">
+        Are you sure you want to permanently delete this task from Google Tasks? This action cannot be undone.
+      </p>
+      <div class="flex justify-end space-x-3 pt-2">
+        <button id="tasksConfirmCancelBtn" class="px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:bg-space-800 transition-colors">
+          Cancel
+        </button>
+        <button id="tasksConfirmOkBtn" class="px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition-colors">
+          Delete Task
+        </button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- ================= SCRIPTS & INTERACTION ENGINE ================= -->
   <script>
@@ -1577,6 +1771,16 @@
     const headerUserName = document.getElementById('headerUserName');
     const headerAuthLabel = document.getElementById('headerAuthLabel');
 
+    // In-memory token caching for Google Workspace Tasks API (least privilege, no localStorage)
+    let cachedAccessToken = null;
+
+    // Google Tasks State
+    let taskLists = [];
+    let activeTaskListId = '@default';
+    let currentTasks = [];
+    let activeTaskFilter = 'all'; // 'all' | 'needsAction' | 'completed'
+    window.isTasksModalOpen = false;
+
     window.showSplashScreen = function() {
       if (!splashScreen) return;
       splashScreen.classList.remove('opacity-0', 'pointer-events-none');
@@ -1592,18 +1796,22 @@
     window.firebaseSignOut = async function() {
       try {
         await signOut(auth);
+        cachedAccessToken = null;
+        taskLists = [];
+        currentTasks = [];
+        updateTasksBadges();
         window.showSplashScreen();
       } catch (err) {
         console.error('Sign out error:', err);
       }
     };
 
-    // Google Sign-In with Popup
+    // Google Sign-In with Popup (configured with Google Tasks scopes)
     async function handleGoogleSignIn() {
       if (authError) authError.classList.add('hidden');
       
-      // If already signed in, simply enter the app
-      if (auth.currentUser) {
+      // If already signed in with token, simply enter the app
+      if (auth.currentUser && cachedAccessToken) {
         if (typeof window.playSynthBeep === 'function') {
           window.playSynthBeep(880, 'sine', 0.2, 0.05);
         }
@@ -1616,11 +1824,20 @@
       }
       
       const provider = new GoogleAuthProvider();
+      // Add requested Google Tasks OAuth scopes
+      provider.addScope('https://www.googleapis.com/auth/tasks');
+      provider.addScope('https://www.googleapis.com/auth/tasks.readonly');
       provider.setCustomParameters({ prompt: 'select_account' });
 
       try {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
+
+        // Cache the OAuth access token in-memory for Google Tasks API calls
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        if (credential?.accessToken) {
+          cachedAccessToken = credential.accessToken;
+        }
 
         // Upsert user profile in Firestore
         try {
@@ -1656,6 +1873,11 @@
           authStatus.innerHTML = `<span class="text-emerald-400 font-bold">WELCOME ${user.displayName ? user.displayName.toUpperCase() : 'EXPLORER'}! LAUNCHING...</span>`;
         }
 
+        // Preload Google Tasks
+        if (cachedAccessToken) {
+          window.fetchGoogleTasks();
+        }
+
         setTimeout(() => {
           window.hideSplashScreen();
         }, 700);
@@ -1678,6 +1900,13 @@
       }
     }
 
+    window.handleTasksGoogleSignIn = async function() {
+      await handleGoogleSignIn();
+      if (cachedAccessToken && window.isTasksModalOpen) {
+        window.fetchGoogleTasks();
+      }
+    };
+
     if (googleBtn) {
       googleBtn.addEventListener('click', handleGoogleSignIn);
     }
@@ -1696,6 +1925,473 @@
         }
         window.hideSplashScreen();
       });
+    }
+
+    // ============================================================
+    // GOOGLE TASKS MODAL & GESTURE ENGINE
+    // ============================================================
+    const tasksModal = document.getElementById('googleTasksModal');
+    const tasksBottomDock = document.getElementById('tasksBottomDock');
+    const tasksDockCount = document.getElementById('tasksDockCount');
+    const tasksAuthPrompt = document.getElementById('tasksAuthPrompt');
+    const tasksMainContent = document.getElementById('tasksMainContent');
+    const tasksListContainer = document.getElementById('tasksListContainer');
+    const tasksLoadingState = document.getElementById('tasksLoadingState');
+    const tasksEmptyState = document.getElementById('tasksEmptyState');
+    const taskCountSummary = document.getElementById('taskCountSummary');
+    const dopamineProgressBar = document.getElementById('dopamineProgressBar');
+    const dopamineStatsLabel = document.getElementById('dopamineStatsLabel');
+    const dopamineMotivationalText = document.getElementById('dopamineMotivationalText');
+    const taskListSelect = document.getElementById('taskListSelect');
+    const newTaskFormContainer = document.getElementById('newTaskFormContainer');
+
+    window.openTasksModal = function() {
+      if (!tasksModal) return;
+      window.isTasksModalOpen = true;
+      tasksModal.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
+      tasksModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(520, 'sine', 0.1, 0.03);
+        setTimeout(() => window.playSynthBeep(784, 'triangle', 0.15, 0.04), 70);
+      }
+
+      // Check auth state
+      if (!auth.currentUser || !cachedAccessToken) {
+        if (tasksAuthPrompt) tasksAuthPrompt.classList.remove('hidden');
+        if (tasksAuthPrompt) tasksAuthPrompt.classList.add('flex');
+        if (tasksMainContent) tasksMainContent.classList.add('hidden');
+      } else {
+        if (tasksAuthPrompt) {
+          tasksAuthPrompt.classList.add('hidden');
+          tasksAuthPrompt.classList.remove('flex');
+        }
+        if (tasksMainContent) tasksMainContent.classList.remove('hidden');
+        window.fetchGoogleTasks();
+      }
+    };
+
+    window.closeTasksModal = function() {
+      if (!tasksModal) return;
+      window.isTasksModalOpen = false;
+      tasksModal.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+      tasksModal.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(440, 'sine', 0.1, 0.03);
+      }
+    };
+
+    // SWIPE UP GESTURE (From anywhere on screen)
+    let touchStartY = 0;
+    let touchStartX = 0;
+    let touchStartTime = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      if (window.isTasksModalOpen) return;
+      if (e.touches && e.touches.length === 1) {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+        touchStartTime = Date.now();
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (window.isTasksModalOpen) return;
+      if (e.changedTouches && e.changedTouches.length === 1) {
+        const endY = e.changedTouches[0].clientY;
+        const endX = e.changedTouches[0].clientX;
+        const diffY = touchStartY - endY; // positive = swiped upwards
+        const diffX = Math.abs(touchStartX - endX);
+        const duration = Date.now() - touchStartTime;
+
+        // Swiped up by >= 45px, predominantly vertical, within 550ms
+        if (diffY >= 45 && diffY > diffX * 1.15 && duration < 550) {
+          window.openTasksModal();
+        }
+      }
+    }, { passive: true });
+
+    // KEYBOARD ESCAPE TO CLOSE
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && window.isTasksModalOpen) {
+        window.closeTasksModal();
+      }
+    });
+
+    // ============================================================
+    // GOOGLE TASKS API CLIENT INTEGRATION
+    // ============================================================
+    window.fetchGoogleTasks = async function() {
+      if (!cachedAccessToken) {
+        if (tasksAuthPrompt) tasksAuthPrompt.classList.remove('hidden');
+        if (tasksMainContent) tasksMainContent.classList.add('hidden');
+        return;
+      }
+
+      if (tasksLoadingState) tasksLoadingState.classList.remove('hidden');
+      if (tasksListContainer) tasksListContainer.classList.add('hidden');
+      if (tasksEmptyState) tasksEmptyState.classList.add('hidden');
+
+      const refreshIcon = document.getElementById('refreshTasksIcon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+      try {
+        // 1. Fetch Task Lists if not cached
+        if (taskLists.length === 0) {
+          const listRes = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
+            headers: { Authorization: `Bearer ${cachedAccessToken}` }
+          });
+          if (listRes.status === 401) {
+            // Token expired or invalid, require re-auth
+            cachedAccessToken = null;
+            if (tasksAuthPrompt) tasksAuthPrompt.classList.remove('hidden');
+            if (tasksMainContent) tasksMainContent.classList.add('hidden');
+            return;
+          }
+          const listData = await listRes.json();
+          taskLists = listData.items || [];
+          renderTaskListSelector();
+        }
+
+        // 2. Fetch Tasks for active list
+        const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks?showCompleted=true&showHidden=true`, {
+          headers: { Authorization: `Bearer ${cachedAccessToken}` }
+        });
+        const tasksData = await tasksRes.json();
+        currentTasks = tasksData.items || [];
+
+        renderTasks();
+        updateTasksBadges();
+
+      } catch (err) {
+        console.error('Failed to fetch Google Tasks:', err);
+      } finally {
+        if (tasksLoadingState) tasksLoadingState.classList.add('hidden');
+        if (tasksListContainer) tasksListContainer.classList.remove('hidden');
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      }
+    };
+
+    function renderTaskListSelector() {
+      if (!taskListSelect) return;
+      if (taskLists.length === 0) {
+        taskListSelect.innerHTML = `<option value="@default">My Tasks (Default)</option>`;
+        return;
+      }
+      taskListSelect.innerHTML = taskLists.map(list => 
+        `<option value="${list.id}" ${list.id === activeTaskListId ? 'selected' : ''}>${list.title || 'Untitled List'}</option>`
+      ).join('');
+    }
+
+    window.onTaskListChanged = function(listId) {
+      activeTaskListId = listId;
+      window.fetchGoogleTasks();
+    };
+
+    window.setTasksFilter = function(filter) {
+      activeTaskFilter = filter;
+      const allBtn = document.getElementById('filterBtnAll');
+      const pendingBtn = document.getElementById('filterBtnPending');
+      const compBtn = document.getElementById('filterBtnCompleted');
+
+      const activeClass = "px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all";
+      const inactiveClass = "px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all";
+
+      if (allBtn) allBtn.className = filter === 'all' ? activeClass : inactiveClass;
+      if (pendingBtn) pendingBtn.className = filter === 'needsAction' ? activeClass : inactiveClass;
+      if (compBtn) compBtn.className = filter === 'completed' ? activeClass : inactiveClass;
+
+      renderTasks();
+    };
+
+    function renderTasks() {
+      if (!tasksListContainer) return;
+
+      const filtered = currentTasks.filter(task => {
+        if (activeTaskFilter === 'needsAction') return task.status === 'needsAction';
+        if (activeTaskFilter === 'completed') return task.status === 'completed';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tasksListContainer.innerHTML = '';
+        if (tasksEmptyState) tasksEmptyState.classList.remove('hidden');
+        if (tasksEmptyState) tasksEmptyState.classList.add('flex');
+      } else {
+        if (tasksEmptyState) {
+          tasksEmptyState.classList.add('hidden');
+          tasksEmptyState.classList.remove('flex');
+        }
+
+        tasksListContainer.innerHTML = filtered.map(task => {
+          const isDone = task.status === 'completed';
+          const dueDateFormatted = task.due ? new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+
+          return `
+            <div class="group relative p-3 sm:p-4 rounded-xl ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'} border transition-all glass-hud flex items-start justify-between gap-3 shadow-md">
+              <div class="flex items-start space-x-3 flex-1 min-w-0">
+                <!-- Status Checkbox -->
+                <button type="button" onclick="window.toggleTaskStatus('${task.id}', '${task.status}')" class="mt-0.5 shrink-0 w-5 h-5 rounded-md border ${isDone ? 'bg-emerald-500 border-emerald-400 text-space-950' : 'border-slate-500 hover:border-gold-400 bg-space-950'} flex items-center justify-center transition-all focus:outline-none" title="${isDone ? 'Mark as Pending' : 'Mark as Completed'}">
+                  ${isDone ? '<svg class="w-3.5 h-3.5 stroke-current stroke-[3]" viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+                </button>
+
+                <!-- Title & Details -->
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
+                    ${escapeHtml(task.title || 'Untitled task')}
+                  </div>
+                  ${task.notes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${escapeHtml(task.notes)}</div>` : ''}
+                  
+                  <!-- Metadata Pill: Due date or completion -->
+                  <div class="flex items-center space-x-2 mt-1.5 text-[10px] font-mono">
+                    ${dueDateFormatted ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-amber-500/30 text-amber-300">
+                        <svg class="w-2.5 h-2.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        DUE ${dueDateFormatted}
+                      </span>
+                    ` : ''}
+                    ${isDone ? '<span class="text-emerald-400 font-semibold">✓ COMPLETED</span>' : '<span class="text-slate-500">PENDING FOCUS</span>'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delete Action (Prompts Confirmation) -->
+              <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Update Summary Text
+      if (taskCountSummary) {
+        const total = currentTasks.length;
+        const pending = currentTasks.filter(t => t.status === 'needsAction').length;
+        const done = currentTasks.filter(t => t.status === 'completed').length;
+        taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${total} Total`;
+      }
+    }
+
+    function updateTasksBadges() {
+      const total = currentTasks.length;
+      const done = currentTasks.filter(t => t.status === 'completed').length;
+      const pending = total - done;
+
+      // Update bottom dock badge
+      if (tasksDockCount) {
+        if (pending > 0) {
+          tasksDockCount.innerText = pending;
+          tasksDockCount.classList.remove('hidden');
+        } else {
+          tasksDockCount.classList.add('hidden');
+        }
+      }
+
+      // Update Dopamine Momentum Meter
+      const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
+      if (dopamineProgressBar) {
+        dopamineProgressBar.style.width = `${percentage}%`;
+      }
+      if (dopamineStatsLabel) {
+        dopamineStatsLabel.innerText = `${done} / ${total} TASKS COMPLETED (${percentage}%)`;
+      }
+      if (dopamineMotivationalText) {
+        if (total === 0) {
+          dopamineMotivationalText.innerText = "No tasks yet. Create one to kick off your focus flow!";
+        } else if (percentage === 100) {
+          dopamineMotivationalText.innerText = "Dopamine saturation achieved! All focus tasks completed.";
+        } else if (percentage >= 50) {
+          dopamineMotivationalText.innerText = "Over halfway through! Riding the cognitive hyperfocus wave.";
+        } else {
+          dopamineMotivationalText.innerText = "One micro-win at a time. Pick the highest dopamine action.";
+        }
+      }
+    }
+
+    window.toggleTaskStatus = async function(taskId, currentStatus) {
+      if (!cachedAccessToken) return;
+      const newStatus = currentStatus === 'completed' ? 'needsAction' : 'completed';
+
+      // Optimistic UI update
+      const target = currentTasks.find(t => t.id === taskId);
+      if (target) {
+        target.status = newStatus;
+        if (newStatus === 'completed') {
+          target.completed = new Date().toISOString();
+        } else {
+          delete target.completed;
+        }
+        renderTasks();
+        updateTasksBadges();
+      }
+
+      if (newStatus === 'completed' && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(659, 'sine', 0.12, 0.04);
+        setTimeout(() => window.playSynthBeep(880, 'triangle', 0.2, 0.06), 90);
+        setTimeout(() => window.playSynthBeep(1174, 'sine', 0.25, 0.07), 180);
+      }
+
+      try {
+        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks/${taskId}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${cachedAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (!res.ok) {
+          throw new Error('Failed to update task status');
+        }
+      } catch (err) {
+        console.error('Error toggling task status:', err);
+        // Rollback
+        if (target) {
+          target.status = currentStatus;
+          renderTasks();
+          updateTasksBadges();
+        }
+      }
+    };
+
+    window.toggleNewTaskForm = function() {
+      if (!newTaskFormContainer) return;
+      const isHidden = newTaskFormContainer.classList.contains('hidden');
+      if (isHidden) {
+        newTaskFormContainer.classList.remove('hidden');
+        document.getElementById('newTaskTitleInput')?.focus();
+      } else {
+        newTaskFormContainer.classList.add('hidden');
+      }
+    };
+
+    window.handleCreateTaskSubmit = async function(e) {
+      e.preventDefault();
+      if (!cachedAccessToken) return;
+
+      const titleInput = document.getElementById('newTaskTitleInput');
+      const notesInput = document.getElementById('newTaskNotesInput');
+      const dueInput = document.getElementById('newTaskDueInput');
+      const submitBtn = document.getElementById('saveTaskSubmitBtn');
+
+      const title = titleInput?.value?.trim();
+      const notes = notesInput?.value?.trim();
+      const due = dueInput?.value;
+
+      if (!title) return;
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "SAVING...";
+      }
+
+      try {
+        const payload = { title };
+        if (notes) payload.notes = notes;
+        if (due) payload.due = `${due}T00:00:00.000Z`;
+
+        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${cachedAccessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error('Failed to create task');
+
+        const created = await res.json();
+        currentTasks.unshift(created);
+        renderTasks();
+        updateTasksBadges();
+
+        // Clear form
+        if (titleInput) titleInput.value = '';
+        if (notesInput) notesInput.value = '';
+        if (dueInput) dueInput.value = '';
+        window.toggleNewTaskForm();
+
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(523, 'sine', 0.1, 0.04);
+          setTimeout(() => window.playSynthBeep(659, 'triangle', 0.15, 0.05), 80);
+        }
+
+      } catch (err) {
+        console.error('Error creating task:', err);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "ADD TO GOOGLE TASKS";
+        }
+      }
+    };
+
+    // Mandatory Explicit User Confirmation Dialog for Destructive Delete Operations
+    let pendingDeleteTaskId = null;
+    const confirmModal = document.getElementById('tasksConfirmModal');
+    const confirmMsg = document.getElementById('tasksConfirmMessage');
+    const confirmCancelBtn = document.getElementById('tasksConfirmCancelBtn');
+    const confirmOkBtn = document.getElementById('tasksConfirmOkBtn');
+
+    window.requestDeleteTask = function(taskId, taskTitle) {
+      pendingDeleteTaskId = taskId;
+      if (confirmMsg) {
+        confirmMsg.innerText = `Are you sure you want to permanently delete "${taskTitle}" from your Google Tasks? This action cannot be undone.`;
+      }
+      if (confirmModal) confirmModal.classList.remove('hidden');
+    };
+
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener('click', () => {
+        pendingDeleteTaskId = null;
+        if (confirmModal) confirmModal.classList.add('hidden');
+      });
+    }
+
+    if (confirmOkBtn) {
+      confirmOkBtn.addEventListener('click', async () => {
+        if (!pendingDeleteTaskId || !cachedAccessToken) {
+          if (confirmModal) confirmModal.classList.add('hidden');
+          return;
+        }
+
+        const idToDelete = pendingDeleteTaskId;
+        pendingDeleteTaskId = null;
+        if (confirmModal) confirmModal.classList.add('hidden');
+
+        // Optimistic delete
+        currentTasks = currentTasks.filter(t => t.id !== idToDelete);
+        renderTasks();
+        updateTasksBadges();
+
+        try {
+          await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks/${idToDelete}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${cachedAccessToken}` }
+          });
+          if (typeof window.playSynthBeep === 'function') {
+            window.playSynthBeep(330, 'sawtooth', 0.15, 0.04);
+          }
+        } catch (err) {
+          console.error('Failed to delete task:', err);
+          window.fetchGoogleTasks(); // Reload to restore
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[s]));
+    }
+
+    function escapeQuote(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
 
     // Monitor Firebase Auth State
@@ -1727,8 +2423,14 @@
         if (waitlistEmailInput && !waitlistEmailInput.value && user.email) {
           waitlistEmailInput.value = user.email;
         }
+
+        // If tasks modal is open and token is available, load tasks
+        if (cachedAccessToken && window.isTasksModalOpen) {
+          window.fetchGoogleTasks();
+        }
       } else {
         // User is signed out
+        cachedAccessToken = null;
         if (headerUserPill) {
           headerUserPill.classList.add('hidden');
           headerUserPill.classList.remove('flex');
