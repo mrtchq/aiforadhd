@@ -1139,7 +1139,7 @@
       <!-- Authenticated View -->
       <div id="tasksMainContent" class="flex flex-col space-y-5">
         
-        <!-- Local Search Input Field (Filter by title and note content) -->
+        <!-- Local Search Input Field (Filter by title and note content with Voice Speech Search) -->
         <div class="relative w-full">
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1149,41 +1149,36 @@
           <input
             id="tasksSearchInput"
             type="text"
-            placeholder="Search tasks by title or notes..."
+            placeholder="Search tasks by title or notes (type or click mic to speak)..."
             oninput="window.onTasksSearchInput(this.value)"
-            class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-space-900/90 border border-slate-700/80 focus:border-gold-400 focus:ring-1 focus:ring-gold-400/50 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all glass-hud shadow-md font-sans"
+            class="w-full pl-10 pr-20 py-2.5 rounded-xl bg-space-900/90 border border-slate-700/80 focus:border-gold-400 focus:ring-1 focus:ring-gold-400/50 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all glass-hud shadow-md font-sans"
           />
-          <button
-            id="tasksSearchClearBtn"
-            type="button"
-            onclick="window.clearTasksSearch()"
-            class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition-colors"
-            title="Clear search"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-
-        <!-- ADHD Dopamine Progress Bar Card -->
-        <div class="p-4 sm:p-5 rounded-2xl bg-space-900/80 border border-gold-400/30 glass-hud shadow-xl flex flex-col space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div class="flex items-center space-x-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-chroma-lime animate-pulse"></span>
-              <span class="font-orbitron text-xs font-bold tracking-wider text-gold-300 uppercase">DOPAMINE MOMENTUM METER</span>
-            </div>
-            <div id="dopamineStatsLabel" class="text-xs font-mono text-slate-300">
-              0 / 0 TASKS COMPLETED (0%)
-            </div>
-          </div>
-          <!-- Progress Track -->
-          <div class="w-full h-3 rounded-full bg-space-950 border border-slate-700/60 overflow-hidden p-0.5">
-            <div id="dopamineProgressBar" class="h-full rounded-full bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-lime transition-all duration-500 shadow-sm" style="width: 0%;"></div>
-          </div>
-          <div class="text-[11px] font-rajdhani text-slate-400 flex items-center justify-between">
-            <span id="dopamineMotivationalText">Ready to tackle your next micro-action.</span>
-            <span class="font-mono text-gold-400 text-[10px]">REAL-TIME GOOGLE TASKS CLOUD</span>
+          <div class="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
+            <!-- Voice Search Microphone Button (Web Speech API) -->
+            <button
+              id="micSearchBtn"
+              type="button"
+              onclick="window.toggleSpeechSearch()"
+              class="touch-target p-1.5 rounded-lg bg-space-950/80 border border-slate-700/80 hover:border-gold-400 text-slate-300 hover:text-gold-300 transition-all flex items-center justify-center group"
+              title="Speak to search tasks (Voice Search via Web Speech API)"
+            >
+              <svg id="micSearchIcon" class="w-4 h-4 text-gold-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+              </svg>
+            </button>
+            <!-- Clear Search Query Button -->
+            <button
+              id="tasksSearchClearBtn"
+              type="button"
+              onclick="window.clearTasksSearch()"
+              class="hidden touch-target p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
+              title="Clear search"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -1193,6 +1188,10 @@
             <button onclick="window.setTasksFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all">ALL</button>
             <button onclick="window.setTasksFilter('needsAction')" id="filterBtnPending" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">NEEDS ACTION</button>
             <button onclick="window.setTasksFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">COMPLETED</button>
+            <button onclick="window.setTasksFilter('starred')" id="filterBtnStarred" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all flex items-center space-x-1" title="Show only starred tasks">
+              <span class="text-amber-400">★</span>
+              <span>STARRED</span>
+            </button>
           </div>
 
           <div class="text-xs font-mono text-slate-400 flex items-center space-x-2">
@@ -1201,15 +1200,54 @@
           </div>
         </div>
 
-        <!-- Add Task Form (Collapsible with ADHD Tag Suggestions) -->
+        <!-- Add Task Form (Collapsible with ADHD Tag Suggestions and Voice Transcription) -->
         <div id="newTaskFormContainer" class="hidden p-4 sm:p-5 rounded-2xl bg-space-850/90 border border-blue-500/30 glass-hud flex flex-col space-y-3.5">
           <div class="flex items-center justify-between">
             <span class="font-orbitron text-xs font-bold text-blue-300 tracking-wider">NEW GOOGLE TASK</span>
             <button onclick="window.toggleNewTaskForm()" class="text-xs font-mono text-slate-500 hover:text-slate-300">CANCEL</button>
           </div>
+
+          <!-- Live Voice Speech Transcription Indicator (Web Speech API) -->
+          <div id="speechLiveBanner" class="hidden p-3 rounded-xl bg-space-950/90 border border-rose-500/60 items-center justify-between space-x-3 shadow-lg">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <span class="relative flex h-3 w-3 shrink-0">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+              </span>
+              <div class="min-w-0">
+                <div class="text-[10px] font-mono text-rose-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <span class="font-bold">LISTENING (WEB SPEECH API)</span>
+                  <span id="speechTargetLabel" class="text-slate-400">· TARGET: TITLE</span>
+                </div>
+                <div id="speechTranscriptPreview" class="text-xs font-sans text-white truncate max-w-xs sm:max-w-md italic mt-0.5">
+                  "Listening... Speak clearly into your microphone"
+                </div>
+              </div>
+            </div>
+            <button type="button" onclick="window.stopSpeechTranscription()" class="px-2.5 py-1 rounded-lg text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-400/50 hover:bg-rose-500/40 transition-all shrink-0">
+              STOP
+            </button>
+          </div>
+
           <form onsubmit="window.handleCreateTaskSubmit(event)" class="flex flex-col space-y-3.5">
             <div>
-              <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Task Objective</label>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300">Task Objective</label>
+                <!-- Voice Microphone Transcription Button for Title -->
+                <button
+                  type="button"
+                  id="micTitleBtn"
+                  onclick="window.toggleSpeechTranscription('title')"
+                  class="touch-target px-2.5 py-1 rounded-lg bg-space-950 border border-slate-700 hover:border-gold-400 text-[11px] font-rajdhani font-semibold text-slate-300 hover:text-gold-300 transition-all flex items-center space-x-1.5 shadow-sm group"
+                  title="Speak to transcribe task title using Web Speech API"
+                >
+                  <svg id="micTitleIcon" class="w-3.5 h-3.5 text-gold-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                  <span id="micTitleLabel">VOICE TITLE</span>
+                </button>
+              </div>
               <input id="newTaskTitleInput" type="text" placeholder="e.g. Call accountant, Deep refactor code, Clean workspace..." oninput="window.onTaskTitleOrNotesInput()" required class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all font-sans" />
             </div>
 
@@ -1229,12 +1267,34 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400 mb-1">Notes / Friction Reducers</label>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400">Notes / Friction Reducers</label>
+                  <!-- Voice Microphone Transcription Button for Notes -->
+                  <button
+                    type="button"
+                    id="micNotesBtn"
+                    onclick="window.toggleSpeechTranscription('notes')"
+                    class="touch-target px-2 py-0.5 rounded-lg bg-space-950 border border-slate-700 hover:border-blue-400 text-[11px] font-rajdhani font-semibold text-slate-400 hover:text-blue-300 transition-all flex items-center space-x-1 shadow-sm group"
+                    title="Speak to transcribe notes using Web Speech API"
+                  >
+                    <svg id="micNotesIcon" class="w-3 h-3 text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                    <span id="micNotesLabel">VOICE NOTES</span>
+                  </button>
+                </div>
                 <input id="newTaskNotesInput" type="text" placeholder="Context, link, or first 2-minute step..." oninput="window.onTaskTitleOrNotesInput()" class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all font-sans" />
               </div>
-              <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400 mb-1">Due Date</label>
-                <input id="newTaskDueInput" type="date" class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-all font-mono" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400 mb-1">Due Date</label>
+                  <input id="newTaskDueInput" type="date" class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none transition-all font-mono" />
+                </div>
+                <div>
+                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-rose-300 mb-1">Deadline Date</label>
+                  <input id="newTaskDeadlineInput" type="date" class="w-full bg-space-950 border border-slate-700 focus:border-rose-400 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none transition-all font-mono" title="Hard cutoff deadline date" />
+                </div>
               </div>
             </div>
 
@@ -1829,11 +1889,31 @@
     let taskLists = [];
     let activeTaskListId = '@default';
     let currentTasks = [];
-    let activeTaskFilter = 'all'; // 'all' | 'needsAction' | 'completed'
+    let activeTaskFilter = 'all'; // 'all' | 'needsAction' | 'completed' | 'starred'
     let activeTasksSearchQuery = '';
     let selectedAdhdTags = new Set();
     let autoSuggestedAdhdTags = new Set();
+    let starredTaskIds = new Set();
     window.isTasksModalOpen = false;
+
+    function loadStarredTasks() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        const saved = localStorage.getItem(`adhd_starred_tasks_${uid}`);
+        if (saved) {
+          starredTaskIds = new Set(JSON.parse(saved));
+        }
+      } catch (e) {
+        starredTaskIds = new Set();
+      }
+    }
+
+    function saveStarredTasks() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        localStorage.setItem(`adhd_starred_tasks_${uid}`, JSON.stringify(Array.from(starredTaskIds)));
+      } catch (e) {}
+    }
 
     window.showSplashScreen = function() {
       if (!splashScreen) return;
@@ -1856,6 +1936,7 @@
         activeTasksSearchQuery = '';
         selectedAdhdTags.clear();
         autoSuggestedAdhdTags.clear();
+        starredTaskIds.clear();
         const searchInput = document.getElementById('tasksSearchInput');
         if (searchInput) searchInput.value = '';
         const clearBtn = document.getElementById('tasksSearchClearBtn');
@@ -2002,15 +2083,13 @@
     const tasksLoadingState = document.getElementById('tasksLoadingState');
     const tasksEmptyState = document.getElementById('tasksEmptyState');
     const taskCountSummary = document.getElementById('taskCountSummary');
-    const dopamineProgressBar = document.getElementById('dopamineProgressBar');
-    const dopamineStatsLabel = document.getElementById('dopamineStatsLabel');
-    const dopamineMotivationalText = document.getElementById('dopamineMotivationalText');
     const taskListSelect = document.getElementById('taskListSelect');
     const newTaskFormContainer = document.getElementById('newTaskFormContainer');
 
     window.openTasksModal = function() {
       if (!tasksModal) return;
       window.isTasksModalOpen = true;
+      loadStarredTasks();
       tasksModal.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
       tasksModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
 
@@ -2037,6 +2116,7 @@
 
     window.closeTasksModal = function() {
       if (!tasksModal) return;
+      window.stopSpeechTranscription();
       window.isTasksModalOpen = false;
       tasksModal.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
       tasksModal.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
@@ -2118,12 +2198,45 @@
           renderTaskListSelector();
         }
 
-        // 2. Fetch Tasks for active list
-        const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks?showCompleted=true&showHidden=true`, {
-          headers: { Authorization: `Bearer ${cachedAccessToken}` }
-        });
-        const tasksData = await tasksRes.json();
-        currentTasks = tasksData.items || [];
+        // 2. Fetch Tasks for active list or all lists combined
+        if (activeTaskListId === 'all') {
+          const allPromises = taskLists.map(async (list, idx) => {
+            try {
+              const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${list.id}/tasks?showCompleted=true&showHidden=true`, {
+                headers: { Authorization: `Bearer ${cachedAccessToken}` }
+              });
+              if (!res.ok) return [];
+              const data = await res.json();
+              const isInbox = (list.id === '@default' || idx === 0 || (list.title || '').toLowerCase().includes('inbox') || (list.title || '').toLowerCase() === 'my tasks');
+              return (data.items || []).map(t => ({
+                ...t,
+                _listId: list.id,
+                _listTitle: list.title || 'My Tasks',
+                _isInbox: isInbox
+              }));
+            } catch (e) {
+              return [];
+            }
+          });
+          const nested = await Promise.all(allPromises);
+          currentTasks = nested.flat();
+        } else {
+          const listToFetch = activeTaskListId || '@default';
+          const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listToFetch}/tasks?showCompleted=true&showHidden=true`, {
+            headers: { Authorization: `Bearer ${cachedAccessToken}` }
+          });
+          const tasksData = await tasksRes.json();
+          const activeListObj = taskLists.find(l => l.id === listToFetch) || taskLists[0] || { id: listToFetch, title: 'My Tasks' };
+          const activeListIndex = taskLists.findIndex(l => l.id === listToFetch);
+          const isInbox = (listToFetch === '@default' || activeListIndex === 0 || (activeListObj.title || '').toLowerCase().includes('inbox') || (activeListObj.title || '').toLowerCase() === 'my tasks');
+
+          currentTasks = (tasksData.items || []).map(t => ({
+            ...t,
+            _listId: activeListObj.id,
+            _listTitle: activeListObj.title || 'My Tasks',
+            _isInbox: isInbox
+          }));
+        }
 
         renderTasks();
         updateTasksBadges();
@@ -2140,12 +2253,19 @@
     function renderTaskListSelector() {
       if (!taskListSelect) return;
       if (taskLists.length === 0) {
-        taskListSelect.innerHTML = `<option value="@default">My Tasks (Default)</option>`;
+        taskListSelect.innerHTML = `<option value="@default">📥 My Tasks (Inbox)</option>`;
         return;
       }
-      taskListSelect.innerHTML = taskLists.map(list => 
-        `<option value="${list.id}" ${list.id === activeTaskListId ? 'selected' : ''}>${list.title || 'Untitled List'}</option>`
-      ).join('');
+      const options = [
+        `<option value="all" ${activeTaskListId === 'all' ? 'selected' : ''}>🌟 All Lists (Combined)</option>`
+      ];
+      taskLists.forEach((list, idx) => {
+        const isInbox = (list.id === '@default' || idx === 0 || (list.title || '').toLowerCase().includes('inbox') || (list.title || '').toLowerCase() === 'my tasks');
+        const prefix = isInbox ? '📥 ' : '📋 ';
+        const suffix = isInbox ? ' (Inbox)' : '';
+        options.push(`<option value="${list.id}" ${list.id === activeTaskListId ? 'selected' : ''}>${prefix}${escapeHtml(list.title || 'Untitled List')}${suffix}</option>`);
+      });
+      taskListSelect.innerHTML = options.join('');
     }
 
     window.onTaskListChanged = function(listId) {
@@ -2378,6 +2498,249 @@
     }
 
     // ============================================================
+    // WEB SPEECH API VOICE TRANSCRIPTION ENGINE
+    // ============================================================
+    let activeSpeechRecognition = null;
+    let activeSpeechTarget = null; // 'title' | 'notes' | 'search'
+
+    window.toggleSpeechTranscription = function(target) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Web Speech API is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Safari.");
+        return;
+      }
+
+      // If already recording for this target, stop it
+      if (activeSpeechRecognition && activeSpeechTarget === target) {
+        window.stopSpeechTranscription();
+        return;
+      }
+
+      // If recording for another target, stop that first
+      if (activeSpeechRecognition) {
+        window.stopSpeechTranscription();
+      }
+
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        activeSpeechRecognition = recognition;
+        activeSpeechTarget = target;
+
+        let micBtn = null;
+        let micLabel = null;
+        let targetInput = null;
+
+        if (target === 'search') {
+          micBtn = document.getElementById('micSearchBtn');
+          targetInput = document.getElementById('tasksSearchInput');
+          if (targetInput) targetInput.placeholder = "Listening... Speak task title or notes";
+        } else if (target === 'title') {
+          micBtn = document.getElementById('micTitleBtn');
+          micLabel = document.getElementById('micTitleLabel');
+          targetInput = document.getElementById('newTaskTitleInput');
+        } else {
+          micBtn = document.getElementById('micNotesBtn');
+          micLabel = document.getElementById('micNotesLabel');
+          targetInput = document.getElementById('newTaskNotesInput');
+        }
+
+        const speechBanner = document.getElementById('speechLiveBanner');
+        const speechTargetLabel = document.getElementById('speechTargetLabel');
+        const speechPreview = document.getElementById('speechTranscriptPreview');
+
+        if (micBtn) {
+          micBtn.classList.add('bg-rose-500/20', 'border-rose-400', 'text-rose-300', 'animate-pulse');
+        }
+        if (micLabel) {
+          micLabel.innerText = "LISTENING...";
+        }
+        if (speechBanner) {
+          speechBanner.classList.remove('hidden');
+          speechBanner.classList.add('flex');
+        }
+        if (speechTargetLabel) {
+          speechTargetLabel.innerText = `· TARGET: ${target.toUpperCase()}`;
+        }
+        if (speechPreview) {
+          speechPreview.innerText = `"Listening... Speak clearly into microphone"`;
+        }
+
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(880, 'sine', 0.1, 0.04);
+        }
+
+        let initialValue = targetInput ? targetInput.value : '';
+        let baseText = target === 'search' ? '' : initialValue.trim();
+        if (baseText) baseText += ' ';
+
+        recognition.onresult = (event) => {
+          let interimText = '';
+          let finalText = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalText += transcript;
+            } else {
+              interimText += transcript;
+            }
+          }
+
+          const currentSpoken = finalText || interimText;
+          if (speechPreview && currentSpoken) {
+            speechPreview.innerText = `"${currentSpoken}"`;
+          }
+
+          if (targetInput) {
+            const val = (target === 'search') ? currentSpoken : (baseText + currentSpoken);
+            targetInput.value = val;
+
+            if (target === 'search') {
+              window.onTasksSearchInput(val);
+            } else if (typeof window.onTaskTitleOrNotesInput === 'function') {
+              window.onTaskTitleOrNotesInput();
+            }
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.warn('Speech recognition error:', event.error);
+          if (speechPreview) {
+            if (event.error === 'not-allowed') {
+              speechPreview.innerText = "Microphone access denied. Please allow microphone permissions.";
+            } else if (event.error === 'no-speech') {
+              speechPreview.innerText = "No speech detected. Try speaking closer to microphone.";
+            } else {
+              speechPreview.innerText = `Microphone notice: ${event.error}`;
+            }
+          }
+          setTimeout(() => {
+            window.stopSpeechTranscription();
+          }, 1500);
+        };
+
+        recognition.onend = () => {
+          window.stopSpeechTranscription();
+        };
+
+        recognition.start();
+      } catch (err) {
+        console.error('Failed to start speech recognition:', err);
+        window.stopSpeechTranscription();
+      }
+    };
+
+    window.toggleSpeechSearch = function() {
+      window.toggleSpeechTranscription('search');
+    };
+
+    window.stopSpeechTranscription = function() {
+      if (activeSpeechRecognition) {
+        try {
+          activeSpeechRecognition.stop();
+        } catch (e) {}
+        activeSpeechRecognition = null;
+      }
+
+      ['title', 'notes', 'search'].forEach(t => {
+        let btn = null;
+        let lbl = null;
+        if (t === 'search') {
+          btn = document.getElementById('micSearchBtn');
+          const searchInput = document.getElementById('tasksSearchInput');
+          if (searchInput) searchInput.placeholder = "Search tasks by title or notes (type or click mic to speak)...";
+        } else if (t === 'title') {
+          btn = document.getElementById('micTitleBtn');
+          lbl = document.getElementById('micTitleLabel');
+          if (lbl) lbl.innerText = "VOICE TITLE";
+        } else {
+          btn = document.getElementById('micNotesBtn');
+          lbl = document.getElementById('micNotesLabel');
+          if (lbl) lbl.innerText = "VOICE NOTES";
+        }
+        if (btn) {
+          btn.classList.remove('bg-rose-500/20', 'border-rose-400', 'text-rose-300', 'animate-pulse');
+        }
+      });
+
+      const speechBanner = document.getElementById('speechLiveBanner');
+      if (speechBanner) {
+        speechBanner.classList.add('hidden');
+        speechBanner.classList.remove('flex');
+      }
+
+      activeSpeechTarget = null;
+
+      if (typeof window.onTaskTitleOrNotesInput === 'function') {
+        window.onTaskTitleOrNotesInput();
+      }
+    };
+
+    // ============================================================
+    // STARRED, ATTACHMENT & DEADLINE HELPERS
+    // ============================================================
+    function isTaskStarred(task) {
+      if (!task) return false;
+      if (starredTaskIds.has(task.id)) return true;
+      if (task.starred === true || task.favorite === true) return true;
+      const title = task.title || '';
+      const notes = task.notes || '';
+      if (title.includes('⭐') || title.includes('★') || title.includes('[starred]') || title.toLowerCase().includes('#starred')) return true;
+      if (notes.includes('⭐') || notes.includes('★') || notes.includes('[starred]') || notes.toLowerCase().includes('#starred')) return true;
+      if (task._listTitle && task._listTitle.toLowerCase() === 'starred') return true;
+      return false;
+    }
+
+    window.toggleTaskStar = function(taskId, evt) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      if (starredTaskIds.has(taskId)) {
+        starredTaskIds.delete(taskId);
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(440, 'sine', 0.08, 0.03);
+        }
+      } else {
+        starredTaskIds.add(taskId);
+        if (typeof window.playSynthBeep === 'function') {
+          window.playSynthBeep(987, 'triangle', 0.12, 0.04);
+          setTimeout(() => window.playSynthBeep(1318, 'sine', 0.15, 0.05), 80);
+        }
+      }
+      saveStarredTasks();
+      renderTasks();
+      updateTasksBadges();
+    };
+
+    function hasTaskAttachment(task) {
+      if (task.links && task.links.length > 0) return true;
+      if (task.assignmentInfo) return true;
+      const notes = (task.notes || '').toLowerCase();
+      if (notes.includes('http://') || notes.includes('https://') || notes.includes('drive.google.com') || notes.includes('docs.google.com') || notes.includes('[attachment') || notes.includes('📎')) {
+        return true;
+      }
+      return false;
+    }
+
+    function getTaskDeadline(task) {
+      if (task.deadline) return task.deadline;
+      if (task.notes) {
+        const match = task.notes.match(/\[?Deadline:\s*([^\]\n\r]+)\]?/i);
+        if (match && match[1]) return match[1].trim();
+      }
+      if (task.title) {
+        const match = task.title.match(/\[?Deadline:\s*([^\]\n\r]+)\]?/i);
+        if (match && match[1]) return match[1].trim();
+      }
+      return null;
+    }
+
+    // ============================================================
     // TASK FILTERING & RENDERING
     // ============================================================
     window.setTasksFilter = function(filter) {
@@ -2385,6 +2748,7 @@
       const allBtn = document.getElementById('filterBtnAll');
       const pendingBtn = document.getElementById('filterBtnPending');
       const compBtn = document.getElementById('filterBtnCompleted');
+      const starredBtn = document.getElementById('filterBtnStarred');
 
       const activeClass = "px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all";
       const inactiveClass = "px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all";
@@ -2392,6 +2756,7 @@
       if (allBtn) allBtn.className = filter === 'all' ? activeClass : inactiveClass;
       if (pendingBtn) pendingBtn.className = filter === 'needsAction' ? activeClass : inactiveClass;
       if (compBtn) compBtn.className = filter === 'completed' ? activeClass : inactiveClass;
+      if (starredBtn) starredBtn.className = (filter === 'starred' ? activeClass : inactiveClass) + " flex items-center space-x-1";
 
       renderTasks();
     };
@@ -2402,9 +2767,10 @@
       const query = activeTasksSearchQuery;
 
       const filtered = currentTasks.filter(task => {
-        // Status filter
+        // Status & Starred filter
         if (activeTaskFilter === 'needsAction' && task.status !== 'needsAction') return false;
         if (activeTaskFilter === 'completed' && task.status !== 'completed') return false;
+        if (activeTaskFilter === 'starred' && !isTaskStarred(task)) return false;
 
         // Search filter (filters by task title and notes content)
         if (query) {
@@ -2432,6 +2798,14 @@
               <div class="text-xs text-slate-400 max-w-sm mb-3">No tasks found matching "${escapeHtml(query)}" in title or notes content.</div>
               <button type="button" onclick="window.clearTasksSearch()" class="px-3.5 py-1.5 rounded-xl text-xs font-mono bg-space-850 hover:bg-space-800 border border-gold-400/40 text-gold-300 hover:text-white transition-all">Clear Search Query</button>
             `;
+          } else if (activeTaskFilter === 'starred') {
+            tasksEmptyState.innerHTML = `
+              <div class="w-12 h-12 rounded-full bg-space-950 border border-amber-500/40 flex items-center justify-center text-amber-400 mb-3 shadow-inner">
+                <svg class="w-6 h-6 fill-amber-400 stroke-amber-400" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="font-orbitron text-sm font-semibold text-slate-200 mb-1">No Starred Tasks</div>
+              <div class="text-xs text-slate-400 max-w-sm">Tap the star icon on any task card to mark it as a high-priority focus task.</div>
+            `;
           } else {
             tasksEmptyState.innerHTML = `
               <svg class="w-12 h-12 text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2450,7 +2824,42 @@
 
         tasksListContainer.innerHTML = filtered.map(task => {
           const isDone = task.status === 'completed';
-          const dueDateFormatted = task.due ? new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+          const isStarred = isTaskStarred(task);
+          const hasAttachment = hasTaskAttachment(task);
+
+          // Creation Date
+          const rawCreated = task.created || task.updated;
+          let createdFormatted = null;
+          if (rawCreated) {
+            const cDate = new Date(rawCreated);
+            if (!isNaN(cDate.getTime())) {
+              createdFormatted = cDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+          }
+
+          // Due Date (if applicable)
+          let dueFormatted = null;
+          if (task.due) {
+            const dDate = new Date(task.due);
+            if (!isNaN(dDate.getTime())) {
+              dueFormatted = dDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+          }
+
+          // Deadline Date (if applicable)
+          const deadlineRaw = getTaskDeadline(task);
+          let deadlineFormatted = null;
+          if (deadlineRaw) {
+            const dlDate = new Date(deadlineRaw);
+            deadlineFormatted = !isNaN(dlDate.getTime())
+              ? dlDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+              : deadlineRaw;
+          }
+
+          // Inbox vs List Badge
+          const listBadge = task._isInbox
+            ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/15 border border-indigo-400/30 text-indigo-300 shadow-sm" title="Stored in Google Tasks Inbox"><span class="mr-1 text-[11px]">📥</span>INBOX</span>`
+            : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/15 border border-purple-400/30 text-purple-300 shadow-sm" title="Google Tasks List: ${escapeHtml(task._listTitle || 'List')}"><span class="mr-1 text-[11px]">📋</span>${escapeHtml(task._listTitle || 'List')}</span>`;
 
           // Detect ADHD pattern badges in title or notes
           let cleanTitle = task.title || 'Untitled task';
@@ -2470,8 +2879,21 @@
           const highlightedTitle = highlightSearchMatch(cleanTitle, query);
           const highlightedNotes = task.notes ? highlightSearchMatch(task.notes, query) : null;
 
+          // Links from attachments
+          const linksHtml = (task.links && task.links.length > 0)
+            ? `<div class="flex flex-wrap gap-2 mt-1.5 pt-1 border-t border-slate-800/60">
+                ${task.links.map(l => `
+                  <a href="${escapeHtml(l.link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-space-950/90 border border-cyan-500/30 text-cyan-300 hover:text-white hover:border-cyan-400 text-[10px] font-mono transition-colors">
+                    <svg class="w-3 h-3 text-cyan-400 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <span class="truncate max-w-[200px]">${escapeHtml(l.description || 'Open linked resource')}</span>
+                    <svg class="w-2.5 h-2.5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </a>
+                `).join('')}
+              </div>`
+            : '';
+
           return `
-            <div class="group relative p-3 sm:p-4 rounded-xl ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'} border transition-all glass-hud flex items-start justify-between gap-3 shadow-md">
+            <div class="group relative p-3.5 sm:p-4 rounded-xl ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'} border transition-all glass-hud flex items-start justify-between gap-3 shadow-md">
               <div class="flex items-start space-x-3 flex-1 min-w-0">
                 <!-- Status Checkbox -->
                 <button type="button" onclick="window.toggleTaskStatus('${task.id}', '${task.status}')" class="mt-0.5 shrink-0 w-5 h-5 rounded-md border ${isDone ? 'bg-emerald-500 border-emerald-400 text-space-950' : 'border-slate-500 hover:border-gold-400 bg-space-950'} flex items-center justify-center transition-all focus:outline-none" title="${isDone ? 'Mark as Pending' : 'Mark as Completed'}">
@@ -2480,37 +2902,79 @@
 
                 <!-- Title & Details -->
                 <div class="flex-1 min-w-0">
-                  <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                  <!-- Badges Header: List/Inbox + Starred + Attachment + ADHD Patterns -->
+                  <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                    ${listBadge}
+
+                    ${isStarred ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Starred focus task">
+                        <span class="mr-1 text-amber-400 text-[11px]">★</span>STARRED
+                      </span>
+                    ` : ''}
+
+                    ${hasAttachment ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-sm" title="Attachment or linked document available">
+                        <svg class="w-3.5 h-3.5 mr-1 text-cyan-400 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>ATTACHMENT
+                      </span>
+                    ` : ''}
+
                     ${detectedBadges.map(b => `
                       <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border ${b.badgeBg}">
                         ${escapeHtml(b.badge)}
                       </span>
                     `).join('')}
                   </div>
+
+                  <!-- Task Title -->
                   <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
                     ${highlightedTitle}
                   </div>
+
+                  <!-- Notes -->
                   ${highlightedNotes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${highlightedNotes}</div>` : ''}
-                  
-                  <!-- Metadata Pill: Due date or completion -->
-                  <div class="flex items-center space-x-2 mt-1.5 text-[10px] font-mono">
-                    ${dueDateFormatted ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-amber-500/30 text-amber-300">
-                        <svg class="w-2.5 h-2.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        DUE ${dueDateFormatted}
+
+                  <!-- Linked Attachments -->
+                  ${linksHtml}
+
+                  <!-- Metadata Details: Creation Date, Due Date, Deadline Date, Completion Status -->
+                  <div class="flex flex-wrap items-center gap-2 mt-2 pt-1 border-t border-slate-800/50 text-[10px] font-mono">
+                    ${createdFormatted ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-slate-700/70 text-slate-400" title="Creation Date: ${createdFormatted}">
+                        <svg class="w-3 h-3 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>CREATED ${createdFormatted}
                       </span>
                     ` : ''}
+
+                    ${dueFormatted ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Due Date: ${dueFormatted}">
+                        <svg class="w-3 h-3 mr-1 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>DUE ${dueFormatted}
+                      </span>
+                    ` : ''}
+
+                    ${deadlineFormatted ? `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/15 border border-rose-400/40 text-rose-300 shadow-sm" title="Strict Deadline: ${deadlineFormatted}">
+                        <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>DEADLINE ${deadlineFormatted}
+                      </span>
+                    ` : ''}
+
                     ${isDone ? '<span class="text-emerald-400 font-semibold">✓ COMPLETED</span>' : '<span class="text-slate-500">PENDING FOCUS</span>'}
                   </div>
                 </div>
               </div>
 
-              <!-- Delete Action (Prompts Confirmation) -->
-              <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <!-- Right Actions: Star Toggle Button + Delete Action -->
+              <div class="flex items-center space-x-1 shrink-0">
+                <button type="button" onclick="window.toggleTaskStar('${task.id}', event)" class="p-1 rounded hover:bg-space-950/80 transition-all ${isStarred ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}" title="${isStarred ? 'Starred task (Click to unstar)' : 'Click to star task'}">
+                  <svg class="w-4 h-4 ${isStarred ? 'fill-amber-400 stroke-amber-400' : 'fill-none stroke-current'}" stroke-width="2" viewBox="0 0 24 24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </button>
+
+                <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
             </div>
           `;
         }).join('');
@@ -2521,10 +2985,13 @@
         const total = currentTasks.length;
         const pending = currentTasks.filter(t => t.status === 'needsAction').length;
         const done = currentTasks.filter(t => t.status === 'completed').length;
+        const starred = currentTasks.filter(t => isTaskStarred(t)).length;
         if (query) {
           taskCountSummary.innerText = `${filtered.length} of ${total} matched • "${query}"`;
+        } else if (activeTaskFilter === 'starred') {
+          taskCountSummary.innerText = `${filtered.length} Starred • ${total} Total`;
         } else {
-          taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${total} Total`;
+          taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${starred} Starred • ${total} Total`;
         }
       }
     }
@@ -2541,26 +3008,6 @@
           tasksDockCount.classList.remove('hidden');
         } else {
           tasksDockCount.classList.add('hidden');
-        }
-      }
-
-      // Update Dopamine Momentum Meter
-      const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
-      if (dopamineProgressBar) {
-        dopamineProgressBar.style.width = `${percentage}%`;
-      }
-      if (dopamineStatsLabel) {
-        dopamineStatsLabel.innerText = `${done} / ${total} TASKS COMPLETED (${percentage}%)`;
-      }
-      if (dopamineMotivationalText) {
-        if (total === 0) {
-          dopamineMotivationalText.innerText = "No tasks yet. Create one to kick off your focus flow!";
-        } else if (percentage === 100) {
-          dopamineMotivationalText.innerText = "Dopamine saturation achieved! All focus tasks completed.";
-        } else if (percentage >= 50) {
-          dopamineMotivationalText.innerText = "Over halfway through! Riding the cognitive hyperfocus wave.";
-        } else {
-          dopamineMotivationalText.innerText = "One micro-win at a time. Pick the highest dopamine action.";
         }
       }
     }
@@ -2589,7 +3036,8 @@
       }
 
       try {
-        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks/${taskId}`, {
+        const targetListId = (target && target._listId) || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
+        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${targetListId}/tasks/${taskId}`, {
           method: 'PATCH',
           headers: {
             Authorization: `Bearer ${cachedAccessToken}`,
@@ -2619,6 +3067,7 @@
         renderAdhdTags();
         document.getElementById('newTaskTitleInput')?.focus();
       } else {
+        window.stopSpeechTranscription();
         newTaskFormContainer.classList.add('hidden');
         selectedAdhdTags.clear();
         autoSuggestedAdhdTags.clear();
@@ -2633,11 +3082,13 @@
       const titleInput = document.getElementById('newTaskTitleInput');
       const notesInput = document.getElementById('newTaskNotesInput');
       const dueInput = document.getElementById('newTaskDueInput');
+      const deadlineInput = document.getElementById('newTaskDeadlineInput');
       const submitBtn = document.getElementById('saveTaskSubmitBtn');
 
       const title = titleInput?.value?.trim();
       const userNotes = notesInput?.value?.trim();
       const due = dueInput?.value;
+      const deadline = deadlineInput?.value;
 
       if (!title) return;
 
@@ -2669,12 +3120,19 @@
         finalNotes = finalNotes ? `${tagsNoteHeader}\n${finalNotes}` : tagsNoteHeader;
       }
 
+      // Append deadline if specified
+      if (deadline) {
+        finalNotes = finalNotes ? `${finalNotes}\n[Deadline: ${deadline}]` : `[Deadline: ${deadline}]`;
+      }
+
       try {
         const payload = { title: finalTitle };
         if (finalNotes) payload.notes = finalNotes;
         if (due) payload.due = `${due}T00:00:00.000Z`;
 
-        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks`, {
+        const targetListId = (activeTaskListId && activeTaskListId !== 'all') ? activeTaskListId : '@default';
+
+        const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${targetListId}/tasks`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${cachedAccessToken}`,
@@ -2686,6 +3144,14 @@
         if (!res.ok) throw new Error('Failed to create task');
 
         const created = await res.json();
+
+        // Decorate created task with list info and deadline metadata
+        const activeListObj = taskLists.find(l => l.id === targetListId) || taskLists[0] || { id: targetListId, title: 'My Tasks' };
+        created._listId = activeListObj.id;
+        created._listTitle = activeListObj.title || 'My Tasks';
+        created._isInbox = (targetListId === '@default' || (activeListObj.title || '').toLowerCase().includes('inbox') || (activeListObj.title || '').toLowerCase() === 'my tasks');
+        if (deadline) created.deadline = deadline;
+
         currentTasks.unshift(created);
         renderTasks();
         updateTasksBadges();
@@ -2694,6 +3160,7 @@
         if (titleInput) titleInput.value = '';
         if (notesInput) notesInput.value = '';
         if (dueInput) dueInput.value = '';
+        if (deadlineInput) deadlineInput.value = '';
         selectedAdhdTags.clear();
         autoSuggestedAdhdTags.clear();
         renderAdhdTags();
