@@ -2,28 +2,35 @@
 <html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI FOR ADHD // The Cognitive Co-Pilot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <title>AI for ADHD: The Cognitive Co-Pilot</title>
+  <meta name="description" content="The world's first neuro-adaptive cognitive co-pilot pairing structured executive logic with radiant non-linear creative flow.">
+  <meta property="og:title" content="AI for ADHD: The Cognitive Co-Pilot">
+  <meta property="og:description" content="The world's first neuro-adaptive cognitive co-pilot pairing structured executive logic with radiant non-linear creative flow.">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,300&family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Lato', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
             orbitron: ['Orbitron', 'sans-serif'],
             rajdhani: ['Rajdhani', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
             space: {
-              950: '#040407',
-              900: '#080811',
-              850: '#0e0d1c',
-              800: '#141428',
-              750: '#1e1c36',
+              950: '#030307',
+              900: '#070712',
+              850: '#0d0d1c',
+              800: '#14142b',
+              750: '#1c1c38',
+              700: '#26264d',
             },
             gold: {
               300: '#ffe082',
@@ -33,7 +40,7 @@
             },
             chroma: {
               cyan: '#00e5ff',
-              blue: '#2563eb',
+              blue: '#3b82f6',
               purple: '#9333ea',
               magenta: '#ec4899',
               orange: '#f97316',
@@ -46,35 +53,36 @@
   </script>
 
   <style>
-    /* Base Starfield Layout matching the Sass reference + Warm Golden Horizon */
+    /* Mobile-first base viewport reset */
     html, body {
       height: 100%;
+      height: 100dvh;
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background: radial-gradient(ellipse at bottom, #161226 0%, #06050b 50%, #030306 100%);
-      color: #fff;
+      background: #030307;
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
 
-    /* Infinite upward star motion keyframe */
+    /* Infinite upward star motion */
     @keyframes animStar {
       from { transform: translateY(0px); }
       to { transform: translateY(-2000px); }
     }
 
-    #stars, #stars2, #stars3 {
+    #stars, #stars2 {
       position: absolute;
       top: 0;
       left: 0;
       background: transparent;
       pointer-events: none;
     }
-
     #stars {
       width: 1px;
       height: 1px;
-      animation: animStar 50s linear infinite;
+      animation: animStar 60s linear infinite;
     }
     #stars:after {
       content: " ";
@@ -84,11 +92,10 @@
       height: 1px;
       background: transparent;
     }
-
     #stars2 {
       width: 2px;
       height: 2px;
-      animation: animStar 95s linear infinite;
+      animation: animStar 110s linear infinite;
     }
     #stars2:after {
       content: " ";
@@ -99,94 +106,83 @@
       background: transparent;
     }
 
-    #stars3 {
-      width: 3px;
-      height: 3px;
-      animation: animStar 140s linear infinite;
-    }
-    #stars3:after {
-      content: " ";
-      position: absolute;
-      top: 2000px;
-      width: 3px;
-      height: 3px;
-      background: transparent;
-    }
-
-    /* Dual Hemisphere Ambient Glows: Gold Circuitry (Left) & Rainbow Aurora (Right) */
+    /* Ambient Nebulae */
     .nebula-glow {
       position: fixed;
       inset: 0;
       pointer-events: none;
       background: 
-        radial-gradient(circle at 18% 45%, rgba(245, 184, 46, 0.18) 0%, transparent 48%),
-        radial-gradient(circle at 82% 35%, rgba(147, 51, 234, 0.20) 0%, transparent 45%),
-        radial-gradient(circle at 88% 65%, rgba(236, 72, 153, 0.18) 0%, transparent 50%),
-        radial-gradient(circle at 75% 85%, rgba(16, 185, 129, 0.15) 0%, transparent 45%),
-        radial-gradient(ellipse at 50% 100%, rgba(255, 209, 89, 0.22) 0%, transparent 60%);
+        radial-gradient(circle at 15% 35%, rgba(245, 184, 46, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 30%, rgba(147, 51, 234, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.12) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 209, 89, 0.15) 0%, transparent 55%);
       z-index: 1;
     }
 
-    /* Floating Bokeh Embers */
-    .bokeh-dot {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      filter: blur(1px);
-      animation: floatBokeh 12s ease-in-out infinite alternate;
-    }
-
-    @keyframes floatBokeh {
-      0% { transform: translateY(0px) scale(0.9); opacity: 0.35; }
-      50% { transform: translateY(-35px) scale(1.15); opacity: 0.85; }
-      100% { transform: translateY(-70px) scale(1); opacity: 0.4; }
-    }
-
-    /* Glassmorphism containers with subtle dual-toned borders */
+    /* Glass surfaces */
     .glass-hud {
-      background: rgba(12, 12, 24, 0.76);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 209, 89, 0.18);
-      box-shadow: 0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(245, 184, 46, 0.04);
+      background: rgba(13, 13, 28, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 209, 89, 0.16);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
 
     .glass-hud-rainbow {
-      background: rgba(14, 12, 28, 0.78);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(236, 72, 153, 0.25);
-      box-shadow: 0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(147, 51, 234, 0.08);
+      background: rgba(15, 13, 32, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(236, 72, 153, 0.22);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
 
-    /* Text gradient and glows directly mimicking the logo */
+    /* Gold & Rainbow brand typography */
     .gold-gradient-text {
       background: linear-gradient(135deg, #FFF9C4 0%, #FFD54F 40%, #FFB300 70%, #FF8F00 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 12px rgba(255, 213, 79, 0.6));
     }
 
     .rainbow-gradient-text {
       background: linear-gradient(90deg, #00e5ff 0%, #3b82f6 20%, #9333ea 40%, #ec4899 65%, #f97316 85%, #10b981 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 16px rgba(236, 72, 153, 0.5));
     }
 
-    .gold-glow {
-      box-shadow: 0 0 20px rgba(245, 184, 46, 0.4), inset 0 0 10px rgba(245, 184, 46, 0.2);
+    /* Clean smooth scrollbar for slide containers */
+    .slide-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 209, 89, 0.25) transparent;
+    }
+    .slide-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .slide-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .slide-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 209, 89, 0.25);
+      border-radius: 4px;
     }
 
+    /* Pulsing border animation */
+    @keyframes rainbowGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
     .rainbow-border-pulse {
       position: relative;
     }
     .rainbow-border-pulse::before {
       content: '';
       position: absolute;
-      inset: -1.5px;
+      inset: -1px;
       border-radius: inherit;
-      padding: 1.5px;
+      padding: 1px;
       background: linear-gradient(90deg, #ffd159, #00e5ff, #a855f7, #ec4899, #f97316, #10b981, #ffd159);
       background-size: 300% 300%;
       -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -196,79 +192,40 @@
       pointer-events: none;
     }
 
-    @keyframes rainbowGlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Subtle circuit matrix pattern */
-    .circuit-grid {
-      background-image: 
-        radial-gradient(rgba(245, 184, 46, 0.12) 1px, transparent 1px),
-        radial-gradient(rgba(147, 51, 234, 0.08) 1px, transparent 1px);
-      background-size: 40px 40px, 80px 80px;
-      background-position: 0 0, 20px 20px;
-    }
-
-    /* Horizontal baseline beam */
-    .horizon-light-beam {
-      position: absolute;
-      bottom: -150px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 300px;
-      background: radial-gradient(ellipse at bottom, rgba(255, 209, 89, 0.35) 0%, rgba(236, 72, 153, 0.15) 35%, transparent 70%);
-      filter: blur(40px);
-      pointer-events: none;
-      z-index: 2;
+    /* Touch target comfort */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
     }
   </style>
 </head>
 
-<body class="h-full w-full font-sans antialiased text-slate-100 flex flex-col justify-between relative overflow-hidden select-none">
+<body class="h-full w-full font-sans antialiased text-slate-100 flex flex-col justify-between relative overflow-hidden">
 
   <!-- Ambient Space, Dual-Nebula & Starfield -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
     <div id="stars"></div>
     <div id="stars2"></div>
-    <div id="stars3"></div>
     <div class="nebula-glow"></div>
-    <div class="circuit-grid absolute inset-0 opacity-40"></div>
-    <div class="horizon-light-beam"></div>
-
-    <!-- Decorative Floating Embers mimicking the logo's stardust -->
-    <div class="bokeh-dot w-3 h-3 bg-gold-400" style="left: 12%; top: 40%; box-shadow: 0 0 14px #ffd159;"></div>
-    <div class="bokeh-dot w-2 h-2 bg-chroma-cyan" style="left: 32%; top: 65%; animation-delay: 2s; box-shadow: 0 0 12px #00e5ff;"></div>
-    <div class="bokeh-dot w-3.5 h-3.5 bg-chroma-magenta" style="left: 78%; top: 25%; animation-delay: 1.5s; box-shadow: 0 0 16px #ec4899;"></div>
-    <div class="bokeh-dot w-2.5 h-2.5 bg-chroma-purple" style="left: 88%; top: 60%; animation-delay: 3s; box-shadow: 0 0 14px #9333ea;"></div>
-    <div class="bokeh-dot w-2 h-2 bg-chroma-lime" style="left: 68%; top: 75%; animation-delay: 4.5s; box-shadow: 0 0 10px #10b981;"></div>
-    <div class="bokeh-dot w-3 h-3 bg-chroma-orange" style="left: 62%; top: 38%; animation-delay: 2.2s; box-shadow: 0 0 15px #f97316;"></div>
   </div>
 
-  <!-- Top Navigation Header -->
-  <header class="relative z-30 px-6 py-4 flex items-center justify-between border-b border-gold-400/20 glass-hud backdrop-blur-md">
-    <!-- Brand / Split Logo Reference -->
-    <div class="flex items-center space-x-3 cursor-pointer group" onclick="jumpToSlide(0)">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-gold-500 via-purple-600 to-chroma-magenta p-[1.5px] flex items-center justify-center shadow-lg shadow-gold-500/20 group-hover:scale-105 transition-transform">
-        <div class="w-full h-full bg-space-950 rounded-[9px] flex items-center justify-center relative overflow-hidden">
-          <!-- Mini Split Brain SVG -->
-          <svg class="w-6 h-6" viewBox="0 0 40 40" fill="none">
-            <!-- Left gold circuit hemisphere -->
-            <path d="M19 6C13 6 8 11 8 18C8 22 10 25 12 28C14 31 16 34 19 35" stroke="#f5b82e" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M15 14H18 M13 20H17 M15 26H18" stroke="#ffd159" stroke-width="1.8" stroke-linecap="round"/>
-            <circle cx="13" cy="20" r="1.5" fill="#00e5ff"/>
-            <circle cx="15" cy="14" r="1.5" fill="#ffd159"/>
-            <!-- Right rainbow flow hemisphere -->
-            <path d="M21 6C27 6 32 11 32 18C32 22 30 25 28 28C26 31 24 34 21 35" stroke="url(#miniRainbow)" stroke-width="2.5" stroke-linecap="round"/>
-            <path d="M22 13C25 13 27 16 25 18C23 20 22 23 25 25" stroke="#ec4899" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- ================= TOP APP BAR (Max 56px height, conforms to mobile & desktop contracts) ================= -->
+  <header class="relative z-30 h-14 px-4 sm:px-6 flex items-center justify-between border-b border-gold-400/20 glass-hud backdrop-blur-md shrink-0">
+    <!-- Brand / Split Logo Wordmark (Zone 1) -->
+    <div class="flex items-center space-x-2.5 cursor-pointer touch-target" onclick="jumpToSlide(0)">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-gold-500 via-purple-600 to-chroma-magenta p-[1.5px] flex items-center justify-center shrink-0 shadow-md shadow-gold-500/20">
+        <div class="w-full h-full bg-space-950 rounded-[7px] flex items-center justify-center">
+          <svg class="w-5 h-5" viewBox="0 0 40 40" fill="none">
+            <!-- Left gold circuit -->
+            <path d="M19 8C14 8 9 12 9 18C9 23 11 26 13 29C15 31 17 33 19 34" stroke="#f5b82e" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M14 15H18 M12 21H16" stroke="#ffd159" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="21" r="1.5" fill="#00e5ff"/>
+            <!-- Right rainbow flow -->
+            <path d="M21 8C26 8 31 12 31 18C31 23 29 26 27 29C25 31 23 33 21 34" stroke="url(#miniHemi)" stroke-width="2.5" stroke-linecap="round"/>
             <defs>
-              <linearGradient id="miniRainbow" x1="21" y1="6" x2="32" y2="35" gradientUnits="userSpaceOnUse">
+              <linearGradient id="miniHemi" x1="21" y1="8" x2="31" y2="34" gradientUnits="userSpaceOnUse">
                 <stop stop-color="#00e5ff"/>
-                <stop offset="0.3" stop-color="#9333ea"/>
-                <stop offset="0.6" stop-color="#ec4899"/>
-                <stop offset="0.85" stop-color="#f97316"/>
+                <stop offset="0.5" stop-color="#ec4899"/>
                 <stop offset="1" stop-color="#10b981"/>
               </linearGradient>
             </defs>
@@ -276,233 +233,235 @@
         </div>
       </div>
 
-      <!-- Wordmark Exact to Logo: AI [FOR] ADHD -->
-      <div class="flex items-center space-x-1.5 font-orbitron">
-        <span class="gold-gradient-text font-black text-xl tracking-wider">AI</span>
-        <div class="flex flex-col items-center justify-center px-1">
-          <div class="w-full h-[1px] bg-gold-400/80"></div>
-          <span class="text-[9px] font-sans font-bold tracking-[0.25em] text-white px-1 leading-tight">FOR</span>
-          <div class="w-full h-[1px] bg-gold-400/80"></div>
-        </div>
-        <span class="rainbow-gradient-text font-black text-xl tracking-wider">ADHD</span>
+      <div class="flex items-center space-x-1 font-orbitron select-none">
+        <span class="gold-gradient-text font-black text-base sm:text-lg tracking-wider">AI</span>
+        <span class="text-[9px] font-sans font-bold tracking-widest text-slate-400 px-0.5">FOR</span>
+        <span class="rainbow-gradient-text font-black text-base sm:text-lg tracking-wider">ADHD</span>
       </div>
     </div>
 
-    <!-- Quick Navigation Matrix -->
-    <nav class="hidden md:flex items-center space-x-8 font-rajdhani text-sm font-semibold tracking-widest text-slate-300">
-      <button onclick="jumpToSlide(0)" class="nav-btn transition-colors hover:text-gold-400 flex items-center space-x-1.5 py-1 text-gold-400 font-bold" data-index="0">
-        <span class="text-gold-400">01.</span><span>THE VISION</span>
-      </button>
-      <button onclick="jumpToSlide(1)" class="nav-btn transition-colors hover:text-gold-400 flex items-center space-x-1.5 py-1" data-index="1">
-        <span class="text-chroma-cyan">02.</span><span>DUAL BRAIN</span>
-      </button>
-      <button onclick="jumpToSlide(2)" class="nav-btn transition-colors hover:text-gold-400 flex items-center space-x-1.5 py-1" data-index="2">
-        <span class="text-chroma-purple">03.</span><span>CO-PILOT MODES</span>
-      </button>
-      <button onclick="jumpToSlide(3)" class="nav-btn transition-colors hover:text-gold-400 flex items-center space-x-1.5 py-1" data-index="3">
-        <span class="text-chroma-magenta">04.</span><span>NEURO-METRICS</span>
-      </button>
-      <button onclick="jumpToSlide(4)" class="nav-btn transition-colors hover:text-gold-400 flex items-center space-x-1.5 py-1" data-index="4">
-        <span class="text-chroma-lime">05.</span><span>EARLY ACCESS</span>
-      </button>
+    <!-- Desktop Navigation Links (Zone 2) -->
+    <nav class="hidden md:flex items-center space-x-6 font-rajdhani text-sm font-semibold tracking-wider text-slate-300">
+      <button onclick="jumpToSlide(0)" class="nav-btn transition-colors hover:text-gold-400 py-1 text-gold-400 font-bold" data-index="0">01. THE VISION</button>
+      <button onclick="jumpToSlide(1)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="1">02. DUAL BRAIN</button>
+      <button onclick="jumpToSlide(2)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="2">03. CO-PILOT MODES</button>
+      <button onclick="jumpToSlide(3)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="3">04. NEURO-METRICS</button>
+      <button onclick="jumpToSlide(4)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="4">05. EARLY ACCESS</button>
     </nav>
 
-    <!-- Synapse Sync Status & Audio Toggle -->
-    <div class="flex items-center space-x-4">
-      <div class="hidden sm:flex items-center space-x-2 text-xs font-rajdhani bg-space-950/80 px-3.5 py-1.5 rounded-full border border-gold-400/30 text-gold-300 shadow-inner">
-        <span class="w-2 h-2 rounded-full bg-gold-400 animate-ping"></span>
-        <span class="font-medium tracking-wider">DOPAMINE SYNC: BALANCED</span>
+    <!-- Zone 3: Audio Toggle & Quick CTA -->
+    <div class="flex items-center space-x-2 sm:space-x-3">
+      <!-- Sector Pill for Mobile -->
+      <div class="md:hidden flex items-center px-2 py-1 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
+        <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>05
       </div>
 
-      <!-- Audio Feedback Toggle -->
-      <button id="audioToggle" onclick="toggleAudio()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-space-850/90 border border-slate-700 hover:border-gold-400 transition-all text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white" title="Toggle Synth Sound Effects">
-        <svg id="audioIcon" class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- SFX Audio Toggle Button -->
+      <button id="audioToggle" onclick="toggleAudio()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Toggle Sound Feedback">
+        <svg id="audioIcon" class="w-4 h-4 text-gold-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
         </svg>
-        <span id="audioLabel" class="hidden sm:inline">SFX: ON</span>
+        <span id="audioLabel" class="hidden sm:inline">SFX</span>
+      </button>
+
+      <!-- Desktop Primary CTA -->
+      <button onclick="jumpToSlide(4)" class="hidden md:flex px-4 py-1.5 rounded-lg font-orbitron text-xs font-bold tracking-wider text-space-950 bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20 whitespace-nowrap">
+        JOIN ALPHA
       </button>
     </div>
   </header>
 
-  <!-- Main Carousel Viewport -->
+  <!-- ================= MAIN VIEWPORT TRACK ================= -->
   <main class="relative z-20 flex-1 w-full overflow-hidden flex items-center">
     
-    <!-- Left Navigation Arrow -->
-    <button onclick="prevSlide()" aria-label="Previous Slide" class="absolute left-3 md:left-6 z-30 p-3 rounded-full bg-space-900/85 border border-gold-400/30 text-gold-400 hover:text-white hover:border-gold-400 hover:bg-gold-500/20 backdrop-blur-md transition-all group focus:outline-none shadow-lg shadow-black/50">
-      <svg class="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    <!-- Desktop Left Arrow (Hidden on Mobile to preserve touch real estate) -->
+    <button onclick="prevSlide()" aria-label="Previous Slide" class="hidden md:flex absolute left-4 z-30 w-11 h-11 rounded-full bg-space-900/85 border border-gold-400/30 text-gold-400 hover:text-white hover:border-gold-400 hover:bg-gold-500/20 backdrop-blur-md items-center justify-center transition-all group focus:outline-none shadow-lg shadow-black/50">
+      <svg class="w-5 h-5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
       </svg>
     </button>
 
-    <!-- Right Navigation Arrow -->
-    <button onclick="nextSlide()" aria-label="Next Slide" class="absolute right-3 md:right-6 z-30 p-3 rounded-full bg-space-900/85 border border-gold-400/30 text-gold-400 hover:text-white hover:border-gold-400 hover:bg-gold-500/20 backdrop-blur-md transition-all group focus:outline-none shadow-lg shadow-black/50">
-      <svg class="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+    <!-- Desktop Right Arrow (Hidden on Mobile to preserve touch real estate) -->
+    <button onclick="nextSlide()" aria-label="Next Slide" class="hidden md:flex absolute right-4 z-30 w-11 h-11 rounded-full bg-space-900/85 border border-gold-400/30 text-gold-400 hover:text-white hover:border-gold-400 hover:bg-gold-500/20 backdrop-blur-md items-center justify-center transition-all group focus:outline-none shadow-lg shadow-black/50">
+      <svg class="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
       </svg>
     </button>
 
     <!-- Horizontal Slides Track -->
-    <div id="carouselTrack" class="flex w-full h-full transition-transform duration-700 ease-out will-change-transform">
+    <div id="carouselTrack" class="flex w-full h-full transition-transform duration-500 ease-out will-change-transform">
 
-      <!-- ================= SLIDE 1: HERO / THE LOGO IN MOTION ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-center items-center px-6 md:px-20 text-center relative py-8 overflow-y-auto no-scrollbar">
-        <div class="max-w-4xl mx-auto flex flex-col items-center">
+      <!-- ================= SLIDE 1: THE VISION ================= -->
+      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 text-center relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
+        <div class="max-w-3xl w-full mx-auto flex flex-col items-center">
           
-          <!-- Dual Badge -->
-          <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-gold-400/40 bg-space-900/70 text-slate-200 font-rajdhani text-xs md:text-sm tracking-[0.25em] uppercase mb-5 shadow-lg">
-            <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
-            <span>STRUCTURED LOGIC</span>
-            <span class="text-gold-400">×</span>
-            <span>HYPER-CREATIVE FLOW</span>
-            <span class="w-2 h-2 rounded-full bg-chroma-magenta animate-pulse"></span>
+          <!-- Category kicker -->
+          <div class="flex items-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase mb-2">
+            <span>Executive Function</span>
+            <span aria-hidden="true">·</span>
+            <span>Cognitive Co-Pilot</span>
+            <span aria-hidden="true">·</span>
+            <span class="text-chroma-magenta">Flow State</span>
           </div>
 
-          <!-- Hero Headline mimicking Logo Typography -->
-          <div class="my-2">
-            <h1 class="font-orbitron font-black text-5xl sm:text-7xl md:text-8xl tracking-tight leading-none">
-              <span class="gold-gradient-text inline-block transform hover:scale-105 transition-transform">AI</span>
-              <span class="font-sans font-light text-slate-400 text-3xl sm:text-5xl md:text-6xl mx-2 sm:mx-4 tracking-widest">FOR</span>
-              <span class="rainbow-gradient-text inline-block transform hover:scale-105 transition-transform">ADHD</span>
-            </h1>
-          </div>
+          <!-- Main Hero Title -->
+          <h1 class="font-orbitron font-black text-3xl sm:text-5xl md:text-7xl tracking-tight leading-tight mt-1 mb-2">
+            <span class="gold-gradient-text inline-block">AI</span>
+            <span class="font-sans font-light text-slate-400 text-2xl sm:text-4xl md:text-5xl mx-2 tracking-widest">FOR</span>
+            <span class="rainbow-gradient-text inline-block">ADHD</span>
+          </h1>
 
           <!-- Subheadline -->
-          <h2 class="font-orbitron font-bold text-lg sm:text-2xl text-slate-200 mt-4 tracking-wider uppercase">
-            The World's First <span class="text-gold-400">Neuro-Adaptive</span> Cognitive Co-Pilot
+          <h2 class="font-orbitron font-bold text-base sm:text-xl md:text-2xl text-slate-200 tracking-wide uppercase max-w-xl">
+            The Neuro-Adaptive <span class="text-gold-400">Cognitive Co-Pilot</span>
           </h2>
 
-          <p class="font-sans font-light text-slate-300 text-sm sm:text-base md:text-lg max-w-2xl mt-4 tracking-wide leading-relaxed">
-            Harness the power of your divergent mind. We pair precise gold-standard executive function algorithms with radiant, non-linear creative brainstorming to turn ADHD into your ultimate superpower.
+          <p class="font-sans font-normal text-slate-300 text-xs sm:text-sm md:text-base max-w-xl mt-3 leading-relaxed">
+            Harness your divergent mind. We pair structured executive function scaffolding with radiant non-linear creative brainstorming to turn ADHD friction into effortless momentum.
           </p>
 
-          <!-- Interactive Action Buttons -->
-          <div class="mt-8 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-            <button onclick="jumpToSlide(2)" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-orbitron text-xs sm:text-sm font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-gold-600 hover:from-gold-300 hover:to-amber-400 text-space-950 shadow-lg shadow-gold-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2">
-              <span>TEST THE MODES</span>
+          <!-- Ergonomic CTA Buttons with 44px+ touch target -->
+          <div class="mt-6 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <button onclick="jumpToSlide(2)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-gold-600 hover:from-gold-300 hover:to-amber-400 text-space-950 shadow-lg shadow-gold-500/30 transition-all flex items-center justify-center space-x-2 active:scale-95">
+              <span>EXPLORE MODES</span>
               <svg class="w-4 h-4 text-space-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </button>
-            <button onclick="jumpToSlide(4)" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-orbitron text-xs sm:text-sm font-semibold tracking-widest uppercase bg-space-900/80 hover:bg-space-850 text-slate-100 border border-purple-500/40 hover:border-chroma-magenta transition-all shadow-md rainbow-border-pulse">
-              JOIN THE WAITLIST
+            <button onclick="jumpToSlide(4)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-semibold tracking-widest uppercase bg-space-900/90 hover:bg-space-850 text-slate-100 border border-purple-500/40 hover:border-chroma-magenta transition-all rainbow-border-pulse active:scale-95">
+              REQUEST ALPHA ACCESS
             </button>
           </div>
 
-          <!-- Live Metric Highlights -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 w-full max-w-3xl pt-6 border-t border-slate-800/80">
-            <div class="glass-hud p-3.5 rounded-xl text-center border-gold-400/30">
-              <div class="gold-gradient-text font-orbitron font-bold text-xl md:text-2xl">4.8×</div>
-              <div class="text-[10px] md:text-xs font-rajdhani tracking-widest text-slate-300 uppercase mt-0.5">Task Velocity</div>
+          <!-- Compact Mobile-Friendly Metric Highlights Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 mt-6 w-full max-w-2xl pt-4 border-t border-slate-800">
+            <div class="glass-hud p-3 rounded-xl text-center border-gold-400/25">
+              <div class="gold-gradient-text font-orbitron font-bold text-lg sm:text-2xl tabular-nums">4.8×</div>
+              <div class="text-[10px] sm:text-xs font-rajdhani tracking-wider text-slate-300 uppercase mt-0.5">Task Velocity</div>
             </div>
-            <div class="glass-hud p-3.5 rounded-xl text-center border-chroma-cyan/30">
-              <div class="text-chroma-cyan font-orbitron font-bold text-xl md:text-2xl">0%</div>
-              <div class="text-[10px] md:text-xs font-rajdhani tracking-widest text-slate-300 uppercase mt-0.5">Executive Paralysis</div>
+            <div class="glass-hud p-3 rounded-xl text-center border-chroma-cyan/25">
+              <div class="text-chroma-cyan font-orbitron font-bold text-lg sm:text-2xl tabular-nums">0%</div>
+              <div class="text-[10px] sm:text-xs font-rajdhani tracking-wider text-slate-300 uppercase mt-0.5">Task Paralysis</div>
             </div>
-            <div class="glass-hud p-3.5 rounded-xl text-center border-chroma-magenta/30">
-              <div class="text-chroma-magenta font-orbitron font-bold text-xl md:text-2xl">∞ Flow</div>
-              <div class="text-[10px] md:text-xs font-rajdhani tracking-widest text-slate-300 uppercase mt-0.5">Hyperfocus Guidance</div>
+            <div class="glass-hud p-3 rounded-xl text-center border-chroma-magenta/25">
+              <div class="text-chroma-magenta font-orbitron font-bold text-lg sm:text-2xl tabular-nums">∞ Flow</div>
+              <div class="text-[10px] sm:text-xs font-rajdhani tracking-wider text-slate-300 uppercase mt-0.5">Hyperfocus Shield</div>
             </div>
-            <div class="glass-hud p-3.5 rounded-xl text-center border-chroma-lime/30">
-              <div class="text-chroma-lime font-orbitron font-bold text-xl md:text-2xl">99.2%</div>
-              <div class="text-[10px] md:text-xs font-rajdhani tracking-widest text-slate-300 uppercase mt-0.5">Dopamine Harmony</div>
+            <div class="glass-hud p-3 rounded-xl text-center border-chroma-lime/25">
+              <div class="text-chroma-lime font-orbitron font-bold text-lg sm:text-2xl tabular-nums">99.2%</div>
+              <div class="text-[10px] sm:text-xs font-rajdhani tracking-wider text-slate-300 uppercase mt-0.5">Dopamine Balance</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ================= SLIDE 2: DUAL-HEMISPHERE ARCHITECTURE ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-center items-center px-6 md:px-16 relative py-8 overflow-y-auto no-scrollbar">
-        <div class="max-w-6xl w-full mx-auto">
-          <div class="text-center md:text-left mb-6">
-            <span class="text-xs font-rajdhani tracking-[0.3em] uppercase text-gold-400">Section 02 // Neural Symmetry</span>
-            <h3 class="font-orbitron text-2xl md:text-4xl font-extrabold text-white mt-1">THE DUAL-HEMISPHERE SYSTEM</h3>
+      <!-- ================= SLIDE 2: DUAL BRAIN ARCHITECTURE ================= -->
+      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
+        <div class="max-w-5xl w-full mx-auto">
+          <!-- Section Header -->
+          <div class="text-center mb-4 sm:mb-6">
+            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
+              <span>02. Neural Architecture</span>
+              <span aria-hidden="true">·</span>
+              <span>Bilateral Symmetry</span>
+            </div>
+            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">THE DUAL-HEMISPHERE SYSTEM</h3>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            
-            <!-- Left Card: The Golden Logic Circuit -->
-            <div class="glass-hud p-6 md:p-8 rounded-2xl border-2 border-gold-400/40 hover:border-gold-300 transition-all duration-300 relative group flex flex-col justify-between">
-              <div class="absolute top-4 right-4 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-400/30 text-gold-400 font-rajdhani text-xs tracking-widest">
-                LEFT: EXECUTIVE LOGIC
-              </div>
+          <!-- Mobile Segmented View Switcher (Thumb Ergonomics) -->
+          <div class="md:hidden flex items-center justify-center mb-4">
+            <div class="flex items-center p-1 bg-space-900 border border-slate-700 rounded-xl w-full max-w-xs">
+              <button onclick="toggleMobileHemi('left')" id="mobileHemiTabLeft" class="flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-gold-500/20 text-gold-300 border border-gold-400/40">
+                EXECUTIVE LOGIC
+              </button>
+              <button onclick="toggleMobileHemi('right')" id="mobileHemiTabRight" class="flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white">
+                DIVERGENT FLOW
+              </button>
+            </div>
+          </div>
 
+          <!-- Cards Grid (Responsive 2-column or Tabbed on mobile) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch">
+            
+            <!-- Left Card: Executive Logic -->
+            <div id="hemiCardLeft" class="glass-hud p-5 sm:p-7 rounded-2xl border border-gold-400/40 relative flex flex-col justify-between transition-all">
               <div>
-                <div class="w-14 h-14 rounded-2xl bg-gold-500/10 border border-gold-400/40 flex items-center justify-center text-gold-400 group-hover:scale-110 transition-transform mb-5 gold-glow">
-                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                  </svg>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gold-500/10 border border-gold-400/40 flex items-center justify-center text-gold-400">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                    </svg>
+                  </div>
+                  <span class="text-[11px] font-rajdhani font-semibold tracking-wider text-gold-400 uppercase">LEFT HEMISPHERE</span>
                 </div>
 
-                <h4 class="font-orbitron font-bold text-2xl text-white group-hover:text-gold-300 transition-colors">
-                  Golden Scaffold & Task Deconstruction
+                <h4 class="font-orbitron font-bold text-lg sm:text-xl text-white">
+                  Executive Scaffold & Deconstruction
                 </h4>
 
-                <p class="font-sans text-sm text-slate-300 mt-3 leading-relaxed">
-                  Overcomes executive dysfunction and task intimidation. It instantaneously decomposes daunting projects into tiny, frictionless micro-steps with ambient pacing timers and visual dopamine checkpoints.
+                <p class="font-sans text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                  Overcomes task initiation friction and freeze. Decomposes intimidating mountains into painless 5-minute atomic micro-steps with ambient pacing timers.
                 </p>
 
-                <!-- Bullet points -->
                 <ul class="mt-4 space-y-2 text-xs font-rajdhani tracking-wider text-slate-300">
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                    <span>Micro-Chunking Engine: 5-minute atomic wins</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span>
+                    <span>Micro-Chunking Engine: 5-minute frictionless wins</span>
                   </li>
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-cyan"></span>
-                    <span>Working Memory Offloader: zero context loss</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-cyan shrink-0"></span>
+                    <span>Working Memory Offloader: zero lost context</span>
                   </li>
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                    <span>Dynamic Time-Blindness Correction</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span>
+                    <span>Time-Blindness Calibrator: ambient visual pacing</span>
                   </li>
                 </ul>
               </div>
 
-              <div class="mt-6 pt-4 border-t border-gold-400/20 flex justify-between items-center text-xs font-rajdhani tracking-wider text-gold-400">
-                <span>STATE: STRUCTURED</span>
-                <span class="text-slate-300">CALCULATED CADENCE // 100%</span>
+              <div class="mt-4 pt-3 border-t border-gold-400/20 flex justify-between items-center text-[11px] font-rajdhani tracking-wider text-gold-400">
+                <span>MODE: STRUCTURED CADENCE</span>
+                <span class="text-slate-300 tabular-nums">EFFICIENCY: 100%</span>
               </div>
             </div>
 
-            <!-- Right Card: The Chromatic Rainbow Flow -->
-            <div class="glass-hud-rainbow p-6 md:p-8 rounded-2xl border-2 border-chroma-magenta/40 hover:border-chroma-magenta transition-all duration-300 relative group flex flex-col justify-between">
-              <div class="absolute top-4 right-4 px-3 py-1 rounded-full bg-pink-500/10 border border-chroma-magenta/30 text-chroma-magenta font-rajdhani text-xs tracking-widest">
-                RIGHT: DIVERGENT FLOW
-              </div>
-
+            <!-- Right Card: Divergent Flow -->
+            <div id="hemiCardRight" class="glass-hud-rainbow p-5 sm:p-7 rounded-2xl border border-chroma-magenta/40 relative hidden md:flex flex-col justify-between transition-all">
               <div>
-                <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-chroma-magenta/40 flex items-center justify-center text-chroma-magenta group-hover:scale-110 transition-transform mb-5" style="box-shadow: 0 0 20px rgba(236,72,153,0.4);">
-                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                  </svg>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-pink-500/10 border border-chroma-magenta/40 flex items-center justify-center text-chroma-magenta">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                  </div>
+                  <span class="text-[11px] font-rajdhani font-semibold tracking-wider text-chroma-magenta uppercase">RIGHT HEMISPHERE</span>
                 </div>
 
-                <h4 class="font-orbitron font-bold text-2xl text-white group-hover:text-chroma-magenta transition-colors">
+                <h4 class="font-orbitron font-bold text-lg sm:text-xl text-white">
                   Vibrant Ideation & Hyperfocus Harbor
                 </h4>
 
-                <p class="font-sans text-sm text-slate-300 mt-3 leading-relaxed">
-                  Celebrates non-linear thinking. Instead of forcing rigid spreadsheets, the right hemisphere lets ideas swirl naturally, capturing lightning bolts of inspiration and connecting distant dots seamlessly.
+                <p class="font-sans text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                  Honors the rapid, lateral gift of the ADHD mind. Captures chaotic sparks raw without killing flow, connecting divergent insights into structured masterworks.
                 </p>
 
-                <!-- Bullet points -->
                 <ul class="mt-4 space-y-2 text-xs font-rajdhani tracking-wider text-slate-300">
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-purple"></span>
-                    <span>Multidimensional Idea Mapping & Synapse Trails</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-purple shrink-0"></span>
+                    <span>Radial Mind Mapping: multidimensional idea clusters</span>
                   </li>
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-magenta"></span>
-                    <span>Hyperfocus Flow State Guardian</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-magenta shrink-0"></span>
+                    <span>Hyperfocus Guard: protects deep flow states</span>
                   </li>
                   <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-lime"></span>
-                    <span>Dopamine-Rich Gamified Milestones</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-lime shrink-0"></span>
+                    <span>Gamified Dopamine Loops: micro-reward pacing</span>
                   </li>
                 </ul>
               </div>
 
-              <div class="mt-6 pt-4 border-t border-purple-500/20 flex justify-between items-center text-xs font-rajdhani tracking-wider text-chroma-magenta">
-                <span>STATE: EXPLORATORY</span>
-                <span class="text-slate-300">CREATIVE VELOCITY // UNBOUNDED</span>
+              <div class="mt-4 pt-3 border-t border-purple-500/20 flex justify-between items-center text-[11px] font-rajdhani tracking-wider text-chroma-magenta">
+                <span>MODE: EXPLORATORY FLOW</span>
+                <span class="text-slate-300 tabular-nums">LATITUDE: UNBOUNDED</span>
               </div>
             </div>
 
@@ -510,58 +469,60 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 3: INTERACTIVE SUITE ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-center items-center px-6 md:px-16 relative py-8 overflow-y-auto no-scrollbar">
-        <div class="max-w-6xl w-full mx-auto">
-          <div class="flex flex-col md:flex-row md:items-end justify-between mb-6">
-            <div>
-              <span class="text-xs font-rajdhani tracking-[0.3em] uppercase text-gold-400">Section 03 // Adaptive Engine</span>
-              <h3 class="font-orbitron text-2xl md:text-4xl font-extrabold text-white mt-1">INTERACTIVE CO-PILOT MODES</h3>
+      <!-- ================= SLIDE 3: INTERACTIVE MODES ================= -->
+      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
+        <div class="max-w-5xl w-full mx-auto">
+          <!-- Section Header -->
+          <div class="text-center mb-3 sm:mb-5">
+            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
+              <span>03. Adaptive Engine</span>
+              <span aria-hidden="true">·</span>
+              <span>Interactive Simulator</span>
             </div>
-            <!-- Mode Selector buttons -->
-            <div class="flex flex-wrap gap-2 mt-4 md:mt-0 font-rajdhani text-xs tracking-wider">
-              <button onclick="selectMode(0)" id="modeTab0" class="px-4 py-2 rounded-lg bg-gold-500/20 border border-gold-400 text-gold-300 font-bold shadow-md">
-                1. TASK ANCHOR
-              </button>
-              <button onclick="selectMode(1)" id="modeTab1" class="px-4 py-2 rounded-lg bg-space-850 border border-slate-700 text-slate-400 hover:text-white">
-                2. KALEIDOSCOPE BRAIN
-              </button>
-              <button onclick="selectMode(2)" id="modeTab2" class="px-4 py-2 rounded-lg bg-space-850 border border-slate-700 text-slate-400 hover:text-white">
-                3. DOPAMINE PACER
-              </button>
-            </div>
+            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">CO-PILOT PROTOCOLS</h3>
+          </div>
+
+          <!-- Mode Selector Tabs (Ergonomic Touch Buttons) -->
+          <div class="flex items-center justify-center gap-2 mb-4 font-rajdhani text-xs tracking-wider">
+            <button onclick="selectMode(0)" id="modeTab0" class="touch-target px-3.5 py-2 rounded-xl bg-gold-500/20 border border-gold-400 text-gold-300 font-bold transition-all shadow-md">
+              1. TASK ANCHOR
+            </button>
+            <button onclick="selectMode(1)" id="modeTab1" class="touch-target px-3.5 py-2 rounded-xl bg-space-850 border border-slate-700 text-slate-400 hover:text-white transition-all">
+              2. KALEIDOSCOPE
+            </button>
+            <button onclick="selectMode(2)" id="modeTab2" class="touch-target px-3.5 py-2 rounded-xl bg-space-850 border border-slate-700 text-slate-400 hover:text-white transition-all">
+              3. DOPAMINE PACER
+            </button>
           </div>
 
           <!-- Mode Showcase Canvas -->
-          <div class="glass-hud rounded-2xl p-6 md:p-8 border border-gold-400/30 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="glass-hud rounded-2xl p-4 sm:p-6 md:p-8 border border-gold-400/30 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center">
             
-            <!-- Graphic: Split-Brain Hologram matching the Logo -->
-            <div class="lg:col-span-6 flex justify-center items-center relative py-6">
-              <div class="absolute inset-0 bg-gradient-to-r from-gold-500/10 via-purple-500/10 to-pink-500/10 filter blur-3xl rounded-full"></div>
-              
-              <div id="modeSvgContainer" class="relative z-10 w-full max-w-sm flex items-center justify-center transition-all duration-500">
-                <svg id="modeGraphic" class="w-full h-64 drop-shadow-[0_0_25px_rgba(245,184,46,0.6)]" viewBox="0 0 400 320" fill="none">
-                  <!-- Dynamic SVG content updated via JS -->
+            <!-- Graphic Container (Responsive SVG with proper mobile scaling) -->
+            <div class="lg:col-span-5 flex justify-center items-center relative py-2">
+              <div class="w-full max-w-[260px] sm:max-w-[320px] h-44 sm:h-56 flex items-center justify-center">
+                <svg id="modeGraphic" class="w-full h-full drop-shadow-[0_0_20px_rgba(245,184,46,0.4)]" viewBox="0 0 400 320" fill="none">
+                  <!-- Dynamic SVG updated via JS -->
                 </svg>
               </div>
             </div>
 
-            <!-- Dynamic Mode Specs & Telemetry -->
-            <div class="lg:col-span-6 flex flex-col justify-center space-y-4">
+            <!-- Dynamic Telemetry Specs -->
+            <div class="lg:col-span-7 flex flex-col justify-center space-y-3 sm:space-y-4">
               <div>
-                <span id="modeClass" class="text-xs font-rajdhani tracking-[0.25em] text-gold-400 font-semibold">COGNITIVE PROTOCOL // ALPHA</span>
-                <h4 id="modeName" class="font-orbitron font-bold text-2xl md:text-3xl text-white">THE TASK ANCHOR</h4>
-                <p id="modeDesc" class="font-sans text-xs md:text-sm text-slate-300 mt-2 leading-relaxed">
-                  Dissolves initiation friction. It automatically detects tab switching and drifting focus, gently whispering low-stress re-entry cues without shame or rigid alarms.
+                <span id="modeClass" class="text-[11px] font-rajdhani tracking-widest text-gold-400 font-semibold">COGNITIVE PROTOCOL // ALPHA</span>
+                <h4 id="modeName" class="font-orbitron font-bold text-xl sm:text-2xl text-white">THE TASK ANCHOR</h4>
+                <p id="modeDesc" class="font-sans text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
+                  Dissolves initiation friction. It automatically detects tab hopping and drifting focus, gently whispering low-stress re-entry cues without shame or rigid alarms.
                 </p>
               </div>
 
-              <!-- Real-time sliders / metrics -->
-              <div class="space-y-3 font-rajdhani pt-2">
+              <!-- Real-time Progress Sliders -->
+              <div class="space-y-2.5 font-rajdhani pt-1">
                 <div>
                   <div class="flex justify-between text-xs tracking-wider mb-1">
-                    <span class="text-slate-300">FRICTION DISSOLUTION</span>
-                    <span id="statMetric1" class="text-gold-400 font-semibold">96%</span>
+                    <span class="text-slate-300" id="labelMetric1">FRICTION DISSOLUTION</span>
+                    <span id="statMetric1" class="text-gold-400 font-semibold font-mono tabular-nums">96%</span>
                   </div>
                   <div class="w-full bg-space-950 rounded-full h-2 overflow-hidden border border-slate-700">
                     <div id="barMetric1" class="bg-gradient-to-r from-gold-500 to-amber-400 h-full rounded-full transition-all duration-700" style="width: 96%;"></div>
@@ -570,8 +531,8 @@
 
                 <div>
                   <div class="flex justify-between text-xs tracking-wider mb-1">
-                    <span class="text-slate-300">DOPAMINE FEEDBACK SENSITIVITY</span>
-                    <span id="statMetric2" class="text-chroma-magenta font-semibold">OPTIMAL (1.8x)</span>
+                    <span class="text-slate-300" id="labelMetric2">DOPAMINE SENSITIVITY</span>
+                    <span id="statMetric2" class="text-chroma-magenta font-semibold font-mono tabular-nums">OPTIMAL (1.8x)</span>
                   </div>
                   <div class="w-full bg-space-950 rounded-full h-2 overflow-hidden border border-slate-700">
                     <div id="barMetric2" class="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 h-full rounded-full transition-all duration-700" style="width: 82%;"></div>
@@ -580,8 +541,8 @@
 
                 <div>
                   <div class="flex justify-between text-xs tracking-wider mb-1">
-                    <span class="text-slate-300">COGNITIVE BANDWIDTH SAVINGS</span>
-                    <span id="statMetric3" class="text-chroma-lime font-semibold">74% PRESERVED</span>
+                    <span class="text-slate-300" id="labelMetric3">BANDWIDTH SAVINGS</span>
+                    <span id="statMetric3" class="text-chroma-lime font-semibold font-mono tabular-nums">74% PRESERVED</span>
                   </div>
                   <div class="w-full bg-space-950 rounded-full h-2 overflow-hidden border border-slate-700">
                     <div id="barMetric3" class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-700" style="width: 74%;"></div>
@@ -589,8 +550,9 @@
                 </div>
               </div>
 
+              <!-- Interactive Simulator Button -->
               <div class="pt-2">
-                <button onclick="simulateProtocol()" id="protocolBtn" class="px-6 py-2.5 rounded-lg bg-gold-500/20 border border-gold-400 text-gold-300 hover:bg-gold-400 hover:text-space-950 transition-all text-xs font-orbitron font-bold tracking-widest uppercase">
+                <button onclick="simulateProtocol()" id="protocolBtn" class="touch-target w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gold-500/20 border border-gold-400 text-gold-300 hover:bg-gold-400 hover:text-space-950 transition-all text-xs font-orbitron font-bold tracking-widest uppercase active:scale-95">
                   SIMULATE PROTOCOL EXECUTION
                 </button>
               </div>
@@ -600,106 +562,112 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 4: NETWORK & PROTOCOL ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-center items-center px-6 md:px-16 relative py-8 overflow-y-auto no-scrollbar">
-        <div class="max-w-6xl w-full mx-auto">
-          <div class="text-center md:text-left mb-6">
-            <span class="text-xs font-rajdhani tracking-[0.3em] uppercase text-chroma-magenta">Section 04 // Synaptic Telemetry</span>
-            <h3 class="font-orbitron text-2xl md:text-4xl font-extrabold text-white mt-1">NEURAL BIO-METRIC MATRIX</h3>
+      <!-- ================= SLIDE 4: NEURO-METRICS ================= -->
+      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
+        <div class="max-w-5xl w-full mx-auto">
+          <!-- Section Header -->
+          <div class="text-center mb-3 sm:mb-5">
+            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-chroma-magenta uppercase">
+              <span>04. Synaptic Telemetry</span>
+              <span aria-hidden="true">·</span>
+              <span>Neuro-Biometrics</span>
+            </div>
+            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">NEURAL BIO-METRIC MATRIX</h3>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Simulated Radar / Matrix -->
-            <div class="lg:col-span-7 glass-hud p-6 rounded-2xl border border-gold-400/20 flex flex-col justify-between">
-              <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+            
+            <!-- Nodes Matrix Card -->
+            <div class="lg:col-span-7 glass-hud p-4 sm:p-6 rounded-2xl border border-gold-400/20 flex flex-col justify-between">
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 mb-3">
                 <span class="font-orbitron text-xs text-gold-400 tracking-wider">LIVE SYNAPSE NODES</span>
                 <span class="text-[11px] font-rajdhani tracking-widest text-chroma-lime flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-chroma-lime animate-pulse"></span> 8 NEURO-PATHWAYS MAPPED
+                  <span class="w-2 h-2 rounded-full bg-chroma-lime animate-pulse"></span> 8 PATHWAYS MAPPED
                 </span>
               </div>
 
-              <!-- Interactive Node Grid Display -->
-              <div class="grid grid-cols-4 gap-3 py-6 font-rajdhani">
-                <div class="p-3 rounded-lg bg-space-950/70 border border-gold-500/30 hover:border-gold-400 transition-all text-center">
+              <!-- Interactive Node Grid (2x4 on mobile, 4x2 on tablet/desktop) -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 py-2 font-rajdhani">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-gold-500/30 text-center">
                   <div class="text-[10px] text-slate-400">FOCUS-01</div>
-                  <div class="text-gold-400 font-bold text-sm">LOCKED</div>
-                  <div class="text-[9px] text-slate-400">STABILITY 99%</div>
+                  <div class="text-gold-400 font-bold text-xs sm:text-sm">LOCKED</div>
+                  <div class="text-[9px] text-slate-400 font-mono tabular-nums">STABILITY 99%</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-chroma-cyan/30 hover:border-chroma-cyan transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-chroma-cyan/30 text-center">
                   <div class="text-[10px] text-slate-400">SYNAPSE-B</div>
-                  <div class="text-chroma-cyan font-bold text-sm">PULSING</div>
-                  <div class="text-[9px] text-slate-400">LATENCY 0.1ms</div>
+                  <div class="text-chroma-cyan font-bold text-xs sm:text-sm">PULSING</div>
+                  <div class="text-[9px] text-slate-400 font-mono tabular-nums">LATENCY 0.1ms</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-purple-500/30 hover:border-purple-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-purple-500/30 text-center">
                   <div class="text-[10px] text-slate-400">IDEATION</div>
-                  <div class="text-chroma-purple font-bold text-sm">SWIRLING</div>
-                  <div class="text-[9px] text-slate-400">DIVERGENCE 10x</div>
+                  <div class="text-chroma-purple font-bold text-xs sm:text-sm">SWIRLING</div>
+                  <div class="text-[9px] text-slate-400 font-mono tabular-nums">DIVERGENCE 10x</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-pink-500/30 hover:border-pink-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-pink-500/30 text-center">
                   <div class="text-[10px] text-slate-400">DOPAMINE</div>
-                  <div class="text-chroma-magenta font-bold text-sm">OPTIMAL</div>
-                  <div class="text-[9px] text-slate-400">REWARD CURVE</div>
+                  <div class="text-chroma-magenta font-bold text-xs sm:text-sm">OPTIMAL</div>
+                  <div class="text-[9px] text-slate-400 font-mono tabular-nums">REWARD CURVE</div>
                 </div>
 
-                <div class="p-3 rounded-lg bg-space-950/70 border border-gold-500/30 hover:border-gold-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-gold-500/30 text-center">
                   <div class="text-[10px] text-slate-400">EXEC-UNIT</div>
-                  <div class="text-gold-400 font-bold text-sm">ACTIVE</div>
+                  <div class="text-gold-400 font-bold text-xs sm:text-sm">ACTIVE</div>
                   <div class="text-[9px] text-slate-400">CHUNKING: ON</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-orange-500/30 hover:border-orange-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-orange-500/30 text-center">
                   <div class="text-[10px] text-slate-400">FLOW-GATE</div>
-                  <div class="text-chroma-orange font-bold text-sm">DEEP</div>
-                  <div class="text-[9px] text-slate-400">ZONE: 48 MIN</div>
+                  <div class="text-chroma-orange font-bold text-xs sm:text-sm">DEEP</div>
+                  <div class="text-[9px] text-slate-400 font-mono tabular-nums">ZONE: 48 MIN</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-emerald-500/30 hover:border-emerald-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-emerald-500/30 text-center">
                   <div class="text-[10px] text-slate-400">RECHARGER</div>
-                  <div class="text-chroma-lime font-bold text-sm">READY</div>
+                  <div class="text-chroma-lime font-bold text-xs sm:text-sm">READY</div>
                   <div class="text-[9px] text-slate-400">NO BURNOUT</div>
                 </div>
-                <div class="p-3 rounded-lg bg-space-950/70 border border-gold-500/30 hover:border-gold-400 transition-all text-center">
+                <div class="p-2.5 rounded-lg bg-space-950/80 border border-gold-500/30 text-center">
                   <div class="text-[10px] text-slate-400">SYNCHRONY</div>
-                  <div class="text-gold-400 font-bold text-sm">100%</div>
+                  <div class="text-gold-400 font-bold text-xs sm:text-sm">100%</div>
                   <div class="text-[9px] text-slate-400">COGNITIVE SYNC</div>
                 </div>
               </div>
 
               <!-- Terminal Stream Simulation -->
-              <div class="bg-space-950 p-3 rounded-lg font-mono text-[11px] text-slate-400 border border-slate-800 space-y-1">
-                <div class="text-gold-400">> [NEURAL-ENGINE] Left hemisphere scaffold verified. Zero task-paralysis detected.</div>
-                <div class="text-chroma-magenta">> [HYPERFOCUS] Right hemisphere flow state sustained across 4 creative vectors.</div>
-                <div class="text-chroma-lime">> [BALANCE] Dopamine depletion neutralized. Cognitive energy remaining: 92%.</div>
+              <div class="bg-space-950 p-2.5 rounded-lg font-mono text-[10px] sm:text-[11px] text-slate-400 border border-slate-800 space-y-1 mt-3">
+                <div class="text-gold-400 truncate">&gt; [NEURAL-ENGINE] Left hemisphere scaffold verified. Zero task-paralysis.</div>
+                <div class="text-chroma-magenta truncate">&gt; [HYPERFOCUS] Right hemisphere flow sustained across 4 creative tracks.</div>
+                <div class="text-chroma-lime truncate">&gt; [BALANCE] Dopamine depletion neutralized. Battery remaining: 92%.</div>
               </div>
             </div>
 
-            <!-- Features & Guarantees -->
-            <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
-              <div class="glass-hud p-6 rounded-2xl border border-gold-400/20">
-                <h4 class="font-orbitron text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 bg-gold-400 rounded-full"></span>
+            <!-- Features Summary Cards -->
+            <div class="lg:col-span-5 flex flex-col justify-between space-y-3">
+              <div class="glass-hud p-4 rounded-xl border border-gold-400/20">
+                <h4 class="font-orbitron text-xs sm:text-sm font-bold text-white mb-1 flex items-center gap-2">
+                  <span class="w-2 h-2 bg-gold-400 rounded-full"></span>
                   Zero-Shame Prompting
                 </h4>
-                <p class="font-sans text-xs md:text-sm text-slate-300 leading-relaxed">
-                  Traditional productivity tools trigger guilt with red badges. Our AI uses positive neuro-dopaminergic reinforcement, turning restarts into effortless momentum.
+                <p class="font-sans text-xs text-slate-300 leading-relaxed">
+                  Traditional tools trigger guilt with red badges. Our AI uses positive neuro-dopaminergic reinforcement, turning restarts into effortless momentum.
                 </p>
               </div>
 
-              <div class="glass-hud-rainbow p-6 rounded-2xl border border-chroma-magenta/20">
-                <h4 class="font-orbitron text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 bg-chroma-magenta rounded-full"></span>
-                  Multi-Track Divergent Storage
+              <div class="glass-hud-rainbow p-4 rounded-xl border border-chroma-magenta/20">
+                <h4 class="font-orbitron text-xs sm:text-sm font-bold text-white mb-1 flex items-center gap-2">
+                  <span class="w-2 h-2 bg-chroma-magenta rounded-full"></span>
+                  Multi-Track Divergent Memory
                 </h4>
-                <p class="font-sans text-xs md:text-sm text-slate-300 leading-relaxed">
-                  Never lose a breakthrough thought while working on another task. Speak or dump thoughts raw—the AI catalogs, tags, and resurfaces them at the exact right moment.
+                <p class="font-sans text-xs text-slate-300 leading-relaxed">
+                  Never lose a breakthrough thought while mid-task. Dump thoughts raw—the AI catalogs, tags, and resurfaces them at the exact right moment.
                 </p>
               </div>
 
-              <div class="glass-hud p-6 rounded-2xl border border-chroma-cyan/20">
-                <h4 class="font-orbitron text-base font-bold text-white mb-2 flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 bg-chroma-cyan rounded-full"></span>
+              <div class="glass-hud p-4 rounded-xl border border-chroma-cyan/20">
+                <h4 class="font-orbitron text-xs sm:text-sm font-bold text-white mb-1 flex items-center gap-2">
+                  <span class="w-2 h-2 bg-chroma-cyan rounded-full"></span>
                   Circadian Rhythm Adaptation
                 </h4>
-                <p class="font-sans text-xs md:text-sm text-slate-300 leading-relaxed">
-                  Whether you peak at 2 AM or mid-afternoon, our models dynamically tune their output complexity to match your current brainwave and focus bandwidth.
+                <p class="font-sans text-xs text-slate-300 leading-relaxed">
+                  Whether you peak at 2 AM or mid-afternoon, our models dynamically tune their output complexity to match your current brainwave bandwidth.
                 </p>
               </div>
             </div>
@@ -708,57 +676,63 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 5: UPLINK / WAITLIST TERMINAL ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-center items-center px-6 md:px-16 relative py-8 overflow-y-auto no-scrollbar">
-        <div class="max-w-3xl w-full mx-auto">
-          <div class="text-center mb-6">
-            <span class="text-xs font-rajdhani tracking-[0.3em] uppercase text-gold-400">Section 05 // Cognitive Frontier</span>
-            <h3 class="font-orbitron text-2xl md:text-4xl font-extrabold text-white mt-1">REQUEST EARLY ACCESS</h3>
-            <p class="font-sans text-xs md:text-sm text-slate-300 mt-2">Join thousands of neurodivergent creators, engineers, and founders unlocking their full cognitive potential.</p>
+      <!-- ================= SLIDE 5: EARLY ACCESS WAITLIST ================= -->
+      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
+        <div class="max-w-2xl w-full mx-auto">
+          <!-- Section Header -->
+          <div class="text-center mb-3 sm:mb-5">
+            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
+              <span>05. Early Access</span>
+              <span aria-hidden="true">·</span>
+              <span>Alpha Cohort</span>
+            </div>
+            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">REQUEST EARLY ACCESS</h3>
+            <p class="font-sans text-xs sm:text-sm text-slate-300 mt-1">Join neurodivergent creators, engineers, and founders unlocking effortless cognitive flow.</p>
           </div>
 
-          <!-- Transmission Form with Rainbow Glow Border -->
-          <div class="glass-hud p-6 md:p-8 rounded-2xl border border-gold-400/30 rainbow-border-pulse">
-            <form id="waitlistForm" onsubmit="handleWaitlist(event)" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Form Card -->
+          <div class="glass-hud p-5 sm:p-7 rounded-2xl border border-gold-400/30 rainbow-border-pulse">
+            <form id="waitlistForm" onsubmit="handleWaitlist(event)" class="space-y-3.5">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-widest uppercase text-gold-300 mb-1">Your Name / Alias</label>
-                  <input type="text" required placeholder="e.g. Alex Hunter" class="w-full bg-space-950/80 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
+                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Your Name</label>
+                  <input type="text" name="name" required placeholder="Alex Hunter" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
                 </div>
                 <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-widest uppercase text-gold-300 mb-1">Email Address</label>
-                  <input type="email" required placeholder="alex@neuroflow.io" class="w-full bg-space-950/80 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
+                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Email Address</label>
+                  <input type="email" name="email" required placeholder="alex@neuroflow.io" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
                 </div>
               </div>
 
               <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-widest uppercase text-gold-300 mb-1">Your Primary Cognitive Style & Goal</label>
-                <select class="w-full bg-space-950/80 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-lg px-3.5 py-2.5 text-sm text-slate-200 font-sans outline-none transition-all">
-                  <option>Divergent Creative (High ideas, need task execution & scaffolding)</option>
-                  <option>Hyperfocus Specialist (Intense sprints, need graceful transitions & pacing)</option>
-                  <option>Executive Function Boost (Need decluttering, micro-steps & zero context loss)</option>
-                  <option>All-in-One Dual Hemisphere Synergy</option>
+                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Primary Cognitive Challenge</label>
+                <select name="primaryChallenge" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-slate-200 font-sans outline-none transition-all">
+                  <option value="Task Initiation">Task Initiation & Dissolving Freeze</option>
+                  <option value="Divergent Brainstorms">Capturing Divergent Brainstorms</option>
+                  <option value="Hyperfocus Burnout">Pacing Hyperfocus & Preventing Burnout</option>
+                  <option value="Working Memory Loss">Working Memory & Tab Hopping</option>
+                  <option value="All Synergy">Full Bilateral Synergy</option>
                 </select>
               </div>
 
               <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-widest uppercase text-gold-300 mb-1">What's your biggest daily focus friction?</label>
-                <textarea rows="3" required placeholder="Starting tasks, staying on one tab, overwhelm when opening big projects..." class="w-full bg-space-950/80 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all"></textarea>
+                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Role / Passion</label>
+                <input type="text" name="role" placeholder="e.g. Software Engineer, Designer, Founder" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
               </div>
 
-              <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="text-[11px] font-rajdhani text-slate-400 flex items-center gap-2">
-                  <svg class="w-4 h-4 text-chroma-lime" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-[11px] font-rajdhani text-slate-400 flex items-center gap-1.5 self-start sm:self-auto">
+                  <svg class="w-4 h-4 text-chroma-lime shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                   <span>ZERO-SPAM NEURO-ETHICAL PRIVACY GUARANTEE</span>
                 </div>
-                <button type="submit" class="w-full sm:w-auto px-8 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-magenta hover:opacity-95 text-space-950 shadow-lg shadow-gold-500/30 transition-all transform active:scale-95">
-                  SECURE MY VIP ACCESS
+                <button type="submit" class="touch-target w-full sm:w-auto px-8 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-magenta hover:opacity-95 text-space-950 shadow-lg shadow-gold-500/30 transition-all active:scale-95">
+                  SECURE MY ALPHA SPOT
                 </button>
               </div>
             </form>
 
-            <!-- Success notification box -->
-            <div id="waitlistSuccess" class="hidden mt-4 p-4 rounded-xl bg-space-900 border border-gold-400 text-gold-300 text-sm font-sans flex items-center space-x-3">
+            <!-- Success Box -->
+            <div id="waitlistSuccess" class="hidden mt-4 p-4 rounded-xl bg-space-900 border border-gold-400 text-gold-300 text-xs sm:text-sm font-sans flex items-center space-x-3">
               <svg class="w-6 h-6 text-chroma-lime shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <div>
                 <div class="font-orbitron font-bold text-xs uppercase text-white">VIP Invitation Confirmed!</div>
@@ -773,25 +747,22 @@
     </div>
   </main>
 
-  <!-- Footer Carousel Controls & Progress Indicator -->
-  <footer class="relative z-30 px-6 py-4 border-t border-gold-400/20 glass-hud backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3">
-    
-    <!-- Sector Coordinates and Status -->
+  <!-- ================= DESKTOP FOOTER (Visible on md+) ================= -->
+  <footer class="hidden md:flex relative z-30 px-6 py-3.5 border-t border-gold-400/20 glass-hud backdrop-blur-md items-center justify-between gap-3 shrink-0">
+    <!-- Sector Coordinates -->
     <div class="flex items-center space-x-3 font-rajdhani text-xs tracking-widest text-slate-400">
-      <span class="gold-gradient-text font-bold font-orbitron" id="sectorDisplay">SECTOR 01 / 05</span>
-      <span class="hidden md:inline text-slate-700">|</span>
-      <span class="hidden md:inline text-slate-300">DUAL-SYNAPSE OS v2.4</span>
+      <span class="gold-gradient-text font-bold font-orbitron tabular-nums" id="sectorDisplay">SECTOR 01 / 05</span>
+      <span class="text-slate-700">|</span>
+      <span class="text-slate-300">DUAL-SYNAPSE CO-PILOT OS</span>
     </div>
 
-    <!-- Carousel Progress Indicator Dots & Line -->
-    <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-2" id="carouselDots">
-        <button onclick="jumpToSlide(0)" class="carousel-dot w-8 h-2 rounded-full bg-gold-400 transition-all" aria-label="Go to slide 1"></button>
-        <button onclick="jumpToSlide(1)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 2"></button>
-        <button onclick="jumpToSlide(2)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 3"></button>
-        <button onclick="jumpToSlide(3)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 4"></button>
-        <button onclick="jumpToSlide(4)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 5"></button>
-      </div>
+    <!-- Carousel Progress Indicator Dots -->
+    <div class="flex items-center space-x-2" id="carouselDots">
+      <button onclick="jumpToSlide(0)" class="carousel-dot w-8 h-2 rounded-full bg-gold-400 transition-all" aria-label="Go to slide 1"></button>
+      <button onclick="jumpToSlide(1)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 2"></button>
+      <button onclick="jumpToSlide(2)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 3"></button>
+      <button onclick="jumpToSlide(3)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 4"></button>
+      <button onclick="jumpToSlide(4)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 5"></button>
     </div>
 
     <!-- Quick Shortcuts Instructions -->
@@ -802,10 +773,34 @@
     </div>
   </footer>
 
+  <!-- ================= MOBILE FIXED BOTTOM TAB BAR (Thumb Zone Pattern, Height <= 56px) ================= -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-space-950/95 backdrop-blur-xl border-t border-gold-400/20 grid grid-cols-5 items-center h-14 pb-safe shrink-0 shadow-2xl">
+    <button onclick="jumpToSlide(0)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-gold-400 font-bold transition-all touch-target" data-index="0">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Vision</span>
+    </button>
+    <button onclick="jumpToSlide(1)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="1">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Brain</span>
+    </button>
+    <button onclick="jumpToSlide(2)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="2">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Modes</span>
+    </button>
+    <button onclick="jumpToSlide(3)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="3">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Metrics</span>
+    </button>
+    <button onclick="jumpToSlide(4)" class="mobile-tab-btn flex flex-col items-center justify-center h-full text-slate-400 hover:text-slate-200 transition-all touch-target" data-index="4">
+      <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+      <span class="text-[9px] font-rajdhani tracking-wider uppercase">Access</span>
+    </button>
+  </nav>
+
+  <!-- ================= SCRIPTS & INTERACTION ENGINE ================= -->
   <script>
     /* ============================================================
-     * 1. MULTI-BOX-SHADOW STAR GENERATOR (Dynamic Sass Recreation
-     *    with warm golden & chromatic particle stars)
+     * 1. STARFIELD PARTICLES GENERATOR
      * ============================================================ */
     function generateBoxShadowStars(n, maxCoord = 2000, colorPalette = ['#FFFFFF']) {
       let shadows = [];
@@ -821,31 +816,24 @@
     function initDynamicStarfields() {
       const s1 = document.getElementById('stars');
       const s2 = document.getElementById('stars2');
-      const s3 = document.getElementById('stars3');
+      if (!s1 || !s2) return;
 
-      // Small stars: mostly white and warm gold
-      const smallStars = generateBoxShadowStars(600, 2000, ['#ffffff', '#fff9c4', '#ffd54f']);
-      // Medium stars: white, gold, cyan, magenta
-      const mediumStars = generateBoxShadowStars(180, 2000, ['#ffffff', '#ffd159', '#00e5ff', '#ec4899']);
-      // Big stars: radiant chromatic sparks
-      const bigStars = generateBoxShadowStars(80, 2000, ['#ffd159', '#f5b82e', '#9333ea', '#ec4899', '#00e5ff', '#10b981']);
+      const smallStars = generateBoxShadowStars(350, 2000, ['#ffffff', '#fff9c4', '#ffd54f']);
+      const mediumStars = generateBoxShadowStars(100, 2000, ['#ffffff', '#ffd159', '#00e5ff', '#ec4899']);
 
       s1.style.boxShadow = smallStars;
       s2.style.boxShadow = mediumStars;
-      s3.style.boxShadow = bigStars;
 
-      // Inject pseudo-element duplicate shadows for seamless vertical looping
       const styleSheet = document.createElement("style");
       styleSheet.innerText = `
         #stars:after { box-shadow: ${smallStars}; }
         #stars2:after { box-shadow: ${mediumStars}; }
-        #stars3:after { box-shadow: ${bigStars}; }
       `;
       document.head.appendChild(styleSheet);
     }
 
     /* ============================================================
-     * 2. BROWSER SYNTHESIS AUDIO ENGINE (Harmonic Warm Frequencies)
+     * 2. SYNTH AUDIO FEEDBACK
      * ============================================================ */
     let audioEnabled = true;
     let audioCtx = null;
@@ -863,7 +851,7 @@
       return audioCtx;
     }
 
-    function playSynthBeep(freq = 520, type = 'sine', duration = 0.15, vol = 0.05) {
+    function playSynthBeep(freq = 520, type = 'sine', duration = 0.12, vol = 0.04) {
       if (!audioEnabled) return;
       try {
         const ctx = getAudioContext();
@@ -872,7 +860,7 @@
         const gain = ctx.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(freq * 1.35, ctx.currentTime + duration);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.3, ctx.currentTime + duration);
 
         gain.gain.setValueAtTime(vol, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
@@ -884,56 +872,48 @@
       } catch (e) {}
     }
 
-    function playWarpWhoosh() {
-      if (!audioEnabled) return;
-      try {
-        const ctx = getAudioContext();
-        if (!ctx) return;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(180, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.28);
-
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      } catch(e) {}
-    }
-
     function toggleAudio() {
       audioEnabled = !audioEnabled;
       const label = document.getElementById('audioLabel');
       const icon = document.getElementById('audioIcon');
       if (audioEnabled) {
-        label.innerText = 'SFX: ON';
-        icon.classList.remove('text-slate-600');
-        icon.classList.add('text-gold-400');
-        playSynthBeep(620, 'sine', 0.1, 0.05);
+        if (label) label.innerText = 'SFX';
+        if (icon) {
+          icon.classList.remove('text-slate-600');
+          icon.classList.add('text-gold-400');
+        }
+        playSynthBeep(640, 'sine', 0.1, 0.04);
       } else {
-        label.innerText = 'SFX: OFF';
-        icon.classList.remove('text-gold-400');
-        icon.classList.add('text-slate-600');
+        if (label) label.innerText = 'OFF';
+        if (icon) {
+          icon.classList.remove('text-gold-400');
+          icon.classList.add('text-slate-600');
+        }
       }
     }
 
     /* ============================================================
-     * 3. HORIZONTAL CAROUSEL ENGINE & INTERACTION
+     * 3. CAROUSEL & NAVIGATION
      * ============================================================ */
     let currentSlide = 0;
     const totalSlides = 5;
     const track = document.getElementById('carouselTrack');
     const sectorDisplay = document.getElementById('sectorDisplay');
+    const mobileSlideNum = document.getElementById('mobileSlideNum');
     const navButtons = document.querySelectorAll('.nav-btn');
+    const mobileTabButtons = document.querySelectorAll('.mobile-tab-btn');
     const carouselDots = document.querySelectorAll('.carousel-dot');
 
     function updateCarousel() {
-      track.style.transform = `translateX(-${currentSlide * 100}%)`;
-      sectorDisplay.innerText = `SECTOR 0${currentSlide + 1} / 0${totalSlides}`;
+      if (track) {
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      }
+      if (sectorDisplay) {
+        sectorDisplay.innerText = `SECTOR 0${currentSlide + 1} / 0${totalSlides}`;
+      }
+      if (mobileSlideNum) {
+        mobileSlideNum.innerText = `0${currentSlide + 1}`;
+      }
 
       navButtons.forEach((btn, idx) => {
         if (idx === currentSlide) {
@@ -945,6 +925,16 @@
         }
       });
 
+      mobileTabButtons.forEach((btn, idx) => {
+        if (idx === currentSlide) {
+          btn.classList.add('text-gold-400', 'font-bold');
+          btn.classList.remove('text-slate-400');
+        } else {
+          btn.classList.remove('text-gold-400', 'font-bold');
+          btn.classList.add('text-slate-400');
+        }
+      });
+
       carouselDots.forEach((dot, idx) => {
         if (idx === currentSlide) {
           dot.className = "carousel-dot w-8 h-2 rounded-full bg-gold-400 transition-all";
@@ -953,7 +943,7 @@
         }
       });
 
-      playWarpWhoosh();
+      playSynthBeep(440 + currentSlide * 60, 'sine', 0.1, 0.03);
     }
 
     function nextSlide() {
@@ -975,83 +965,90 @@
 
     // Keyboard navigation
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        nextSlide();
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        prevSlide();
-      }
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
     });
 
-    // Touch Swipe navigation
+    // Touch Swipe with threshold
     let touchStartX = 0;
+    let touchStartY = 0;
     let touchEndX = 0;
+    let touchEndY = 0;
 
     window.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
     window.addEventListener('touchend', (e) => {
       touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, { passive: true });
-
-    function handleSwipe() {
-      const threshold = 45;
-      if (touchEndX < touchStartX - threshold) {
-        nextSlide();
-      }
-      if (touchEndX > touchStartX + threshold) {
-        prevSlide();
-      }
-    }
-
-    // Mouse wheel / trackpad debounce
-    let wheelCooldown = false;
-    window.addEventListener('wheel', (e) => {
-      if (wheelCooldown) return;
-      if (Math.abs(e.deltaX) > 30 || Math.abs(e.deltaY) > 60) {
-        if (e.deltaX > 30 || e.deltaY > 60) {
-          nextSlide();
-        } else if (e.deltaX < -30 || e.deltaY < -60) {
-          prevSlide();
-        }
-        wheelCooldown = true;
-        setTimeout(() => { wheelCooldown = false; }, 650);
+      touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+      
+      // Horizontal swipe intent check
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+        if (diffX < 0) nextSlide();
+        else prevSlide();
       }
     }, { passive: true });
 
     /* ============================================================
-     * 4. INTERACTIVE SPLIT-BRAIN MODE DEMONSTRATOR
+     * 4. MOBILE HEMISPHERE TOGGLER (Slide 2)
+     * ============================================================ */
+    function toggleMobileHemi(side) {
+      const cardLeft = document.getElementById('hemiCardLeft');
+      const cardRight = document.getElementById('hemiCardRight');
+      const tabLeft = document.getElementById('mobileHemiTabLeft');
+      const tabRight = document.getElementById('mobileHemiTabRight');
+
+      if (!cardLeft || !cardRight) return;
+
+      if (side === 'left') {
+        cardLeft.classList.remove('hidden');
+        cardRight.classList.add('hidden');
+        tabLeft.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-gold-500/20 text-gold-300 border border-gold-400/40";
+        tabRight.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white";
+        playSynthBeep(520, 'triangle', 0.1, 0.03);
+      } else {
+        cardLeft.classList.add('hidden');
+        cardRight.classList.remove('hidden');
+        tabRight.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-pink-500/20 text-chroma-magenta border border-chroma-magenta/40";
+        tabLeft.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white";
+        playSynthBeep(680, 'triangle', 0.1, 0.03);
+      }
+    }
+
+    /* ============================================================
+     * 5. INTERACTIVE PROTOCOL DEMONSTRATOR (Slide 3)
      * ============================================================ */
     const modeData = [
       {
         class: "COGNITIVE PROTOCOL // ALPHA",
         name: "THE TASK ANCHOR",
         desc: "Dissolves initiation friction. It automatically detects tab switching and drifting focus, gently whispering low-stress re-entry cues without shame or rigid alarms.",
+        label1: "FRICTION DISSOLUTION",
         metric1: "96%",
-        metric1Label: "FRICTION DISSOLUTION",
         bar1: "96%",
+        label2: "DOPAMINE SENSITIVITY",
         metric2: "OPTIMAL (1.8x)",
-        metric2Label: "DOPAMINE FEEDBACK SENSITIVITY",
         bar2: "82%",
+        label3: "BANDWIDTH SAVINGS",
         metric3: "74% PRESERVED",
-        metric3Label: "COGNITIVE BANDWIDTH SAVINGS",
         bar3: "74%",
         svg: `
-          <!-- Left Gold Circuit Hemisphere -->
-          <g filter="drop-shadow(0 0 8px rgba(255, 209, 89, 0.8))">
+          <g filter="drop-shadow(0 0 8px rgba(255, 209, 89, 0.7))">
             <path d="M190 40 C120 40 70 90 70 160 C70 210 95 240 120 270 C140 295 160 300 190 305" stroke="#f5b82e" stroke-width="4" stroke-linecap="round"/>
             <path d="M140 100 L170 100 L170 150 L190 150" stroke="#ffd159" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <circle cx="140" cy="100" r="5" fill="#00e5ff" stroke="#fff" stroke-width="1"/>
+            <circle cx="140" cy="100" r="5" fill="#00e5ff"/>
             <path d="M110 160 L140 160 L140 210 L190 210" stroke="#ffd159" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-            <circle cx="110" cy="160" r="5" fill="#f5b82e" stroke="#fff" stroke-width="1"/>
+            <circle cx="110" cy="160" r="5" fill="#f5b82e"/>
             <circle cx="150" cy="250" r="4.5" fill="#00e5ff"/>
             <path d="M150 250 L170 250 L190 270" stroke="#ffd159" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="190" cy="150" r="4" fill="#ffd159" class="animate-ping"/>
+            <circle cx="190" cy="150" r="4" fill="#ffd159"/>
           </g>
-          <!-- Center dividing energy beam -->
-          <line x1="200" y1="30" x2="200" y2="310" stroke="#ffe082" stroke-width="3" stroke-dasharray="6 4" opacity="0.6"/>
-          <!-- Right Rainbow Swirl Hemisphere -->
+          <line x1="200" y1="30" x2="200" y2="310" stroke="#ffe082" stroke-width="2" stroke-dasharray="6 4" opacity="0.6"/>
           <g filter="drop-shadow(0 0 10px rgba(236, 72, 153, 0.7))">
             <path d="M210 40 C280 40 330 90 330 160 C330 210 305 240 280 270 C260 295 240 300 210 305" stroke="#ec4899" stroke-width="4" stroke-linecap="round"/>
             <path d="M220 90 C260 85 285 115 260 140 C235 165 240 200 280 205" stroke="#9333ea" stroke-width="3" stroke-linecap="round" fill="none"/>
@@ -1064,65 +1061,53 @@
       },
       {
         class: "COGNITIVE PROTOCOL // BETA",
-        name: "KALEIDOSCOPE DIVERGENT BRAIN",
+        name: "KALEIDOSCOPE BRAIN",
         desc: "Captures rapid non-linear thought bursts. Mind-maps chaotic ideas in real time, connecting disparate sparks into coherent structured creative projects.",
+        label1: "IDEA RETENTION RATE",
         metric1: "100%",
-        metric1Label: "IDEA RETENTION RATE",
         bar1: "100%",
+        label2: "MAPPING VELOCITY",
         metric2: "320 ms",
-        metric2Label: "SYNAPSE MAPPING VELOCITY",
         bar2: "94%",
+        label3: "CREATIVE LATITUDE",
         metric3: "UNBOUNDED",
-        metric3Label: "CREATIVE LATITUDE",
         bar3: "98%",
         svg: `
-          <!-- Radiant Swirling Mandala / Brain -->
-          <g filter="drop-shadow(0 0 14px rgba(147, 51, 234, 0.8))">
-            <circle cx="200" cy="170" r="80" stroke="url(#kaleidoGrad)" stroke-width="3.5" stroke-dasharray="10 6" fill="none"/>
-            <circle cx="200" cy="170" r="45" stroke="#ffd159" stroke-width="2.5" fill="none"/>
-            <circle cx="200" cy="170" r="18" fill="#ec4899" class="animate-pulse"/>
-            <!-- Radiating Synaptic Rays -->
-            <line x1="200" y1="50" x2="200" y2="90" stroke="#f5b82e" stroke-width="3" stroke-linecap="round"/>
-            <line x1="200" y1="250" x2="200" y2="290" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
-            <line x1="80" y1="170" x2="120" y2="170" stroke="#00e5ff" stroke-width="3" stroke-linecap="round"/>
-            <line x1="280" y1="170" x2="320" y2="170" stroke="#ec4899" stroke-width="3" stroke-linecap="round"/>
-            <!-- Floating Idea Spheres -->
-            <circle cx="110" cy="100" r="8" fill="#ffd159"/>
-            <circle cx="290" cy="100" r="9" fill="#00e5ff"/>
-            <circle cx="110" cy="240" r="7" fill="#f97316"/>
-            <circle cx="290" cy="240" r="8" fill="#10b981"/>
+          <g filter="drop-shadow(0 0 12px rgba(147, 51, 234, 0.7))">
+            <circle cx="200" cy="170" r="75" stroke="#ffd159" stroke-width="3" stroke-dasharray="10 6" fill="none"/>
+            <circle cx="200" cy="170" r="42" stroke="#ec4899" stroke-width="2.5" fill="none"/>
+            <circle cx="200" cy="170" r="16" fill="#00e5ff"/>
+            <line x1="200" y1="55" x2="200" y2="95" stroke="#f5b82e" stroke-width="3" stroke-linecap="round"/>
+            <line x1="200" y1="245" x2="200" y2="285" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+            <line x1="85" y1="170" x2="125" y2="170" stroke="#00e5ff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="275" y1="170" x2="315" y2="170" stroke="#ec4899" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="115" cy="105" r="7" fill="#ffd159"/>
+            <circle cx="285" cy="105" r="8" fill="#00e5ff"/>
+            <circle cx="115" cy="235" r="7" fill="#f97316"/>
+            <circle cx="285" cy="235" r="7" fill="#10b981"/>
           </g>
-          <defs>
-            <linearGradient id="kaleidoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ffd159"/>
-              <stop offset="30%" stop-color="#00e5ff"/>
-              <stop offset="60%" stop-color="#9333ea"/>
-              <stop offset="100%" stop-color="#ec4899"/>
-            </linearGradient>
-          </defs>
         `
       },
       {
         class: "COGNITIVE PROTOCOL // GAMMA",
-        name: "DOPAMINE PACER & BURNOUT SHIELD",
-        desc: "Harmonizes hyperfocus cycles with biological recovery. Automatically spaces rewarding micro-intervals to prevent crash-and-burn cycles after intense creative sessions.",
+        name: "DOPAMINE PACER",
+        desc: "Harmonizes hyperfocus cycles with biological recovery. Automatically spaces rewarding micro-intervals to prevent crash-and-burn cycles after intense sprints.",
+        label1: "ENERGY EQUILIBRIUM",
         metric1: "ZERO CRASH",
-        metric1Label: "ENERGY EQUILIBRIUM",
         bar1: "92%",
+        label2: "HYPERFOCUS INTERVAL",
         metric2: "45 MIN",
-        metric2Label: "IDEAL HYPERFOCUS CYCLE",
         bar2: "75%",
+        label3: "RESTORATION PACING",
         metric3: "100%",
-        metric3Label: "RESTORATION PACING",
         bar3: "100%",
         svg: `
-          <!-- Golden Pacing Sine Wave & Harmonic Crests -->
-          <g filter="drop-shadow(0 0 12px rgba(16, 185, 129, 0.7))">
-            <path d="M60 170 Q 130 60, 200 170 T 340 170" stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <path d="M60 170 Q 130 280, 200 170 T 340 170" stroke="#ffd159" stroke-width="3" stroke-dasharray="5 5" fill="none"/>
-            <circle cx="130" cy="115" r="9" fill="#00e5ff" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="200" cy="170" r="10" fill="#ffd159" stroke="#fff" stroke-width="2" class="animate-ping"/>
-            <circle cx="270" cy="225" r="9" fill="#ec4899" stroke="#fff" stroke-width="1.5"/>
+          <g filter="drop-shadow(0 0 10px rgba(16, 185, 129, 0.7))">
+            <path d="M60 170 Q 130 65, 200 170 T 340 170" stroke="#10b981" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M60 170 Q 130 275, 200 170 T 340 170" stroke="#ffd159" stroke-width="3" stroke-dasharray="5 5" fill="none"/>
+            <circle cx="130" cy="118" r="8" fill="#00e5ff"/>
+            <circle cx="200" cy="170" r="9" fill="#ffd159"/>
+            <circle cx="270" cy="222" r="8" fill="#ec4899"/>
             <line x1="60" y1="170" x2="340" y2="170" stroke="#64748b" stroke-width="1.5" stroke-dasharray="2 4"/>
           </g>
         `
@@ -1131,71 +1116,104 @@
 
     function selectMode(idx) {
       const data = modeData[idx];
-      document.getElementById('modeClass').innerText = data.class;
-      document.getElementById('modeName').innerText = data.name;
-      document.getElementById('modeDesc').innerText = data.desc;
+      const modeClass = document.getElementById('modeClass');
+      const modeName = document.getElementById('modeName');
+      const modeDesc = document.getElementById('modeDesc');
 
-      document.getElementById('statMetric1').innerText = data.metric1;
-      document.getElementById('barMetric1').style.width = data.bar1;
+      if (modeClass) modeClass.innerText = data.class;
+      if (modeName) modeName.innerText = data.name;
+      if (modeDesc) modeDesc.innerText = data.desc;
 
-      document.getElementById('statMetric2').innerText = data.metric2;
-      document.getElementById('barMetric2').style.width = data.bar2;
+      const label1 = document.getElementById('labelMetric1');
+      const label2 = document.getElementById('labelMetric2');
+      const label3 = document.getElementById('labelMetric3');
+      if (label1) label1.innerText = data.label1;
+      if (label2) label2.innerText = data.label2;
+      if (label3) label3.innerText = data.label3;
 
-      document.getElementById('statMetric3').innerText = data.metric3;
-      document.getElementById('barMetric3').style.width = data.bar3;
+      const stat1 = document.getElementById('statMetric1');
+      const bar1 = document.getElementById('barMetric1');
+      if (stat1) stat1.innerText = data.metric1;
+      if (bar1) bar1.style.width = data.bar1;
+
+      const stat2 = document.getElementById('statMetric2');
+      const bar2 = document.getElementById('barMetric2');
+      if (stat2) stat2.innerText = data.metric2;
+      if (bar2) bar2.style.width = data.bar2;
+
+      const stat3 = document.getElementById('statMetric3');
+      const bar3 = document.getElementById('barMetric3');
+      if (stat3) stat3.innerText = data.metric3;
+      if (bar3) bar3.style.width = data.bar3;
 
       const svgGraphic = document.getElementById('modeGraphic');
-      svgGraphic.innerHTML = data.svg;
+      if (svgGraphic) svgGraphic.innerHTML = data.svg;
 
-      // Update button styling
       [0, 1, 2].forEach(i => {
         const tab = document.getElementById(`modeTab${i}`);
+        if (!tab) return;
         if (i === idx) {
-          tab.className = "px-4 py-2 rounded-lg bg-gold-500/20 border border-gold-400 text-gold-300 font-bold shadow-md";
+          tab.className = "touch-target px-3.5 py-2 rounded-xl bg-gold-500/20 border border-gold-400 text-gold-300 font-bold transition-all shadow-md";
         } else {
-          tab.className = "px-4 py-2 rounded-lg bg-space-850 border border-slate-700 text-slate-400 hover:text-white";
+          tab.className = "touch-target px-3.5 py-2 rounded-xl bg-space-850 border border-slate-700 text-slate-400 hover:text-white transition-all";
         }
       });
 
-      playSynthBeep(640, 'triangle', 0.12, 0.04);
+      playSynthBeep(560 + idx * 80, 'triangle', 0.1, 0.03);
     }
 
     function simulateProtocol() {
-      playSynthBeep(880, 'sine', 0.25, 0.08);
+      playSynthBeep(880, 'sine', 0.2, 0.05);
       const btn = document.getElementById('protocolBtn');
+      if (!btn) return;
       const originalText = btn.innerText;
-      btn.innerText = `SYNCHRONIZING PROTOCOL...`;
+      btn.innerText = `SYNCHRONIZING...`;
       btn.classList.add('bg-gold-400', 'text-space-950', 'border-gold-400');
       setTimeout(() => {
-        btn.innerText = `PROTOCOL RUNNING AT 100%`;
-      }, 700);
+        btn.innerText = `ACTIVE AT 100%`;
+      }, 600);
       setTimeout(() => {
         btn.innerText = originalText;
         btn.classList.remove('bg-gold-400', 'text-space-950', 'border-gold-400');
-      }, 2200);
+      }, 2000);
     }
 
     /* ============================================================
-     * 5. WAITLIST SUBMISSION HANDLER
+     * 6. WAITLIST FORM HANDLER
      * ============================================================ */
     function handleWaitlist(e) {
       e.preventDefault();
-      playSynthBeep(980, 'triangle', 0.35, 0.08);
+      playSynthBeep(980, 'triangle', 0.3, 0.06);
+
+      const form = e.target;
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.log('Waitlist saved'));
+
       const successBox = document.getElementById('waitlistSuccess');
-      successBox.classList.remove('hidden');
-      e.target.reset();
+      if (successBox) {
+        successBox.classList.remove('hidden');
+      }
+      form.reset();
 
       setTimeout(() => {
-        successBox.classList.add('hidden');
+        if (successBox) {
+          successBox.classList.add('hidden');
+        }
       }, 8000);
     }
 
     // Initialize all components on load
-    window.onload = function() {
+    window.addEventListener('DOMContentLoaded', () => {
       initDynamicStarfields();
       selectMode(0);
       updateCarousel();
-    };
+    });
   </script>
 </body>
 </html>
