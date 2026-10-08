@@ -368,6 +368,36 @@
         box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
       }
     }
+
+    /* Drag & Drop Task Indicators */
+    .task-card-item {
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .task-card-item.task-dragging {
+      opacity: 0.45 !important;
+      transform: scale(0.985);
+      border-color: #ffd159 !important;
+      border-style: dashed !important;
+    }
+    .task-card-item.task-drag-over-top {
+      border-top: 3px solid #ffd159 !important;
+      box-shadow: 0 -6px 16px rgba(255, 209, 89, 0.35) !important;
+    }
+    .task-card-item.task-drag-over-bottom {
+      border-bottom: 3px solid #ffd159 !important;
+      box-shadow: 0 6px 16px rgba(255, 209, 89, 0.35) !important;
+    }
+    @keyframes hyperfocusGlowPulse {
+      0%, 100% {
+        box-shadow: 0 0 18px rgba(245, 158, 11, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.05);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.45), inset 0 0 20px rgba(245, 158, 11, 0.12);
+      }
+    }
+    .hyperfocus-active-card {
+      animation: hyperfocusGlowPulse 3s ease-in-out infinite;
+    }
   </style>
 </head>
 
@@ -1896,6 +1926,33 @@
     let starredTaskIds = new Set();
     window.isTasksModalOpen = false;
 
+    // ============================================================
+    // POMODORO FOCUS TIMER ENGINE STATE (ADHD Hyperfocus Station)
+    // ============================================================
+    let selectedFocusTaskId = null;
+    let pomodoroMode = 'focus25'; // 'focus25' | 'hyperfocus50' | 'shortBreak' | 'longBreak'
+    const pomodoroDurations = {
+      focus25: 25 * 60,
+      hyperfocus50: 50 * 60,
+      shortBreak: 5 * 60,
+      longBreak: 15 * 60
+    };
+    let pomodoroRemainingSeconds = 25 * 60;
+    let pomodoroIsRunning = false;
+    let pomodoroEndTime = null;
+    let pomodoroIntervalId = null;
+    let pomodoroSoundEnabled = true;
+    let pomodoroAmbienceEnabled = false;
+    let pomodoroTaskStats = {}; // { [taskId]: { completedSprints: number, totalMinutes: number } }
+    let brownNoiseSource = null;
+    let brownNoiseGain = null;
+
+    // Drag-and-drop state
+    let draggedTaskId = null;
+    let dragOverTaskId = null;
+    let dragDropPosition = null; // 'top' | 'bottom'
+    let pendingDeleteTaskListId = null;
+
     function loadStarredTasks() {
       try {
         const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
@@ -1913,6 +1970,32 @@
         const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
         localStorage.setItem(`adhd_starred_tasks_${uid}`, JSON.stringify(Array.from(starredTaskIds)));
       } catch (e) {}
+    }
+
+    function loadPomodoroStats() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        const saved = localStorage.getItem(`adhd_pomodoro_stats_${uid}`);
+        if (saved) {
+          pomodoroTaskStats = JSON.parse(saved);
+        } else {
+          pomodoroTaskStats = {};
+        }
+      } catch (e) {
+        pomodoroTaskStats = {};
+      }
+    }
+
+    function savePomodoroStats() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        localStorage.setItem(`adhd_pomodoro_stats_${uid}`, JSON.stringify(pomodoroTaskStats));
+      } catch (e) {}
+    }
+
+    function getTaskSprintCount(taskId) {
+      if (!taskId || !pomodoroTaskStats[taskId]) return 0;
+      return pomodoroTaskStats[taskId].completedSprints || 0;
     }
 
     window.showSplashScreen = function() {
@@ -1937,6 +2020,9 @@
         selectedAdhdTags.clear();
         autoSuggestedAdhdTags.clear();
         starredTaskIds.clear();
+        selectedFocusTaskId = null;
+        pausePomodoro();
+        stopBrownNoise();
         const searchInput = document.getElementById('tasksSearchInput');
         if (searchInput) searchInput.value = '';
         const clearBtn = document.getElementById('tasksSearchClearBtn');
@@ -2741,6 +2827,398 @@
     }
 
     // ============================================================
+    // POMODORO FOCUS TIMER ENGINE (ADHD Hyperfocus Station)
+    // ============================================================
+    function formatPomoTime(totalSec) {
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function getAudioContext() {
+      if (!window._adhdAudioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          window._adhdAudioCtx = new AudioCtx();
+        }
+      }
+      if (window._adhdAudioCtx && window._adhdAudioCtx.state === 'suspended') {
+        window._adhdAudioCtx.resume().catch(() => {});
+      }
+      return window._adhdAudioCtx;
+    }
+
+    function startBrownNoise() {
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        stopBrownNoise();
+
+        const bufferSize = ctx.sampleRate * 2;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = buffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          lastOut = (lastOut + 0.02 * white) / 1.02;
+          output[i] = lastOut * 3.5;
+        }
+
+        brownNoiseSource = ctx.createBufferSource();
+        brownNoiseSource.buffer = buffer;
+        brownNoiseSource.loop = true;
+
+        brownNoiseGain = ctx.createGain();
+        brownNoiseGain.gain.setValueAtTime(0.035, ctx.currentTime);
+
+        brownNoiseSource.connect(brownNoiseGain);
+        brownNoiseGain.connect(ctx.destination);
+        brownNoiseSource.start();
+      } catch (err) {
+        console.warn('Brown noise synth initialization warning:', err);
+      }
+    }
+
+    function stopBrownNoise() {
+      if (brownNoiseSource) {
+        try {
+          brownNoiseSource.stop();
+          brownNoiseSource.disconnect();
+        } catch (e) {}
+        brownNoiseSource = null;
+      }
+      if (brownNoiseGain) {
+        try {
+          brownNoiseGain.disconnect();
+        } catch (e) {}
+        brownNoiseGain = null;
+      }
+    }
+
+    window.selectTaskForFocus = function(taskId, evt) {
+      if (evt) {
+        evt.stopPropagation();
+      }
+      if (!taskId) return;
+
+      if (selectedFocusTaskId === taskId) {
+        return; // already focused
+      }
+
+      selectedFocusTaskId = taskId;
+      if (!pomodoroIsRunning) {
+        pomodoroRemainingSeconds = pomodoroDurations[pomodoroMode] || (25 * 60);
+      }
+
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(659, 'triangle', 0.12, 0.04);
+        setTimeout(() => window.playSynthBeep(880, 'sine', 0.16, 0.05), 80);
+      }
+
+      renderTasks();
+
+      setTimeout(() => {
+        const el = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+    };
+
+    window.deselectFocusTask = function(evt) {
+      if (evt) {
+        evt.stopPropagation();
+      }
+      selectedFocusTaskId = null;
+      renderTasks();
+    };
+
+    window.handleTaskCardClick = function(evt, taskId) {
+      if (evt.target.closest('button') || evt.target.closest('input') || evt.target.closest('a') || evt.target.closest('.cursor-grab') || evt.target.closest('.drag-handle')) {
+        return;
+      }
+      window.selectTaskForFocus(taskId, evt);
+    };
+
+    window.setPomodoroMode = function(mode, evt) {
+      if (evt) evt.stopPropagation();
+      if (!pomodoroDurations[mode]) return;
+      pomodoroMode = mode;
+      const wasRunning = pomodoroIsRunning;
+      if (wasRunning) {
+        window.pausePomodoro();
+      }
+      pomodoroRemainingSeconds = pomodoroDurations[mode];
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(587, 'sine', 0.1, 0.03);
+      }
+      renderTasks();
+      if (wasRunning) {
+        window.startPomodoro();
+      }
+    };
+
+    window.startPomodoro = function(evt) {
+      if (evt) evt.stopPropagation();
+      if (pomodoroIsRunning) return;
+
+      pomodoroIsRunning = true;
+      pomodoroEndTime = Date.now() + (pomodoroRemainingSeconds * 1000);
+
+      if (pomodoroAmbienceEnabled) {
+        startBrownNoise();
+      }
+
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(520, 'sine', 0.12, 0.05);
+        setTimeout(() => window.playSynthBeep(784, 'triangle', 0.18, 0.06), 90);
+      }
+
+      clearInterval(pomodoroIntervalId);
+      pomodoroIntervalId = setInterval(onPomodoroTick, 500);
+      renderTasks();
+    };
+
+    window.pausePomodoro = function(evt) {
+      if (evt) evt.stopPropagation();
+      if (!pomodoroIsRunning) return;
+
+      pomodoroIsRunning = false;
+      clearInterval(pomodoroIntervalId);
+      pomodoroIntervalId = null;
+
+      if (pomodoroEndTime) {
+        pomodoroRemainingSeconds = Math.max(0, Math.round((pomodoroEndTime - Date.now()) / 1000));
+      }
+
+      stopBrownNoise();
+
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(440, 'sine', 0.1, 0.03);
+      }
+      renderTasks();
+    };
+
+    window.resetPomodoro = function(evt) {
+      if (evt) evt.stopPropagation();
+      window.pausePomodoro();
+      pomodoroRemainingSeconds = pomodoroDurations[pomodoroMode] || (25 * 60);
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(392, 'sine', 0.1, 0.03);
+      }
+      renderTasks();
+    };
+
+    function onPomodoroTick() {
+      if (!pomodoroIsRunning || !pomodoroEndTime) return;
+      const remaining = Math.max(0, Math.round((pomodoroEndTime - Date.now()) / 1000));
+      pomodoroRemainingSeconds = remaining;
+
+      const displays = document.querySelectorAll('.pomo-timer-display');
+      const bars = document.querySelectorAll('.pomo-timer-bar');
+      const formatted = formatPomoTime(remaining);
+      const total = pomodoroDurations[pomodoroMode] || 1500;
+      const pct = Math.min(100, Math.max(0, ((total - remaining) / total) * 100));
+
+      displays.forEach(el => { el.innerText = formatted; });
+      bars.forEach(el => { el.style.width = `${pct}%`; });
+
+      if (remaining <= 0) {
+        onPomodoroComplete();
+      }
+    }
+
+    function onPomodoroComplete() {
+      window.pausePomodoro();
+      pomodoroRemainingSeconds = 0;
+
+      if (selectedFocusTaskId && (pomodoroMode === 'focus25' || pomodoroMode === 'hyperfocus50')) {
+        if (!pomodoroTaskStats[selectedFocusTaskId]) {
+          pomodoroTaskStats[selectedFocusTaskId] = { completedSprints: 0, totalMinutes: 0 };
+        }
+        pomodoroTaskStats[selectedFocusTaskId].completedSprints += 1;
+        const addedMinutes = pomodoroMode === 'hyperfocus50' ? 50 : 25;
+        pomodoroTaskStats[selectedFocusTaskId].totalMinutes += addedMinutes;
+        savePomodoroStats();
+      }
+
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(523, 'triangle', 0.2, 0.08);
+        setTimeout(() => window.playSynthBeep(659, 'sine', 0.22, 0.08), 130);
+        setTimeout(() => window.playSynthBeep(784, 'sine', 0.25, 0.08), 260);
+        setTimeout(() => window.playSynthBeep(1046, 'triangle', 0.45, 0.1), 390);
+      }
+
+      if (pomodoroMode === 'focus25' || pomodoroMode === 'hyperfocus50') {
+        pomodoroMode = 'shortBreak';
+        pomodoroRemainingSeconds = pomodoroDurations.shortBreak;
+      } else {
+        pomodoroMode = 'focus25';
+        pomodoroRemainingSeconds = pomodoroDurations.focus25;
+      }
+
+      renderTasks();
+    }
+
+    window.logPomodoroSprint = function(taskId, evt) {
+      if (evt) evt.stopPropagation();
+      const tid = taskId || selectedFocusTaskId;
+      if (!tid) return;
+      if (!pomodoroTaskStats[tid]) {
+        pomodoroTaskStats[tid] = { completedSprints: 0, totalMinutes: 0 };
+      }
+      pomodoroTaskStats[tid].completedSprints += 1;
+      pomodoroTaskStats[tid].totalMinutes += 25;
+      savePomodoroStats();
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(880, 'sine', 0.15, 0.05);
+        setTimeout(() => window.playSynthBeep(1174, 'triangle', 0.2, 0.06), 90);
+      }
+      renderTasks();
+    };
+
+    window.togglePomodoroAmbience = function(evt) {
+      if (evt) evt.stopPropagation();
+      pomodoroAmbienceEnabled = !pomodoroAmbienceEnabled;
+      if (pomodoroAmbienceEnabled) {
+        startBrownNoise();
+      } else {
+        stopBrownNoise();
+      }
+      renderTasks();
+    };
+
+    window.togglePomodoroSound = function(evt) {
+      if (evt) evt.stopPropagation();
+      pomodoroSoundEnabled = !pomodoroSoundEnabled;
+      if (pomodoroSoundEnabled && typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(880, 'sine', 0.1, 0.03);
+      }
+      renderTasks();
+    };
+
+    // ============================================================
+    // DRAG-AND-DROP REORDERING ENGINE (ADHD Priority Sorting)
+    // ============================================================
+    window.handleTaskDragStart = function(evt, taskId) {
+      draggedTaskId = taskId;
+      evt.dataTransfer.setData('text/plain', taskId);
+      evt.dataTransfer.effectAllowed = 'move';
+      const card = evt.currentTarget;
+      setTimeout(() => {
+        if (card) card.classList.add('task-dragging');
+      }, 0);
+    };
+
+    window.handleTaskDragOver = function(evt, taskId) {
+      if (!draggedTaskId || draggedTaskId === taskId) return;
+      evt.preventDefault();
+      evt.dataTransfer.dropEffect = 'move';
+      const rect = evt.currentTarget.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const isTop = evt.clientY < midY;
+      dragOverTaskId = taskId;
+      dragDropPosition = isTop ? 'top' : 'bottom';
+      evt.currentTarget.classList.remove('task-drag-over-top', 'task-drag-over-bottom');
+      evt.currentTarget.classList.add(isTop ? 'task-drag-over-top' : 'task-drag-over-bottom');
+    };
+
+    window.handleTaskDragLeave = function(evt, taskId) {
+      evt.currentTarget.classList.remove('task-drag-over-top', 'task-drag-over-bottom');
+    };
+
+    window.handleTaskDragEnd = function(evt) {
+      document.querySelectorAll('.task-card-item').forEach(el => {
+        el.classList.remove('task-dragging', 'task-drag-over-top', 'task-drag-over-bottom');
+      });
+      draggedTaskId = null;
+      dragOverTaskId = null;
+      dragDropPosition = null;
+    };
+
+    window.handleTaskDrop = function(evt, targetTaskId) {
+      evt.preventDefault();
+      const srcId = draggedTaskId || evt.dataTransfer.getData('text/plain');
+      document.querySelectorAll('.task-card-item').forEach(el => {
+        el.classList.remove('task-dragging', 'task-drag-over-top', 'task-drag-over-bottom');
+      });
+      if (!srcId || srcId === targetTaskId) return;
+
+      const srcIndex = currentTasks.findIndex(t => t.id === srcId);
+      const tgtIndex = currentTasks.findIndex(t => t.id === targetTaskId);
+      if (srcIndex === -1 || tgtIndex === -1) return;
+
+      const [movedTask] = currentTasks.splice(srcIndex, 1);
+      let insertIndex = currentTasks.findIndex(t => t.id === targetTaskId);
+      if (dragDropPosition === 'bottom') {
+        insertIndex += 1;
+      }
+      currentTasks.splice(insertIndex, 0, movedTask);
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(520, 'triangle', 0.1, 0.04);
+        setTimeout(() => window.playSynthBeep(784, 'sine', 0.15, 0.05), 70);
+      }
+
+      renderTasks();
+      syncTaskReorderToGoogleTasks(movedTask, insertIndex);
+    };
+
+    window.moveTaskPriority = function(taskId, direction, evt) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      const idx = currentTasks.findIndex(t => t.id === taskId);
+      if (idx === -1) return;
+
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= currentTasks.length) return;
+
+      const [movedTask] = currentTasks.splice(idx, 1);
+      currentTasks.splice(newIdx, 0, movedTask);
+
+      if (typeof window.playSynthBeep === 'function') {
+        const f1 = direction === 'up' ? 520 : 660;
+        const f2 = direction === 'up' ? 784 : 440;
+        window.playSynthBeep(f1, 'sine', 0.09, 0.03);
+        setTimeout(() => window.playSynthBeep(f2, 'triangle', 0.12, 0.04), 70);
+      }
+
+      renderTasks();
+      syncTaskReorderToGoogleTasks(movedTask, newIdx);
+    };
+
+    async function syncTaskReorderToGoogleTasks(movedTask, newIdx) {
+      if (!cachedAccessToken || !movedTask) return;
+      try {
+        const listId = movedTask._listId || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
+        let previousTaskId = null;
+        for (let i = newIdx - 1; i >= 0; i--) {
+          if (currentTasks[i] && (currentTasks[i]._listId === listId || activeTaskListId !== 'all')) {
+            previousTaskId = currentTasks[i].id;
+            break;
+          }
+        }
+
+        let moveUrl = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks/${encodeURIComponent(movedTask.id)}/move`;
+        if (previousTaskId) {
+          moveUrl += `?previous=${encodeURIComponent(previousTaskId)}`;
+        }
+
+        const res = await fetch(moveUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${cachedAccessToken}`
+          }
+        });
+        if (!res.ok) {
+          console.warn('Google Tasks move API response not ok:', res.status);
+        }
+      } catch (err) {
+        console.warn('Could not persist task move to Google Tasks:', err);
+      }
+    }
+
+    // ============================================================
     // TASK FILTERING & RENDERING
     // ============================================================
     window.setTasksFilter = function(filter) {
@@ -2826,6 +3304,8 @@
           const isDone = task.status === 'completed';
           const isStarred = isTaskStarred(task);
           const hasAttachment = hasTaskAttachment(task);
+          const isFocused = (selectedFocusTaskId === task.id);
+          const sprintCount = getTaskSprintCount(task.id);
 
           // Creation Date
           const rawCreated = task.created || task.updated;
@@ -2892,89 +3372,254 @@
               </div>`
             : '';
 
-          return `
-            <div class="group relative p-3.5 sm:p-4 rounded-xl ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'} border transition-all glass-hud flex items-start justify-between gap-3 shadow-md">
-              <div class="flex items-start space-x-3 flex-1 min-w-0">
-                <!-- Status Checkbox -->
-                <button type="button" onclick="window.toggleTaskStatus('${task.id}', '${task.status}')" class="mt-0.5 shrink-0 w-5 h-5 rounded-md border ${isDone ? 'bg-emerald-500 border-emerald-400 text-space-950' : 'border-slate-500 hover:border-gold-400 bg-space-950'} flex items-center justify-center transition-all focus:outline-none" title="${isDone ? 'Mark as Pending' : 'Mark as Completed'}">
-                  ${isDone ? '<svg class="w-3.5 h-3.5 stroke-current stroke-[3]" viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
-                </button>
+          // Embedded Pomodoro Focus Timer Cockpit (Active when task is selected)
+          let pomodoroStationHtml = '';
+          if (isFocused) {
+            const formattedTime = formatPomoTime(pomodoroRemainingSeconds);
+            const totalDuration = pomodoroDurations[pomodoroMode] || 1500;
+            const progressPct = Math.min(100, Math.max(0, ((totalDuration - pomodoroRemainingSeconds) / totalDuration) * 100));
+            const modeLabels = {
+              focus25: '25m ADHD Sprint',
+              hyperfocus50: '50m Deep Hyperfocus',
+              shortBreak: '5m Dopamine Rest',
+              longBreak: '15m Neuro Reset'
+            };
+            const currentModeLabel = modeLabels[pomodoroMode] || 'Focus Sprint';
 
-                <!-- Title & Details -->
-                <div class="flex-1 min-w-0">
-                  <!-- Badges Header: List/Inbox + Starred + Attachment + ADHD Patterns -->
-                  <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-                    ${listBadge}
+            pomodoroStationHtml = `
+              <div class="mt-3.5 pt-3.5 border-t border-amber-400/35 bg-space-950/90 rounded-2xl p-3.5 sm:p-4 shadow-2xl space-y-3.5 ring-1 ring-amber-400/20">
+                <!-- Station Header -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${pomodoroIsRunning ? 'bg-amber-400' : 'bg-slate-400'} opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 ${pomodoroIsRunning ? 'bg-amber-500' : 'bg-slate-500'}"></span>
+                    </span>
+                    <span class="font-orbitron text-xs font-bold ${pomodoroIsRunning ? 'text-amber-300' : 'text-slate-200'} tracking-wider uppercase">
+                      ${pomodoroIsRunning ? '⚡ HYPERFOCUS ACTIVE' : '🎯 POMODORO FOCUS STATION'}
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-400/30">
+                      🍅 ${sprintCount} Sprints Logged
+                    </span>
+                  </div>
+                  <button type="button" onclick="window.deselectFocusTask(event)" class="text-[11px] font-mono text-slate-400 hover:text-white px-2.5 py-1 rounded-lg bg-space-900 border border-slate-700/80 hover:border-slate-500 transition-colors shadow-sm" title="Hide Focus Station">
+                    ✕ CLOSE TIMER
+                  </button>
+                </div>
 
-                    ${isStarred ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Starred focus task">
-                        <span class="mr-1 text-amber-400 text-[11px]">★</span>STARRED
-                      </span>
-                    ` : ''}
+                <!-- Mode Selectors -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <button type="button" onclick="window.setPomodoroMode('focus25', event)" class="px-2.5 py-1 rounded-lg text-[11px] font-rajdhani font-bold tracking-wider ${pomodoroMode === 'focus25' ? 'bg-amber-500/25 text-amber-300 border border-amber-400 shadow-sm' : 'bg-space-900/80 text-slate-400 hover:text-white border border-slate-800'} transition-all">
+                    🎯 25m SPRINT
+                  </button>
+                  <button type="button" onclick="window.setPomodoroMode('hyperfocus50', event)" class="px-2.5 py-1 rounded-lg text-[11px] font-rajdhani font-bold tracking-wider ${pomodoroMode === 'hyperfocus50' ? 'bg-purple-500/25 text-purple-300 border border-purple-400 shadow-sm' : 'bg-space-900/80 text-slate-400 hover:text-white border border-slate-800'} transition-all">
+                    ⚡ 50m HYPERFOCUS
+                  </button>
+                  <button type="button" onclick="window.setPomodoroMode('shortBreak', event)" class="px-2.5 py-1 rounded-lg text-[11px] font-rajdhani font-bold tracking-wider ${pomodoroMode === 'shortBreak' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400 shadow-sm' : 'bg-space-900/80 text-slate-400 hover:text-white border border-slate-800'} transition-all">
+                    ☕ 5m REST
+                  </button>
+                  <button type="button" onclick="window.setPomodoroMode('longBreak', event)" class="px-2.5 py-1 rounded-lg text-[11px] font-rajdhani font-bold tracking-wider ${pomodoroMode === 'longBreak' ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400 shadow-sm' : 'bg-space-900/80 text-slate-400 hover:text-white border border-slate-800'} transition-all">
+                    🌴 15m RESET
+                  </button>
+                </div>
 
-                    ${hasAttachment ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-sm" title="Attachment or linked document available">
-                        <svg class="w-3.5 h-3.5 mr-1 text-cyan-400 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>ATTACHMENT
-                      </span>
-                    ` : ''}
-
-                    ${detectedBadges.map(b => `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border ${b.badgeBg}">
-                        ${escapeHtml(b.badge)}
-                      </span>
-                    `).join('')}
+                <!-- Digital HUD Countdown & Sensory ADHD Sound Cues -->
+                <div class="p-3.5 rounded-xl bg-space-900/90 border border-slate-800/90 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-inner">
+                  <div class="flex items-center space-x-3.5">
+                    <div class="font-orbitron font-black text-3xl sm:text-4xl text-amber-400 tracking-widest pomo-timer-display drop-shadow-[0_0_12px_rgba(251,191,36,0.35)]">
+                      ${formattedTime}
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-400 leading-tight">
+                      <div class="text-amber-300 font-bold uppercase tracking-wider">${currentModeLabel}</div>
+                      <div>${pomodoroIsRunning ? '🔥 Concentrating... Stay with the task' : 'Ready to start hyperfocus interval'}</div>
+                    </div>
                   </div>
 
-                  <!-- Task Title -->
-                  <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
-                    ${highlightedTitle}
+                  <!-- Brown Noise & Chimes Toggles -->
+                  <div class="flex items-center space-x-2 shrink-0">
+                    <button type="button" onclick="window.togglePomodoroAmbience(event)" class="px-2.5 py-1.5 rounded-lg text-[10px] font-mono ${pomodoroAmbienceEnabled ? 'bg-amber-500/25 text-amber-300 border border-amber-400 shadow-sm' : 'bg-space-950 text-slate-400 border border-slate-700 hover:text-slate-200'} transition-all flex items-center space-x-1.5" title="ADHD Focus Noise Generator (Soothing low-frequency Brown Noise to block sensory distractions)">
+                      <span>🎧</span>
+                      <span>${pomodoroAmbienceEnabled ? 'BROWN NOISE: ON' : 'BROWN NOISE: OFF'}</span>
+                    </button>
+                    <button type="button" onclick="window.togglePomodoroSound(event)" class="p-1.5 rounded-lg bg-space-950 text-slate-400 hover:text-gold-300 border border-slate-700 text-xs transition-colors" title="${pomodoroSoundEnabled ? 'Audio Chimes Enabled' : 'Audio Chimes Muted'}">
+                      ${pomodoroSoundEnabled ? '🔔' : '🔕'}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Animated Progress Bar -->
+                <div class="w-full bg-space-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                  <div class="h-full bg-gradient-to-r from-amber-500 via-gold-400 to-amber-300 transition-all duration-300 pomo-timer-bar shadow-sm" style="width: ${progressPct}%;"></div>
+                </div>
+
+                <!-- Station Action Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                  <div class="flex items-center space-x-2">
+                    ${pomodoroIsRunning ? `
+                      <button type="button" onclick="window.pausePomodoro(event)" class="px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-amber-500 hover:bg-amber-400 text-space-950 shadow-lg shadow-amber-500/25 transition-all flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        <span>PAUSE FOCUS</span>
+                      </button>
+                    ` : `
+                      <button type="button" onclick="window.startPomodoro(event)" class="px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-amber-400 to-gold-500 hover:from-amber-300 hover:to-gold-400 text-space-950 shadow-lg shadow-gold-500/30 transition-all flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>START HYPERFOCUS</span>
+                      </button>
+                    `}
+
+                    <button type="button" onclick="window.resetPomodoro(event)" class="px-3 py-2 rounded-xl text-xs font-mono bg-space-900 hover:bg-space-850 text-slate-300 hover:text-white border border-slate-700/80 transition-all flex items-center space-x-1" title="Reset current countdown">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                      <span>RESET</span>
+                    </button>
                   </div>
 
-                  <!-- Notes -->
-                  ${highlightedNotes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${highlightedNotes}</div>` : ''}
-
-                  <!-- Linked Attachments -->
-                  ${linksHtml}
-
-                  <!-- Metadata Details: Creation Date, Due Date, Deadline Date, Completion Status -->
-                  <div class="flex flex-wrap items-center gap-2 mt-2 pt-1 border-t border-slate-800/50 text-[10px] font-mono">
-                    ${createdFormatted ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-slate-700/70 text-slate-400" title="Creation Date: ${createdFormatted}">
-                        <svg class="w-3 h-3 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>CREATED ${createdFormatted}
-                      </span>
-                    ` : ''}
-
-                    ${dueFormatted ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Due Date: ${dueFormatted}">
-                        <svg class="w-3 h-3 mr-1 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>DUE ${dueFormatted}
-                      </span>
-                    ` : ''}
-
-                    ${deadlineFormatted ? `
-                      <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/15 border border-rose-400/40 text-rose-300 shadow-sm" title="Strict Deadline: ${deadlineFormatted}">
-                        <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>DEADLINE ${deadlineFormatted}
-                      </span>
-                    ` : ''}
-
-                    ${isDone ? '<span class="text-emerald-400 font-semibold">✓ COMPLETED</span>' : '<span class="text-slate-500">PENDING FOCUS</span>'}
+                  <div class="flex items-center space-x-2">
+                    <button type="button" onclick="window.logPomodoroSprint('${task.id}', event)" class="px-3 py-2 rounded-xl text-xs font-rajdhani font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/40 transition-all flex items-center space-x-1" title="Log one completed Pomodoro sprint (+1 🍅)">
+                      <span>+1 🍅 LOG SPRINT</span>
+                    </button>
+                    <button type="button" onclick="window.toggleTaskStatus('${task.id}', '${task.status}')" class="px-3.5 py-2 rounded-xl text-xs font-rajdhani font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 transition-all flex items-center space-x-1" title="Mark this task as completed in Google Tasks">
+                      <span>✓ COMPLETE TASK</span>
+                    </button>
                   </div>
                 </div>
               </div>
+            `;
+          }
 
-              <!-- Right Actions: Star Toggle Button + Delete Action -->
-              <div class="flex items-center space-x-1 shrink-0">
-                <button type="button" onclick="window.toggleTaskStar('${task.id}', event)" class="p-1 rounded hover:bg-space-950/80 transition-all ${isStarred ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}" title="${isStarred ? 'Starred task (Click to unstar)' : 'Click to star task'}">
-                  <svg class="w-4 h-4 ${isStarred ? 'fill-amber-400 stroke-amber-400' : 'fill-none stroke-current'}" stroke-width="2" viewBox="0 0 24 24">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                </button>
+          return `
+            <div
+              class="task-card-item group relative p-3.5 sm:p-4 rounded-xl ${isFocused ? 'hyperfocus-active-card ring-2 ring-amber-400/90 border-amber-400 bg-space-900/95 shadow-xl shadow-amber-500/15' : (isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50')} border transition-all glass-hud flex flex-col gap-2 shadow-md"
+              draggable="true"
+              data-task-id="${task.id}"
+              ondragstart="window.handleTaskDragStart(event, '${task.id}')"
+              ondragover="window.handleTaskDragOver(event, '${task.id}')"
+              ondragleave="window.handleTaskDragLeave(event, '${task.id}')"
+              ondrop="window.handleTaskDrop(event, '${task.id}')"
+              ondragend="window.handleTaskDragEnd(event)"
+              onclick="window.handleTaskCardClick(event, '${task.id}')"
+            >
+              <div class="flex items-start justify-between gap-3 w-full">
+                <div class="flex items-start space-x-2 sm:space-x-3 flex-1 min-w-0">
+                  
+                  <!-- Drag-and-Drop Grip Handle & Priority Arrows -->
+                  <div class="flex items-center space-x-0.5 shrink-0 pt-0.5">
+                    <div class="drag-handle touch-none cursor-grab active:cursor-grabbing p-1 text-slate-500 hover:text-gold-400 transition-colors select-none" title="Drag to reorder priority in Google Tasks">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
+                        <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+                        <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+                      </svg>
+                    </div>
+                    <div class="flex flex-col -space-y-1 opacity-40 group-hover:opacity-100 transition-opacity">
+                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'up', event)" class="p-0.5 text-slate-400 hover:text-gold-300 transition-colors" title="Move task up in priority">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                      </button>
+                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'down', event)" class="p-0.5 text-slate-400 hover:text-gold-300 transition-colors" title="Move task down in priority">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                      </button>
+                    </div>
+                  </div>
 
-                <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                  <!-- Status Checkbox -->
+                  <button type="button" onclick="window.toggleTaskStatus('${task.id}', '${task.status}')" class="mt-0.5 shrink-0 w-5 h-5 rounded-md border ${isDone ? 'bg-emerald-500 border-emerald-400 text-space-950' : 'border-slate-500 hover:border-gold-400 bg-space-950'} flex items-center justify-center transition-all focus:outline-none" title="${isDone ? 'Mark as Pending' : 'Mark as Completed'}">
+                    ${isDone ? '<svg class="w-3.5 h-3.5 stroke-current stroke-[3]" viewBox="0 0 24 24" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+                  </button>
+
+                  <!-- Title & Details -->
+                  <div class="flex-1 min-w-0">
+                    <!-- Badges Header: List/Inbox + Starred + Attachment + Sprints + ADHD Patterns -->
+                    <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                      ${listBadge}
+
+                      ${isStarred ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Starred focus task">
+                          <span class="mr-1 text-amber-400 text-[11px]">★</span>STARRED
+                        </span>
+                      ` : ''}
+
+                      ${hasAttachment ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 shadow-sm" title="Attachment or linked document available">
+                          <svg class="w-3.5 h-3.5 mr-1 text-cyan-400 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>ATTACHMENT
+                        </span>
+                      ` : ''}
+
+                      ${sprintCount > 0 ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/15 border border-rose-400/40 text-rose-300 shadow-sm" title="${sprintCount} Pomodoro focus sprints completed">
+                          <span class="mr-1 text-[11px]">🍅</span>${sprintCount} SPRINT${sprintCount > 1 ? 'S' : ''}
+                        </span>
+                      ` : ''}
+
+                      ${detectedBadges.map(b => `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border ${b.badgeBg}">
+                          ${escapeHtml(b.badge)}
+                        </span>
+                      `).join('')}
+                    </div>
+
+                    <!-- Task Title -->
+                    <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
+                      ${highlightedTitle}
+                    </div>
+
+                    <!-- Notes -->
+                    ${highlightedNotes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${highlightedNotes}</div>` : ''}
+
+                    <!-- Linked Attachments -->
+                    ${linksHtml}
+
+                    <!-- Metadata Details: Creation Date, Due Date, Deadline Date, Completion Status -->
+                    <div class="flex flex-wrap items-center gap-2 mt-2 pt-1 border-t border-slate-800/50 text-[10px] font-mono">
+                      ${createdFormatted ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-slate-700/70 text-slate-400" title="Creation Date: ${createdFormatted}">
+                          <svg class="w-3 h-3 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>CREATED ${createdFormatted}
+                        </span>
+                      ` : ''}
+
+                      ${dueFormatted ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/40 text-amber-300 shadow-sm" title="Due Date: ${dueFormatted}">
+                          <svg class="w-3 h-3 mr-1 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>DUE ${dueFormatted}
+                        </span>
+                      ` : ''}
+
+                      ${deadlineFormatted ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/15 border border-rose-400/40 text-rose-300 shadow-sm" title="Strict Deadline: ${deadlineFormatted}">
+                          <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>DEADLINE ${deadlineFormatted}
+                        </span>
+                      ` : ''}
+
+                      ${isDone ? '<span class="text-emerald-400 font-semibold">✓ COMPLETED</span>' : '<span class="text-slate-500">PENDING FOCUS</span>'}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Actions: Focus Selector Button + Star Toggle + Delete Action -->
+                <div class="flex items-center space-x-1.5 shrink-0">
+                  ${isFocused ? `
+                    <button type="button" onclick="window.deselectFocusTask(event)" class="px-2.5 py-1 rounded-lg bg-amber-500/25 border border-amber-400 text-amber-300 text-[11px] font-rajdhani font-bold flex items-center space-x-1 shadow-sm" title="Active Focus Sprint - Click to hide timer">
+                      <span>⚡ ACTIVE</span>
+                    </button>
+                  ` : `
+                    <button type="button" onclick="window.selectTaskForFocus('${task.id}', event)" class="px-2.5 py-1 rounded-lg bg-space-950/90 hover:bg-amber-500/20 border border-slate-700/80 hover:border-amber-400 text-slate-300 hover:text-amber-300 text-[11px] font-rajdhani font-bold flex items-center space-x-1 transition-all" title="Select task for Pomodoro Focus Timer">
+                      <span>🎯 FOCUS</span>
+                    </button>
+                  `}
+
+                  <button type="button" onclick="window.toggleTaskStar('${task.id}', event)" class="p-1 rounded hover:bg-space-950/80 transition-all ${isStarred ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}" title="${isStarred ? 'Starred task (Click to unstar)' : 'Click to star task'}">
+                    <svg class="w-4 h-4 ${isStarred ? 'fill-amber-400 stroke-amber-400' : 'fill-none stroke-current'}" stroke-width="2" viewBox="0 0 24 24">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  </button>
+
+                  <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}', '${task._listId || ''}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
               </div>
+
+              <!-- In-Card Pomodoro Hyperfocus Station -->
+              ${pomodoroStationHtml}
             </div>
           `;
         }).join('');
@@ -3189,8 +3834,9 @@
     const confirmCancelBtn = document.getElementById('tasksConfirmCancelBtn');
     const confirmOkBtn = document.getElementById('tasksConfirmOkBtn');
 
-    window.requestDeleteTask = function(taskId, taskTitle) {
+    window.requestDeleteTask = function(taskId, taskTitle, listId) {
       pendingDeleteTaskId = taskId;
+      pendingDeleteTaskListId = listId || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
       if (confirmMsg) {
         confirmMsg.innerText = `Are you sure you want to permanently delete "${taskTitle}" from your Google Tasks? This action cannot be undone.`;
       }
@@ -3200,6 +3846,7 @@
     if (confirmCancelBtn) {
       confirmCancelBtn.addEventListener('click', () => {
         pendingDeleteTaskId = null;
+        pendingDeleteTaskListId = null;
         if (confirmModal) confirmModal.classList.add('hidden');
       });
     }
@@ -3212,7 +3859,9 @@
         }
 
         const idToDelete = pendingDeleteTaskId;
+        const targetList = pendingDeleteTaskListId || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
         pendingDeleteTaskId = null;
+        pendingDeleteTaskListId = null;
         if (confirmModal) confirmModal.classList.add('hidden');
 
         // Optimistic delete
@@ -3221,7 +3870,7 @@
         updateTasksBadges();
 
         try {
-          await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks/${idToDelete}`, {
+          await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(targetList)}/tasks/${encodeURIComponent(idToDelete)}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${cachedAccessToken}` }
           });
@@ -3249,6 +3898,9 @@
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in
+        loadStarredTasks();
+        loadPomodoroStats();
+
         if (headerUserPill) {
           headerUserPill.classList.remove('hidden');
           headerUserPill.classList.add('flex');
