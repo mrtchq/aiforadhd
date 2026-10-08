@@ -1137,8 +1137,35 @@
       </div>
 
       <!-- Authenticated View -->
-      <div id="tasksMainContent" class="flex flex-col space-y-6">
+      <div id="tasksMainContent" class="flex flex-col space-y-5">
         
+        <!-- Local Search Input Field (Filter by title and note content) -->
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input
+            id="tasksSearchInput"
+            type="text"
+            placeholder="Search tasks by title or notes..."
+            oninput="window.onTasksSearchInput(this.value)"
+            class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-space-900/90 border border-slate-700/80 focus:border-gold-400 focus:ring-1 focus:ring-gold-400/50 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all glass-hud shadow-md font-sans"
+          />
+          <button
+            id="tasksSearchClearBtn"
+            type="button"
+            onclick="window.clearTasksSearch()"
+            class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition-colors"
+            title="Clear search"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
         <!-- ADHD Dopamine Progress Bar Card -->
         <div class="p-4 sm:p-5 rounded-2xl bg-space-900/80 border border-gold-400/30 glass-hud shadow-xl flex flex-col space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1168,25 +1195,49 @@
             <button onclick="window.setTasksFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">COMPLETED</button>
           </div>
 
-          <div class="text-xs font-mono text-slate-400">
+          <div class="text-xs font-mono text-slate-400 flex items-center space-x-2">
             <span id="taskCountSummary">Loading tasks...</span>
+            <span id="searchActiveTag" class="hidden px-2 py-0.5 rounded text-[10px] font-mono bg-gold-500/20 text-gold-300 border border-gold-400/30">FILTERED</span>
           </div>
         </div>
 
-        <!-- Add Task Form (Collapsible) -->
-        <div id="newTaskFormContainer" class="hidden p-4 sm:p-5 rounded-2xl bg-space-850/90 border border-blue-500/30 glass-hud flex flex-col space-y-3">
+        <!-- Add Task Form (Collapsible with ADHD Tag Suggestions) -->
+        <div id="newTaskFormContainer" class="hidden p-4 sm:p-5 rounded-2xl bg-space-850/90 border border-blue-500/30 glass-hud flex flex-col space-y-3.5">
           <div class="flex items-center justify-between">
             <span class="font-orbitron text-xs font-bold text-blue-300 tracking-wider">NEW GOOGLE TASK</span>
             <button onclick="window.toggleNewTaskForm()" class="text-xs font-mono text-slate-500 hover:text-slate-300">CANCEL</button>
           </div>
-          <form onsubmit="window.handleCreateTaskSubmit(event)" class="flex flex-col space-y-3">
+          <form onsubmit="window.handleCreateTaskSubmit(event)" class="flex flex-col space-y-3.5">
             <div>
-              <input id="newTaskTitleInput" type="text" placeholder="Task title (e.g., Review cognitive metrics report)..." required class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 outline-none transition-all font-sans" />
+              <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Task Objective</label>
+              <input id="newTaskTitleInput" type="text" placeholder="e.g. Call accountant, Deep refactor code, Clean workspace..." oninput="window.onTaskTitleOrNotesInput()" required class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition-all font-sans" />
             </div>
+
+            <!-- ADHD Auto-Suggested Tags & Categories based on Productivity Patterns -->
+            <div class="space-y-1.5 p-3 rounded-xl bg-space-950/70 border border-slate-800">
+              <div class="flex items-center justify-between text-[11px] font-rajdhani">
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-gold-400 font-bold uppercase tracking-wider">✨ ADHD FOCUS PATTERNS:</span>
+                  <span id="adhdTagHint" class="text-slate-400 font-sans">Type above for auto-matching or tap to tag</span>
+                </div>
+                <span id="adhdSelectedCount" class="font-mono text-gold-300 text-[10px]">0 selected</span>
+              </div>
+              <div id="adhdSuggestedTagsList" class="flex flex-wrap gap-1.5 pt-1">
+                <!-- Populated dynamically with ADHD productivity patterns -->
+              </div>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input id="newTaskNotesInput" type="text" placeholder="Optional notes / executive context..." class="bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all font-sans" />
-              <input id="newTaskDueInput" type="date" class="bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-all font-mono" />
+              <div>
+                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400 mb-1">Notes / Friction Reducers</label>
+                <input id="newTaskNotesInput" type="text" placeholder="Context, link, or first 2-minute step..." oninput="window.onTaskTitleOrNotesInput()" class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all font-sans" />
+              </div>
+              <div>
+                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-slate-400 mb-1">Due Date</label>
+                <input id="newTaskDueInput" type="date" class="w-full bg-space-950 border border-slate-700 focus:border-gold-400 rounded-xl px-3.5 py-2 text-xs text-slate-200 outline-none transition-all font-mono" />
+              </div>
             </div>
+
             <div class="flex justify-end pt-1">
               <button type="submit" id="saveTaskSubmitBtn" class="px-5 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white shadow-md shadow-blue-500/25 transition-all">
                 ADD TO GOOGLE TASKS
@@ -1779,6 +1830,9 @@
     let activeTaskListId = '@default';
     let currentTasks = [];
     let activeTaskFilter = 'all'; // 'all' | 'needsAction' | 'completed'
+    let activeTasksSearchQuery = '';
+    let selectedAdhdTags = new Set();
+    let autoSuggestedAdhdTags = new Set();
     window.isTasksModalOpen = false;
 
     window.showSplashScreen = function() {
@@ -1799,6 +1853,15 @@
         cachedAccessToken = null;
         taskLists = [];
         currentTasks = [];
+        activeTasksSearchQuery = '';
+        selectedAdhdTags.clear();
+        autoSuggestedAdhdTags.clear();
+        const searchInput = document.getElementById('tasksSearchInput');
+        if (searchInput) searchInput.value = '';
+        const clearBtn = document.getElementById('tasksSearchClearBtn');
+        if (clearBtn) clearBtn.classList.add('hidden');
+        const searchTag = document.getElementById('searchActiveTag');
+        if (searchTag) searchTag.classList.add('hidden');
         updateTasksBadges();
         window.showSplashScreen();
       } catch (err) {
@@ -1967,6 +2030,7 @@
           tasksAuthPrompt.classList.remove('flex');
         }
         if (tasksMainContent) tasksMainContent.classList.remove('hidden');
+        renderAdhdTags();
         window.fetchGoogleTasks();
       }
     };
@@ -2089,6 +2153,233 @@
       window.fetchGoogleTasks();
     };
 
+    // ============================================================
+    // ADHD PRODUCTIVITY PATTERNS & CATEGORIES ENGINE
+    // ============================================================
+    const ADHD_PATTERNS = [
+      {
+        id: 'quick_win',
+        label: '⚡ Quick Dopamine (<5m)',
+        badge: '⚡ Quick Win',
+        borderClass: 'border-emerald-400/40 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20',
+        activeClass: 'border-emerald-300 text-space-950 bg-emerald-400 shadow-md shadow-emerald-500/30 font-bold',
+        suggestedClass: 'border-emerald-400 text-emerald-300 bg-emerald-500/20 ring-1 ring-emerald-400 animate-pulse',
+        badgeBg: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/40',
+        keywords: ['quick', 'email', 'reply', 'text', 'call', 'pay', 'send', 'schedule', 'sign', 'check', 'ping', 'bill', 'order', 'buy', 'submit', 'file', 'upload', 'drop', 'message', '5m', '5 min', 'quickie', 'micro', '2m', 'easy'],
+        desc: 'Overcome ADHD inertia with an instant micro-action'
+      },
+      {
+        id: 'hyperfocus',
+        label: '🧠 Deep Hyperfocus',
+        badge: '🧠 Hyperfocus',
+        borderClass: 'border-blue-400/40 text-blue-300 bg-blue-500/10 hover:bg-blue-500/20',
+        activeClass: 'border-blue-300 text-space-950 bg-blue-400 shadow-md shadow-blue-500/30 font-bold',
+        suggestedClass: 'border-blue-400 text-blue-300 bg-blue-500/20 ring-1 ring-blue-400 animate-pulse',
+        badgeBg: 'bg-blue-500/15 text-blue-300 border-blue-400/40',
+        keywords: ['code', 'program', 'dev', 'build', 'design', 'write', 'draft', 'essay', 'refactor', 'architect', 'research', 'study', 'deep', 'strategy', 'analysis', 'prototype', 'implement', 'feature', 'solve'],
+        desc: 'Deep cognitive immersion requiring uninterrupted flow'
+      },
+      {
+        id: 'wall_of_awful',
+        label: '🧱 Wall of Awful',
+        badge: '🧱 Wall of Awful',
+        borderClass: 'border-rose-400/40 text-rose-300 bg-rose-500/10 hover:bg-rose-500/20',
+        activeClass: 'border-rose-300 text-white bg-rose-500 shadow-md shadow-rose-500/30 font-bold',
+        suggestedClass: 'border-rose-400 text-rose-300 bg-rose-500/20 ring-1 ring-rose-400 animate-pulse',
+        badgeBg: 'bg-rose-500/15 text-rose-300 border-rose-400/40',
+        keywords: ['taxes', 'dentist', 'doctor', 'appointment', 'complain', 'dispute', 'cancel', 'insurance', 'dread', 'hard', 'scary', 'uncomfortable', 'chore', 'overdue', 'apologize', 'conflict', 'form', 'renew'],
+        desc: 'High emotional friction - break down into a 2-min starter step'
+      },
+      {
+        id: 'urgency',
+        label: '⏳ Time-Sensitive',
+        badge: '⏳ Urgent',
+        borderClass: 'border-amber-400/40 text-amber-300 bg-amber-500/10 hover:bg-amber-500/20',
+        activeClass: 'border-amber-300 text-space-950 bg-amber-400 shadow-md shadow-amber-500/30 font-bold',
+        suggestedClass: 'border-amber-400 text-amber-300 bg-amber-500/20 ring-1 ring-amber-400 animate-pulse',
+        badgeBg: 'bg-amber-500/15 text-amber-300 border-amber-400/40',
+        keywords: ['today', 'asap', 'deadline', 'urgent', 'due', 'tonight', 'morning', 'flight', 'cutoff', 'critical', 'rush', 'now', 'tomorrow', 'immediate'],
+        desc: 'Combats ADHD time-blindness with explicit urgency cues'
+      },
+      {
+        id: 'low_spoon',
+        label: '🔋 Low Spoon / Energy',
+        badge: '🔋 Low Spoon',
+        borderClass: 'border-purple-400/40 text-purple-300 bg-purple-500/10 hover:bg-purple-500/20',
+        activeClass: 'border-purple-300 text-white bg-purple-500 shadow-md shadow-purple-500/30 font-bold',
+        suggestedClass: 'border-purple-400 text-purple-300 bg-purple-500/20 ring-1 ring-purple-400 animate-pulse',
+        badgeBg: 'bg-purple-500/15 text-purple-300 border-purple-400/40',
+        keywords: ['rest', 'stretch', 'hydrate', 'walk', 'read', 'browse', 'casual', 'gentle', 'relaxing', 'low energy', 'chill', 'light', 'stamina', 'tired', 'low spoon', 'listen', 'audio'],
+        desc: 'Gentle action when executive stamina is depleted'
+      },
+      {
+        id: 'body_double',
+        label: '👥 Body Doubling',
+        badge: '👥 Body Double',
+        borderClass: 'border-yellow-400/40 text-yellow-300 bg-yellow-500/10 hover:bg-yellow-500/20',
+        activeClass: 'border-yellow-300 text-space-950 bg-yellow-400 shadow-md shadow-yellow-500/30 font-bold',
+        suggestedClass: 'border-yellow-400 text-yellow-300 bg-yellow-500/20 ring-1 ring-yellow-400 animate-pulse',
+        badgeBg: 'bg-yellow-500/15 text-yellow-300 border-yellow-400/40',
+        keywords: ['meeting', 'sync', 'pair', 'team', 'chat', 'call', 'zoom', 'discuss', 'coworker', 'partner', 'feedback', 'share', 'accountability', 'co-work', 'group'],
+        desc: 'Pair with another person to anchor wandering attention'
+      },
+      {
+        id: 'admin_cleanse',
+        label: '🧹 Admin Cleanse',
+        badge: '🧹 Cleanse',
+        borderClass: 'border-teal-400/40 text-teal-300 bg-teal-500/10 hover:bg-teal-500/20',
+        activeClass: 'border-teal-300 text-space-950 bg-teal-400 shadow-md shadow-teal-500/30 font-bold',
+        suggestedClass: 'border-teal-400 text-teal-300 bg-teal-500/20 ring-1 ring-teal-400 animate-pulse',
+        badgeBg: 'bg-teal-500/15 text-teal-300 border-teal-400/40',
+        keywords: ['clean', 'desk', 'tabs', 'bookmark', 'inbox', 'trash', 'clear', 'wash', 'laundry', 'tidy', 'sort', 'file', 'desktop', 'organize', 'declutter', 'backup', 'delete'],
+        desc: 'Clearing sensory overload to restore cognitive clarity'
+      },
+      {
+        id: 'idea_vortex',
+        label: '💡 Idea Vortex',
+        badge: '💡 Idea',
+        borderClass: 'border-pink-400/40 text-pink-300 bg-pink-500/10 hover:bg-pink-500/20',
+        activeClass: 'border-pink-300 text-white bg-pink-500 shadow-md shadow-pink-500/30 font-bold',
+        suggestedClass: 'border-pink-400 text-pink-300 bg-pink-500/20 ring-1 ring-pink-400 animate-pulse',
+        badgeBg: 'bg-pink-500/15 text-pink-300 border-pink-400/40',
+        keywords: ['idea', 'think', 'brainstorm', 'concept', 'explore', 'someday', 'future', 'vision', 'experiment', 'sketch', 'maybe', 'curious', 'tangent', 'inspire', 'dream'],
+        desc: 'Capture divergent creative tangents without losing main focus'
+      }
+    ];
+
+    function renderAdhdTags() {
+      const container = document.getElementById('adhdSuggestedTagsList');
+      if (!container) return;
+
+      const hintEl = document.getElementById('adhdTagHint');
+      const countEl = document.getElementById('adhdSelectedCount');
+
+      if (countEl) {
+        countEl.innerText = `${selectedAdhdTags.size} selected`;
+      }
+
+      if (hintEl) {
+        if (autoSuggestedAdhdTags.size > 0) {
+          const names = Array.from(autoSuggestedAdhdTags).map(id => {
+            const p = ADHD_PATTERNS.find(x => x.id === id);
+            return p ? p.badge : id;
+          });
+          hintEl.innerHTML = `<span class="text-gold-400 font-semibold">✨ Auto-suggested:</span> ${names.join(', ')}`;
+        } else {
+          hintEl.innerText = 'Type above to auto-match or tap any tag';
+        }
+      }
+
+      container.innerHTML = ADHD_PATTERNS.map(pattern => {
+        const isSelected = selectedAdhdTags.has(pattern.id);
+        const isAutoSuggested = autoSuggestedAdhdTags.has(pattern.id) && !isSelected;
+
+        let styleClass = pattern.borderClass;
+        let indicator = '';
+
+        if (isSelected) {
+          styleClass = pattern.activeClass;
+          indicator = '✓ ';
+        } else if (isAutoSuggested) {
+          styleClass = pattern.suggestedClass;
+          indicator = '✨ ';
+        }
+
+        return `
+          <button
+            type="button"
+            onclick="window.toggleAdhdTag('${pattern.id}')"
+            class="px-2.5 py-1 rounded-lg text-[11px] font-mono border transition-all flex items-center space-x-1 ${styleClass} focus:outline-none"
+            title="${pattern.desc}"
+          >
+            <span>${indicator}${escapeHtml(pattern.label)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    window.toggleAdhdTag = function(tagId) {
+      if (selectedAdhdTags.has(tagId)) {
+        selectedAdhdTags.delete(tagId);
+      } else {
+        selectedAdhdTags.add(tagId);
+      }
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(620, 'sine', 0.08, 0.03);
+      }
+      renderAdhdTags();
+    };
+
+    window.onTaskTitleOrNotesInput = function() {
+      const title = document.getElementById('newTaskTitleInput')?.value || '';
+      const notes = document.getElementById('newTaskNotesInput')?.value || '';
+      const combined = `${title} ${notes}`.toLowerCase();
+
+      autoSuggestedAdhdTags.clear();
+
+      if (combined.trim().length >= 2) {
+        for (const pattern of ADHD_PATTERNS) {
+          for (const kw of pattern.keywords) {
+            const regex = new RegExp(`\\b${kw}`, 'i');
+            if (regex.test(combined)) {
+              autoSuggestedAdhdTags.add(pattern.id);
+              break;
+            }
+          }
+        }
+      }
+
+      renderAdhdTags();
+    };
+
+    // ============================================================
+    // LOCAL SEARCH INPUT & FILTER ENGINE
+    // ============================================================
+    window.onTasksSearchInput = function(query) {
+      activeTasksSearchQuery = (query || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('tasksSearchClearBtn');
+      const searchTag = document.getElementById('searchActiveTag');
+
+      if (clearBtn) {
+        if (activeTasksSearchQuery.length > 0) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
+      }
+
+      if (searchTag) {
+        if (activeTasksSearchQuery.length > 0) {
+          searchTag.classList.remove('hidden');
+        } else {
+          searchTag.classList.add('hidden');
+        }
+      }
+
+      renderTasks();
+    };
+
+    window.clearTasksSearch = function() {
+      const searchInput = document.getElementById('tasksSearchInput');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      window.onTasksSearchInput('');
+    };
+
+    function highlightSearchMatch(text, query) {
+      if (!text) return '';
+      if (!query) return escapeHtml(text);
+      const escaped = escapeHtml(text);
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escapedQuery})`, 'gi');
+      return escaped.replace(regex, '<mark class="bg-gold-500/35 text-gold-200 rounded px-0.5">$1</mark>');
+    }
+
+    // ============================================================
+    // TASK FILTERING & RENDERING
+    // ============================================================
     window.setTasksFilter = function(filter) {
       activeTaskFilter = filter;
       const allBtn = document.getElementById('filterBtnAll');
@@ -2108,16 +2399,49 @@
     function renderTasks() {
       if (!tasksListContainer) return;
 
+      const query = activeTasksSearchQuery;
+
       const filtered = currentTasks.filter(task => {
-        if (activeTaskFilter === 'needsAction') return task.status === 'needsAction';
-        if (activeTaskFilter === 'completed') return task.status === 'completed';
+        // Status filter
+        if (activeTaskFilter === 'needsAction' && task.status !== 'needsAction') return false;
+        if (activeTaskFilter === 'completed' && task.status !== 'completed') return false;
+
+        // Search filter (filters by task title and notes content)
+        if (query) {
+          const title = (task.title || '').toLowerCase();
+          const notes = (task.notes || '').toLowerCase();
+          if (!title.includes(query) && !notes.includes(query)) {
+            return false;
+          }
+        }
         return true;
       });
 
       if (filtered.length === 0) {
         tasksListContainer.innerHTML = '';
-        if (tasksEmptyState) tasksEmptyState.classList.remove('hidden');
-        if (tasksEmptyState) tasksEmptyState.classList.add('flex');
+        if (tasksEmptyState) {
+          tasksEmptyState.classList.remove('hidden');
+          tasksEmptyState.classList.add('flex');
+
+          if (query) {
+            tasksEmptyState.innerHTML = `
+              <div class="w-12 h-12 rounded-full bg-space-950 border border-slate-700 flex items-center justify-center text-gold-400 mb-3 shadow-inner">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+              <div class="font-orbitron text-sm font-semibold text-slate-200 mb-1">No Tasks Matching Search</div>
+              <div class="text-xs text-slate-400 max-w-sm mb-3">No tasks found matching "${escapeHtml(query)}" in title or notes content.</div>
+              <button type="button" onclick="window.clearTasksSearch()" class="px-3.5 py-1.5 rounded-xl text-xs font-mono bg-space-850 hover:bg-space-800 border border-gold-400/40 text-gold-300 hover:text-white transition-all">Clear Search Query</button>
+            `;
+          } else {
+            tasksEmptyState.innerHTML = `
+              <svg class="w-12 h-12 text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+              </svg>
+              <div class="font-orbitron text-sm font-semibold text-slate-300 mb-1">No Tasks in this Filter</div>
+              <div class="text-xs text-slate-500 max-w-sm">Use "+ Add Task" above to add your next focus objective or switch lists.</div>
+            `;
+          }
+        }
       } else {
         if (tasksEmptyState) {
           tasksEmptyState.classList.add('hidden');
@@ -2127,6 +2451,24 @@
         tasksListContainer.innerHTML = filtered.map(task => {
           const isDone = task.status === 'completed';
           const dueDateFormatted = task.due ? new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
+
+          // Detect ADHD pattern badges in title or notes
+          let cleanTitle = task.title || 'Untitled task';
+          const detectedBadges = [];
+
+          ADHD_PATTERNS.forEach(pat => {
+            if (cleanTitle.includes(`[${pat.badge}]`)) {
+              detectedBadges.push(pat);
+              cleanTitle = cleanTitle.replace(`[${pat.badge}]`, '').trim();
+            } else if (cleanTitle.includes(pat.badge)) {
+              detectedBadges.push(pat);
+            } else if (task.notes && task.notes.includes(pat.badge)) {
+              detectedBadges.push(pat);
+            }
+          });
+
+          const highlightedTitle = highlightSearchMatch(cleanTitle, query);
+          const highlightedNotes = task.notes ? highlightSearchMatch(task.notes, query) : null;
 
           return `
             <div class="group relative p-3 sm:p-4 rounded-xl ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'} border transition-all glass-hud flex items-start justify-between gap-3 shadow-md">
@@ -2138,10 +2480,17 @@
 
                 <!-- Title & Details -->
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
-                    ${escapeHtml(task.title || 'Untitled task')}
+                  <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
+                    ${detectedBadges.map(b => `
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border ${b.badgeBg}">
+                        ${escapeHtml(b.badge)}
+                      </span>
+                    `).join('')}
                   </div>
-                  ${task.notes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${escapeHtml(task.notes)}</div>` : ''}
+                  <div class="text-sm font-sans ${isDone ? 'line-through text-slate-400 font-normal' : 'text-slate-100 font-semibold'} leading-snug break-words">
+                    ${highlightedTitle}
+                  </div>
+                  ${highlightedNotes ? `<div class="text-xs font-sans text-slate-400 mt-1 line-clamp-2">${highlightedNotes}</div>` : ''}
                   
                   <!-- Metadata Pill: Due date or completion -->
                   <div class="flex items-center space-x-2 mt-1.5 text-[10px] font-mono">
@@ -2172,7 +2521,11 @@
         const total = currentTasks.length;
         const pending = currentTasks.filter(t => t.status === 'needsAction').length;
         const done = currentTasks.filter(t => t.status === 'completed').length;
-        taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${total} Total`;
+        if (query) {
+          taskCountSummary.innerText = `${filtered.length} of ${total} matched • "${query}"`;
+        } else {
+          taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${total} Total`;
+        }
       }
     }
 
@@ -2263,9 +2616,13 @@
       const isHidden = newTaskFormContainer.classList.contains('hidden');
       if (isHidden) {
         newTaskFormContainer.classList.remove('hidden');
+        renderAdhdTags();
         document.getElementById('newTaskTitleInput')?.focus();
       } else {
         newTaskFormContainer.classList.add('hidden');
+        selectedAdhdTags.clear();
+        autoSuggestedAdhdTags.clear();
+        renderAdhdTags();
       }
     };
 
@@ -2279,7 +2636,7 @@
       const submitBtn = document.getElementById('saveTaskSubmitBtn');
 
       const title = titleInput?.value?.trim();
-      const notes = notesInput?.value?.trim();
+      const userNotes = notesInput?.value?.trim();
       const due = dueInput?.value;
 
       if (!title) return;
@@ -2289,9 +2646,32 @@
         submitBtn.innerText = "SAVING...";
       }
 
+      // Attach ADHD pattern tags
+      const tagsToApply = Array.from(selectedAdhdTags);
+      let finalTitle = title;
+      if (tagsToApply.length > 0) {
+        const badges = tagsToApply.map(id => {
+          const p = ADHD_PATTERNS.find(x => x.id === id);
+          return p ? `[${p.badge}]` : '';
+        }).filter(Boolean);
+        if (badges.length > 0) {
+          finalTitle = `${badges.join(' ')} ${title}`;
+        }
+      }
+
+      let finalNotes = userNotes || '';
+      if (tagsToApply.length > 0) {
+        const labels = tagsToApply.map(id => {
+          const p = ADHD_PATTERNS.find(x => x.id === id);
+          return p ? p.label : id;
+        });
+        const tagsNoteHeader = `🏷️ ADHD Focus: ${labels.join(', ')}`;
+        finalNotes = finalNotes ? `${tagsNoteHeader}\n${finalNotes}` : tagsNoteHeader;
+      }
+
       try {
-        const payload = { title };
-        if (notes) payload.notes = notes;
+        const payload = { title: finalTitle };
+        if (finalNotes) payload.notes = finalNotes;
         if (due) payload.due = `${due}T00:00:00.000Z`;
 
         const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${activeTaskListId}/tasks`, {
@@ -2310,10 +2690,14 @@
         renderTasks();
         updateTasksBadges();
 
-        // Clear form
+        // Clear form and tags
         if (titleInput) titleInput.value = '';
         if (notesInput) notesInput.value = '';
         if (dueInput) dueInput.value = '';
+        selectedAdhdTags.clear();
+        autoSuggestedAdhdTags.clear();
+        renderAdhdTags();
+
         window.toggleNewTaskForm();
 
         if (typeof window.playSynthBeep === 'function') {
