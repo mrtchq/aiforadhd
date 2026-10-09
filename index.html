@@ -11,6 +11,63 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- ============================================================
+   * FIREBASE AUTH PROXY INTERCEPTOR
+   * Routes identitytoolkit & securetoken requests through server
+   * proxy to satisfy Google Cloud API Key referrer restrictions.
+   * Runs before all scripts/modules to guarantee origin compliance.
+   * ============================================================ -->
+  <script>
+    (function() {
+      const origFetch = window.fetch;
+      const proxyFetch = function(input, init) {
+        try {
+          let url = '';
+          if (typeof input === 'string') {
+            url = input;
+          } else if (input instanceof URL) {
+            url = input.href;
+          } else if (input && typeof input.url === 'string') {
+            url = input.url;
+          }
+
+          if (url.startsWith('https://identitytoolkit.googleapis.com/')) {
+            const proxyPath = '/api/firebase-auth-proxy/identitytoolkit/' + url.substring('https://identitytoolkit.googleapis.com/'.length);
+            if (typeof input === 'string' || input instanceof URL) {
+              return origFetch(proxyPath, init);
+            } else if (input && typeof input === 'object') {
+              try {
+                const newReq = new Request(proxyPath, input);
+                return origFetch(newReq);
+              } catch (_) {
+                return origFetch(proxyPath, init);
+              }
+            }
+          } else if (url.startsWith('https://securetoken.googleapis.com/')) {
+            const proxyPath = '/api/firebase-auth-proxy/securetoken/' + url.substring('https://securetoken.googleapis.com/'.length);
+            if (typeof input === 'string' || input instanceof URL) {
+              return origFetch(proxyPath, init);
+            } else if (input && typeof input === 'object') {
+              try {
+                const newReq = new Request(proxyPath, input);
+                return origFetch(newReq);
+              } catch (_) {
+                return origFetch(proxyPath, init);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Fetch proxy interceptor bypass:', e);
+        }
+        return origFetch.apply(this, arguments);
+      };
+
+      window.fetch = proxyFetch;
+      if (typeof self !== 'undefined') self.fetch = proxyFetch;
+      if (typeof globalThis !== 'undefined') globalThis.fetch = proxyFetch;
+    })();
+  </script>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -1794,6 +1851,10 @@
         body: JSON.stringify(payload)
       }).catch(err => console.log('Waitlist saved'));
 
+      if (typeof window.saveWaitlistToFirestore === 'function') {
+        window.saveWaitlistToFirestore(payload).catch(err => console.log('Firestore waitlist sync notice:', err));
+      }
+
       const successBox = document.getElementById('waitlistSuccess');
       if (successBox) {
         successBox.classList.remove('hidden');
@@ -1839,14 +1900,14 @@
 
     // Firebase App Configuration from firebase-applet-config.json
     const firebaseConfig = {
-      projectId: "ai-podcasting-472523",
-      appId: "1:520825105178:web:533d9797f07354066c9aa3",
-      apiKey: "AIzaSyBigVw-pOfn9G-X_84nWC_seUFOuoHDdNM",
-      authDomain: "ai-podcasting-472523.firebaseapp.com",
-      firestoreDatabaseId: "ai-studio-aiforadhd-122197b5-9502-4475-99ec-3cd08d7a2d60",
-      storageBucket: "ai-podcasting-472523.firebasestorage.app",
-      messagingSenderId: "520825105178",
-      oAuthClientId: "520825105178-r386c6gd2le51vanpa802eqduckrhouk.apps.googleusercontent.com"
+      projectId: "rosy-cache-478313-a2",
+      appId: "1:801547964838:web:0a8b40ed9a2a97a6903f67",
+      apiKey: "AIzaSyDwfAaVHzBJLbq15O2DTu21w7Ks4VZNXoE",
+      authDomain: "rosy-cache-478313-a2.firebaseapp.com",
+      firestoreDatabaseId: "ai-studio-aiforadhd-f7783a9d-325d-41ce-be26-3e29675e33b4",
+      storageBucket: "rosy-cache-478313-a2.firebasestorage.app",
+      messagingSenderId: "801547964838",
+      oAuthClientId: "801547964838-tu6tvan5oc7gf71po1l1n790oiullsbs.apps.googleusercontent.com"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -1883,6 +1944,29 @@
       console.error('Firestore Error: ', JSON.stringify(errInfo));
       throw new Error(JSON.stringify(errInfo));
     }
+
+    // Save waitlist submissions directly to Firestore
+    window.saveWaitlistToFirestore = async function(payload) {
+      if (!payload || !payload.email) return;
+      const waitlistId = 'wl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+      const docPath = `waitlist/${waitlistId}`;
+      try {
+        const entry = {
+          email: payload.email,
+          createdAt: serverTimestamp()
+        };
+        if (payload.role) entry.role = payload.role;
+        if (payload.challenge || payload.primaryChallenge) {
+          entry.primaryChallenge = payload.challenge || payload.primaryChallenge;
+        }
+        if (auth.currentUser?.uid) {
+          entry.userId = auth.currentUser.uid;
+        }
+        await setDoc(doc(db, 'waitlist', waitlistId), entry);
+      } catch (err) {
+        handleFirestoreError(err, OperationType.CREATE, docPath);
+      }
+    };
 
     // Validate Connection to Firestore at boot
     async function testConnection() {

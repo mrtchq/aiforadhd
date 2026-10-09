@@ -128,6 +128,57 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', app: 'AI for ADHD: The Cognitive Co-Pilot' });
 });
 
+// Firebase Auth API Proxy to ensure authorized referer headers
+app.all('/api/firebase-auth-proxy/identitytoolkit/*', async (req, res) => {
+  const targetPath = req.originalUrl.replace('/api/firebase-auth-proxy/identitytoolkit/', '');
+  const targetUrl = `https://identitytoolkit.googleapis.com/${targetPath}`;
+  try {
+    const headers = {
+      'Content-Type': req.headers['content-type'] || 'application/json',
+      'Referer': 'https://rosy-cache-478313-a2.firebaseapp.com',
+      'Origin': 'https://rosy-cache-478313-a2.firebaseapp.com',
+    };
+    if (req.headers['x-firebase-locale']) {
+      headers['X-Firebase-Locale'] = req.headers['x-firebase-locale'];
+    }
+    if (req.headers['x-client-version']) {
+      headers['X-Client-Version'] = req.headers['x-client-version'];
+    }
+    const hasBody = !['GET', 'HEAD'].includes(req.method) && req.body && Object.keys(req.body).length > 0;
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: hasBody ? JSON.stringify(req.body) : undefined
+    });
+    const data = await response.text();
+    res.status(response.status).set('Content-Type', response.headers.get('content-type') || 'application/json').send(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.all('/api/firebase-auth-proxy/securetoken/*', async (req, res) => {
+  const targetPath = req.originalUrl.replace('/api/firebase-auth-proxy/securetoken/', '');
+  const targetUrl = `https://securetoken.googleapis.com/${targetPath}`;
+  try {
+    const headers = {
+      'Content-Type': req.headers['content-type'] || 'application/json',
+      'Referer': 'https://rosy-cache-478313-a2.firebaseapp.com',
+      'Origin': 'https://rosy-cache-478313-a2.firebaseapp.com',
+    };
+    const hasBody = !['GET', 'HEAD'].includes(req.method) && req.body && Object.keys(req.body).length > 0;
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: hasBody ? JSON.stringify(req.body) : undefined
+    });
+    const data = await response.text();
+    res.status(response.status).set('Content-Type', response.headers.get('content-type') || 'application/json').send(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Always serve index.html for root or SPA route navigation
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.ts",
+    "dev": "PORT=3000 node server.ts",
     "build": "echo 'Build successful'",
-    "start": "node server.ts"
+    "start": "PORT=3000 node server.ts"
   },
   "dependencies": {
     "express": "^4.21.2",

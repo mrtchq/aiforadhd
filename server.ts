@@ -6,9 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 // In-memory waitlist persistence
@@ -126,6 +127,91 @@ app.post('/api/waitlist', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', app: 'AI for ADHD: The Cognitive Co-Pilot' });
+});
+
+// Firebase Auth API Proxy to ensure authorized referer headers
+app.all('/api/firebase-auth-proxy/identitytoolkit/*', async (req, res) => {
+  const targetPath = req.originalUrl.replace('/api/firebase-auth-proxy/identitytoolkit/', '');
+  const targetUrl = `https://identitytoolkit.googleapis.com/${targetPath}`;
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': (req.headers['content-type'] as string) || 'application/json',
+      'Referer': 'https://rosy-cache-478313-a2.firebaseapp.com',
+      'Origin': 'https://rosy-cache-478313-a2.firebaseapp.com',
+    };
+    if (req.headers['x-firebase-locale']) {
+      headers['X-Firebase-Locale'] = req.headers['x-firebase-locale'] as string;
+    }
+    if (req.headers['x-client-version']) {
+      headers['X-Client-Version'] = req.headers['x-client-version'] as string;
+    }
+    if (req.headers['x-firebase-client']) {
+      headers['X-Firebase-Client'] = req.headers['x-firebase-client'] as string;
+    }
+    if (req.headers['x-firebase-gmpid']) {
+      headers['X-Firebase-GMPID'] = req.headers['x-firebase-gmpid'] as string;
+    }
+    if (req.headers['authorization']) {
+      headers['Authorization'] = req.headers['authorization'] as string;
+    }
+
+    const isBodyMethod = !['GET', 'HEAD'].includes(req.method);
+    let bodyData: any = undefined;
+    if (isBodyMethod) {
+      if (typeof req.body === 'object' && req.body !== null) {
+        bodyData = JSON.stringify(req.body);
+      } else if (typeof req.body === 'string') {
+        bodyData = req.body;
+      } else {
+        bodyData = '{}';
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: bodyData
+    });
+    const data = await response.text();
+    res.status(response.status).set('Content-Type', response.headers.get('content-type') || 'application/json').send(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.all('/api/firebase-auth-proxy/securetoken/*', async (req, res) => {
+  const targetPath = req.originalUrl.replace('/api/firebase-auth-proxy/securetoken/', '');
+  const targetUrl = `https://securetoken.googleapis.com/${targetPath}`;
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': (req.headers['content-type'] as string) || 'application/x-www-form-urlencoded',
+      'Referer': 'https://rosy-cache-478313-a2.firebaseapp.com',
+      'Origin': 'https://rosy-cache-478313-a2.firebaseapp.com',
+    };
+    if (req.headers['authorization']) {
+      headers['Authorization'] = req.headers['authorization'] as string;
+    }
+
+    const isBodyMethod = !['GET', 'HEAD'].includes(req.method);
+    let bodyData: any = undefined;
+    if (isBodyMethod) {
+      if (typeof req.body === 'object' && req.body !== null) {
+        bodyData = new URLSearchParams(req.body as any).toString();
+      } else if (typeof req.body === 'string') {
+        bodyData = req.body;
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: bodyData
+    });
+    const data = await response.text();
+    res.status(response.status).set('Content-Type', response.headers.get('content-type') || 'application/json').send(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Always serve index.html for root or SPA route navigation

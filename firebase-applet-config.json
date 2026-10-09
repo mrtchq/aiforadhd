@@ -1,11 +1,12 @@
 {
-  "projectId": "ai-podcasting-472523",
-  "appId": "1:520825105178:web:533d9797f07354066c9aa3",
-  "apiKey": "AIzaSyBigVw-pOfn9G-X_84nWC_seUFOuoHDdNM",
-  "authDomain": "ai-podcasting-472523.firebaseapp.com",
-  "storageBucket": "ai-podcasting-472523.firebasestorage.app",
-  "messagingSenderId": "520825105178",
+  "projectId": "rosy-cache-478313-a2",
+  "appId": "1:801547964838:web:0a8b40ed9a2a97a6903f67",
+  "apiKey": "AIzaSyDwfAaVHzBJLbq15O2DTu21w7Ks4VZNXoE",
+  "authDomain": "rosy-cache-478313-a2.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-aiforadhd-f7783a9d-325d-41ce-be26-3e29675e33b4",
+  "storageBucket": "rosy-cache-478313-a2.firebasestorage.app",
+  "messagingSenderId": "801547964838",
   "measurementId": "",
-  "oAuthClientId": "520825105178-r386c6gd2le51vanpa802eqduckrhouk.apps.googleusercontent.com",
+  "oAuthClientId": "801547964838-tu6tvan5oc7gf71po1l1n790oiullsbs.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }
