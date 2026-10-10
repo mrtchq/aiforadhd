@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "PORT=3000 node server.ts",
     "build": "echo 'Build successful'",
+    "lint": "node --check server.ts",
     "start": "PORT=3000 node server.ts"
   },
   "dependencies": {

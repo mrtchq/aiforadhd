@@ -214,6 +214,103 @@ app.all('/api/firebase-auth-proxy/securetoken/*', async (req, res) => {
   }
 });
 
+// Google Calendar API Proxy
+app.all('/api/calendar/events*', async (req, res) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ error: 'Missing authorization bearer token' });
+  const calendarId = (req.query.calendarId as string) || 'primary';
+  const queryParams = new URLSearchParams();
+  for (const [k, v] of Object.entries(req.query)) {
+    if (k !== 'calendarId' && typeof v === 'string') queryParams.append(k, v);
+  }
+  const qStr = queryParams.toString() ? `?${queryParams.toString()}` : '';
+  const eventId = req.params[0] ? req.params[0].replace(/^\//, '') : '';
+  const url = eventId
+    ? `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}${qStr}`
+    : `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events${qStr}`;
+
+  try {
+    const isBody = !['GET', 'HEAD', 'DELETE'].includes(req.method);
+    const apiRes = await fetch(url, {
+      method: req.method,
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      },
+      body: isBody ? JSON.stringify(req.body) : undefined
+    });
+    const text = await apiRes.text();
+    res.status(apiRes.status).set('Content-Type', apiRes.headers.get('content-type') || 'application/json').send(text);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/calendar/calendarList', async (req, res) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ error: 'Missing authorization bearer token' });
+  try {
+    const apiRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { 'Authorization': token }
+    });
+    const text = await apiRes.text();
+    res.status(apiRes.status).set('Content-Type', apiRes.headers.get('content-type') || 'application/json').send(text);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Google Tasks API Proxy
+app.all('/api/tasks/lists*', async (req, res) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ error: 'Missing authorization bearer token' });
+  const listId = req.params[0] ? req.params[0].replace(/^\//, '') : '';
+  const url = listId
+    ? `https://tasks.googleapis.com/tasks/v1/users/@me/lists/${encodeURIComponent(listId)}`
+    : `https://tasks.googleapis.com/tasks/v1/users/@me/lists`;
+  try {
+    const isBody = !['GET', 'HEAD', 'DELETE'].includes(req.method);
+    const apiRes = await fetch(url, {
+      method: req.method,
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      },
+      body: isBody ? JSON.stringify(req.body) : undefined
+    });
+    const text = await apiRes.text();
+    res.status(apiRes.status).set('Content-Type', apiRes.headers.get('content-type') || 'application/json').send(text);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.all('/api/tasks/items*', async (req, res) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ error: 'Missing authorization bearer token' });
+  const listId = (req.query.listId as string) || '@default';
+  const taskId = req.query.taskId as string;
+  const qStr = req.query.showCompleted ? '?showCompleted=true&showHidden=true' : '';
+  const url = taskId
+    ? `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks/${encodeURIComponent(taskId)}`
+    : `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks${qStr}`;
+  try {
+    const isBody = !['GET', 'HEAD', 'DELETE'].includes(req.method);
+    const apiRes = await fetch(url, {
+      method: req.method,
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+      },
+      body: isBody ? JSON.stringify(req.body) : undefined
+    });
+    const text = await apiRes.text();
+    res.status(apiRes.status).set('Content-Type', apiRes.headers.get('content-type') || 'application/json').send(text);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Always serve index.html for root or SPA route navigation
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
