@@ -9,6 +9,7 @@
     "start": "PORT=3000 node server.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.28.0",
     "express": "^4.21.2",
     "firebase": "^13.0.0",
     "react": "^19.3.0",
