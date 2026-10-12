@@ -311,7 +311,6 @@
       width: 100%;
       height: 100%;
       filter: blur(1.2rem);
-      animation: pulse_3011 4s infinite;
       z-index: -1;
       position: absolute;
       border-radius: 50%;
@@ -323,7 +322,6 @@
 
     .circle:nth-of-type(2) {
       background: rgba(11, 11, 11, 0.704);
-      animation-delay: 1s;
     }
 
     .btn:hover #container-stars {
@@ -411,19 +409,111 @@
       }
     }
 
-    @keyframes pulse_3011 {
+    /* ============================================================
+     * ANIMATED "LEARN MORE" BUTTON (Splash Screen Guest Entry)
+     * ============================================================ */
+    .btn-learn-more {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      padding: 0.75rem 2rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.8125rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: linear-gradient(135deg, rgba(13, 15, 26, 0.9), rgba(25, 22, 42, 0.95));
+      border: 1px solid rgba(255, 209, 89, 0.45);
+      border-radius: 9999px;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 209, 89, 0.18), 0 0 40px rgba(0, 229, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Rotating / Sweeping Cosmic Border Glow */
+    .btn-learn-more::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 9999px;
+      padding: 2px;
+      background: linear-gradient(
+        90deg,
+        #ffd159,
+        #f59e0b,
+        #00e5ff,
+        #a855f7,
+        #ffd159
+      );
+      background-size: 300% 300%;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: rainbowGlow 5s linear infinite;
+      pointer-events: none;
+      opacity: 0.75;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Sweeping light sheen across the button */
+    .btn-learn-more::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -150%;
+      width: 80%;
+      height: 200%;
+      background: linear-gradient(
+        60deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 209, 89, 0.35),
+        rgba(0, 229, 255, 0.25),
+        transparent
+      );
+      transform: rotate(25deg);
+      animation: learnMoreShine 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      pointer-events: none;
+    }
+
+    @keyframes learnMoreShine {
       0% {
-        transform: scale(0.75);
-        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+        left: -150%;
       }
-      70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+      30%, 100% {
+        left: 200%;
       }
-      100% {
-        transform: scale(0.75);
-        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-      }
+    }
+
+    .btn-learn-more:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 0 35px rgba(255, 209, 89, 0.55), 0 0 60px rgba(0, 229, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      border-color: rgba(255, 209, 89, 0.8);
+      color: #fffdf5;
+    }
+
+    .btn-learn-more:hover::before {
+      opacity: 1;
+      animation-duration: 2.5s;
+    }
+
+    .btn-learn-more:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 0 15px rgba(255, 209, 89, 0.4);
+    }
+
+    .btn-learn-more .arrow-icon {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-learn-more:hover .arrow-icon {
+      transform: translateX(4px);
     }
 
     /* Drag & Drop Task Indicators */
@@ -785,206 +875,22 @@
     }
 
     /* ============================================================
-     * FANCY SPLASH WALLPAPER ANIMATIONS (Cosmic Synaptic Nebulae)
+     * SPLASH WALLPAPER BACKDROP (Calm, High-Performance Ambient Glows)
      * ============================================================ */
-    @keyframes splashAurora1 {
-      0% {
-        transform: translate(-15%, -15%) scale(1) rotate(0deg);
-        opacity: 0.55;
-      }
-      33% {
-        transform: translate(12%, 8%) scale(1.18) rotate(120deg);
-        opacity: 0.75;
-      }
-      66% {
-        transform: translate(-8%, 18%) scale(0.92) rotate(240deg);
-        opacity: 0.5;
-      }
-      100% {
-        transform: translate(-15%, -15%) scale(1) rotate(360deg);
-        opacity: 0.55;
-      }
-    }
-
-    @keyframes splashAurora2 {
-      0% {
-        transform: translate(15%, 15%) scale(1) rotate(360deg);
-        opacity: 0.45;
-      }
-      50% {
-        transform: translate(-18%, -12%) scale(1.22) rotate(180deg);
-        opacity: 0.7;
-      }
-      100% {
-        transform: translate(15%, 15%) scale(1) rotate(0deg);
-        opacity: 0.45;
-      }
-    }
-
-    @keyframes splashAurora3 {
-      0%, 100% {
-        transform: translate(0%, 0%) scale(0.95);
-        opacity: 0.4;
-      }
-      50% {
-        transform: translate(-10%, 14%) scale(1.15);
-        opacity: 0.65;
-      }
-    }
-
-    .splash-aurora-glow-1 {
-      animation: splashAurora1 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
-    }
-
-    .splash-aurora-glow-2 {
-      animation: splashAurora2 30s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
-    }
-
-    .splash-aurora-glow-3 {
-      animation: splashAurora3 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
-    }
-
-    /* Bottom Aurora Shimmer Waves (Energizing the bottom section) */
-    @keyframes splashAuroraBottom1 {
-      0% {
-        transform: translate(-10%, 8%) scale(1) rotate(0deg);
-        opacity: 0.5;
-      }
-      50% {
-        transform: translate(14%, -14%) scale(1.22) rotate(180deg);
-        opacity: 0.75;
-      }
-      100% {
-        transform: translate(-10%, 8%) scale(1) rotate(360deg);
-        opacity: 0.5;
-      }
-    }
-
-    @keyframes splashAuroraBottom2 {
-      0% {
-        transform: translate(10%, -8%) scale(1.1) rotate(360deg);
-        opacity: 0.45;
-      }
-      50% {
-        transform: translate(-12%, 16%) scale(0.96) rotate(180deg);
-        opacity: 0.72;
-      }
-      100% {
-        transform: translate(10%, -8%) scale(1.1) rotate(0deg);
-        opacity: 0.45;
-      }
-    }
-
-    @keyframes splashAuroraBottom3 {
-      0%, 100% {
-        transform: translate(0%, 4%) scale(1);
-        opacity: 0.4;
-      }
-      50% {
-        transform: translate(-8%, -10%) scale(1.25);
-        opacity: 0.65;
-      }
-    }
-
-    .splash-aurora-glow-bottom-1 {
-      animation: splashAuroraBottom1 22s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
-    }
-    .splash-aurora-glow-bottom-2 {
-      animation: splashAuroraBottom2 28s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
-    }
+    .splash-aurora-glow-1,
+    .splash-aurora-glow-2,
+    .splash-aurora-glow-3,
+    .splash-aurora-glow-bottom-1,
+    .splash-aurora-glow-bottom-2,
     .splash-aurora-glow-bottom-3 {
-      animation: splashAuroraBottom3 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-      will-change: transform, opacity;
+      animation: none !important;
+      will-change: auto;
     }
 
-    /* Fluid Bottom Synaptic Wave Drift */
-    @keyframes bottomWaveDrift1 {
-      0% { transform: translateX(0) translateZ(0) scaleY(1); }
-      50% { transform: translateX(-25%) translateZ(0) scaleY(1.12); }
-      100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
-    }
-    @keyframes bottomWaveDrift2 {
-      0% { transform: translateX(-50%) translateZ(0) scaleY(1.08); }
-      50% { transform: translateX(-25%) translateZ(0) scaleY(0.92); }
-      100% { transform: translateX(0) translateZ(0) scaleY(1.08); }
-    }
-    .splash-bottom-wave-1 {
-      animation: bottomWaveDrift1 24s linear infinite;
-      will-change: transform;
-    }
+    .splash-bottom-wave-1,
     .splash-bottom-wave-2 {
-      animation: bottomWaveDrift2 18s linear infinite;
-      will-change: transform;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .splash-aurora-glow-1,
-      .splash-aurora-glow-2,
-      .splash-aurora-glow-3,
-      .splash-aurora-glow-bottom-1,
-      .splash-aurora-glow-bottom-2,
-      .splash-aurora-glow-bottom-3,
-      .splash-bottom-wave-1,
-      .splash-bottom-wave-2,
-      .splash-brainwave-ring-1,
-      .splash-brainwave-ring-2,
-      .splash-brainwave-ring-3,
-      .splash-neuro-grid-anim {
-        animation: none !important;
-      }
-    }
-
-    /* Fancy Wallpaper Brainwave Resonance Waves & Neuro Grid */
-    @keyframes neuroWavePulse {
-      0% {
-        transform: translate(-50%, -50%) scale(0.35);
-        opacity: 0.75;
-      }
-      50% {
-        opacity: 0.35;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(2.6);
-        opacity: 0;
-      }
-    }
-
-    .splash-brainwave-ring {
-      position: absolute;
-      top: 36%;
-      left: 50%;
-      border-radius: 9999px;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      will-change: transform, opacity;
-    }
-    .splash-brainwave-ring-1 {
-      width: 280px;
-      height: 280px;
-      border: 1.5px solid rgba(255, 209, 89, 0.45);
-      box-shadow: 0 0 30px rgba(255, 209, 89, 0.28), inset 0 0 20px rgba(255, 209, 89, 0.15);
-      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-    }
-    .splash-brainwave-ring-2 {
-      width: 420px;
-      height: 420px;
-      border: 1.5px solid rgba(192, 132, 252, 0.4);
-      box-shadow: 0 0 35px rgba(192, 132, 252, 0.22), inset 0 0 25px rgba(192, 132, 252, 0.1);
-      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-      animation-delay: 2.15s;
-    }
-    .splash-brainwave-ring-3 {
-      width: 580px;
-      height: 580px;
-      border: 1px solid rgba(0, 229, 255, 0.35);
-      box-shadow: 0 0 40px rgba(0, 229, 255, 0.18);
-      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-      animation-delay: 4.3s;
+      animation: none !important;
+      will-change: auto;
     }
 
     .splash-neuro-grid {
@@ -996,12 +902,8 @@
       -webkit-mask-image: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.88) 0%, transparent 92%);
     }
 
-    @keyframes gridDrift {
-      0% { background-position: 0 0; }
-      100% { background-position: 64px 64px; }
-    }
     .splash-neuro-grid-anim {
-      animation: gridDrift 28s linear infinite;
+      animation: none !important;
     }
 
     /* Smooth fading transitions and hover enforcement for swipe arrows */
@@ -1038,12 +940,7 @@
         <div class="splash-aurora-glow-bottom-3 absolute bottom-[12%] left-[32%] w-[620px] sm:w-[760px] h-[440px] sm:h-[580px] rounded-full bg-gradient-to-t from-purple-600/35 via-pink-600/25 to-transparent"></div>
       </div>
 
-      <!-- 3) Resonant Brainwave Harmonic Rings (expanding behind the brain logo) -->
-      <div class="splash-brainwave-ring splash-brainwave-ring-1"></div>
-      <div class="splash-brainwave-ring splash-brainwave-ring-2"></div>
-      <div class="splash-brainwave-ring splash-brainwave-ring-3"></div>
-
-      <!-- 4) Dynamic Interactive Synaptic Constellation Canvas (Full Viewport) -->
+      <!-- 3) Dynamic Interactive Starry Wallpaper Canvas (Full Viewport) -->
       <canvas id="splashWallpaperCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
       <!-- 5) Ambient Bioluminescent Neural Horizon Wave Stream at Bottom -->
@@ -1115,19 +1012,29 @@
 
         <!-- Signed in profile card (when already authenticated) - moved down to leave space for enlarged logo -->
         <div id="signedInPreview" class="hidden items-center justify-between gap-3 p-3 px-5 sm:px-6 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-2xl backdrop-blur-xl mt-5 sm:mt-7 max-w-md w-full sm:w-auto">
-          <img id="splashUserAvatar" src="" alt="User Avatar" class="w-10 h-10 rounded-full border border-gold-400 object-cover shrink-0" />
-          <div class="text-left text-xs min-w-0 flex-1">
+          <img id="splashUserAvatar" src="" alt="User Avatar" onclick="window.openAccountPage()" class="w-10 h-10 rounded-full border border-gold-400 object-cover shrink-0 cursor-pointer hover:ring-2 hover:ring-gold-400 transition-all" title="View Account Page" />
+          <div class="text-left text-xs min-w-0 flex-1 cursor-pointer" onclick="window.openAccountPage()" title="View Account Page">
             <div id="splashUserName" class="font-bold text-white leading-tight truncate"></div>
             <div id="splashUserEmail" class="text-[10px] text-slate-400 leading-tight truncate"></div>
           </div>
-          <button id="enterAppDirectBtn" class="ml-2 sm:ml-4 px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-gold-400 to-amber-500 text-space-950 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20 shrink-0">
-            ENTER CO-PILOT
-          </button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="window.openAccountPage()" class="px-3 py-2 rounded-xl text-xs font-orbitron font-semibold bg-space-800 text-gold-300 hover:text-white hover:bg-space-750 border border-gold-400/30 transition-all" title="Manage Account Vault">
+              ACCOUNT
+            </button>
+            <button id="enterAppDirectBtn" class="px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-gold-400 to-amber-500 text-space-950 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20">
+              ENTER CO-PILOT
+            </button>
+          </div>
         </div>
 
-        <!-- Subtle Guest / Demo Bypass Option -->
-        <button id="guestBypassBtn" class="pt-2 text-xs font-rajdhani tracking-wider text-slate-400 hover:text-gold-400 transition-colors flex items-center space-x-1.5 underline underline-offset-4 cursor-pointer">
-          <span>Or explore slides as guest</span>
+        <!-- Animated "LEARN MORE" Button -->
+        <button id="guestBypassBtn" type="button" class="btn-learn-more group mt-2" aria-label="Learn more about AI for ADHD">
+          <span class="relative z-10 flex items-center gap-2">
+            <span class="bg-gradient-to-r from-gold-300 via-amber-200 to-cyan-300 bg-clip-text text-transparent font-bold">LEARN MORE</span>
+            <svg class="arrow-icon w-4 h-4 text-gold-400 group-hover:text-cyan-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </span>
         </button>
       </div>
 
@@ -1201,9 +1108,12 @@
       </button>
 
       <!-- User Auth State Pill (when signed in) -->
-      <div id="headerUserPill" class="hidden items-center space-x-1.5 sm:space-x-2 px-2 sm:px-2.5 py-1 rounded-full bg-space-850/90 border border-gold-400/40 text-xs text-slate-200 glass-hud cursor-pointer hover:border-gold-400 transition-colors" onclick="window.showSplashScreen()" title="View Account Settings">
-        <img id="headerUserAvatar" src="" alt="Avatar" class="w-5 h-5 rounded-full border border-gold-400 object-cover" />
-        <span id="headerUserName" class="hidden sm:inline font-semibold text-gold-300 max-w-[85px] truncate"></span>
+      <div id="headerUserPill" class="hidden items-center space-x-1.5 sm:space-x-2 px-2 sm:px-2.5 py-1 rounded-full bg-space-850/90 border border-gold-400/40 text-xs text-slate-200 glass-hud cursor-pointer hover:border-gold-400 transition-colors" onclick="window.openAccountPage()" title="Account & Cognitive Vault">
+        <button id="headerAvatarBtn" onclick="event.stopPropagation(); window.openAccountPage();" class="relative group focus:outline-none flex items-center justify-center cursor-pointer" title="Open Account Page">
+          <img id="headerUserAvatar" src="" alt="Avatar" class="w-5 h-5 rounded-full border border-gold-400 object-cover group-hover:ring-2 group-hover:ring-gold-300 transition-all cursor-pointer" />
+          <span class="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 border border-space-950"></span>
+        </button>
+        <span id="headerUserName" onclick="event.stopPropagation(); window.openAccountPage();" class="hidden sm:inline font-semibold text-gold-300 max-w-[85px] truncate cursor-pointer hover:text-white transition-colors" title="Open Account Page"></span>
         <button id="headerSignOutBtn" onclick="event.stopPropagation(); window.firebaseSignOut();" class="text-[10px] font-mono text-slate-400 hover:text-rose-400 pl-1.5 border-l border-slate-700 transition-colors" title="Sign Out">
           LOGOUT
         </button>
@@ -2873,7 +2783,7 @@
     }
 
     /* ============================================================
-     * 6. FANCY SPLASH WALLPAPER ANIMATION ENGINE (Synaptic Constellation)
+     * 6. CALM SPLASH WALLPAPER ENGINE (Gentle Starry Background Drift)
      * ============================================================ */
     function initSplashWallpaper() {
       const canvas = document.getElementById('splashWallpaperCanvas');
@@ -2889,14 +2799,12 @@
       let animationFrameId = null;
       let isRunning = false;
 
-      // Pointer state for interactive neural influence
+      // Pointer state for subtle proximity starlight reaction
       const pointer = {
         x: -9999,
         y: -9999,
-        targetX: -9999,
-        targetY: -9999,
         active: false,
-        radius: 175
+        radius: 120
       };
 
       function resize() {
@@ -2910,86 +2818,36 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
-      // Bilateral ADHD Brain palette: Executive Golds + Radiant Divergent Cyans/Magentas/Emeralds
-      const palettes = [
-        { r: 255, g: 209, b: 89,  name: 'gold' },
-        { r: 245, g: 158, b: 11,  name: 'amber' },
-        { r: 0,   g: 229, b: 255, name: 'cyan' },
-        { r: 236, g: 72,  b: 153, name: 'magenta' },
-        { r: 168, g: 85,  b: 247, name: 'violet' },
-        { r: 16,  g: 185, b: 129, name: 'emerald' }
+      // Celestial Stardust & Ambient Starfield: Gentle, smooth upward drift
+      const starColors = [
+        '255, 255, 255',   // Pure starlight white
+        '255, 209, 89',    // Celestial gold
+        '180, 245, 255',   // Cool starlight cyan
+        '255, 245, 210'    // Warm starlight ivory
       ];
 
-      const nodeCount = Math.min(Math.max(Math.floor((window.innerWidth * window.innerHeight) / 16000), 38), 75);
-      const nodes = [];
+      const starCount = Math.min(Math.max(Math.floor((window.innerWidth * window.innerHeight) / 22000), 45), 75);
+      const stars = [];
 
-      for (let i = 0; i < nodeCount; i++) {
-        const p = palettes[i % palettes.length];
-        nodes.push({
+      for (let i = 0; i < starCount; i++) {
+        stars.push({
           x: Math.random() * (window.innerWidth || 1000),
           y: Math.random() * (window.innerHeight || 800),
-          vx: (Math.random() - 0.5) * 0.52,
-          vy: (Math.random() - 0.5) * 0.52,
-          baseRadius: 1.8 + Math.random() * 2.2,
-          pulsePhase: Math.random() * Math.PI * 2,
-          pulseSpeed: 0.02 + Math.random() * 0.025,
-          color: p,
-          alpha: 0.5 + Math.random() * 0.45
-        });
-      }
-
-      // Celestial Stardust (Bi-directional shimmering particle dust)
-      const stardust = [];
-      const stardustCount = 54;
-      for (let i = 0; i < stardustCount; i++) {
-        stardust.push({
-          x: Math.random() * (window.innerWidth || 1000),
-          y: Math.random() * (window.innerHeight || 800),
-          speedY: 0.15 + Math.random() * 0.35,
-          size: 0.7 + Math.random() * 1.6,
-          alpha: 0.22 + Math.random() * 0.58,
-          twinkleSpeed: 0.025 + Math.random() * 0.035,
+          speedY: 0.12 + Math.random() * 0.28,
+          speedX: (Math.random() - 0.5) * 0.08,
+          size: 0.75 + Math.random() * 1.5,
+          color: starColors[Math.floor(Math.random() * starColors.length)],
+          baseAlpha: 0.25 + Math.random() * 0.55,
+          twinkleSpeed: 0.015 + Math.random() * 0.025,
           twinklePhase: Math.random() * Math.PI * 2
         });
       }
 
-      // Action Potentials (synaptic sparks traveling across neural filaments)
-      const sparks = [];
-      const maxSparks = 18;
-
-      function spawnSpark(n1, n2) {
-        if (sparks.length >= maxSparks) return;
-        sparks.push({
-          fromNode: n1,
-          toNode: n2,
-          progress: 0,
-          speed: 0.016 + Math.random() * 0.024,
-          color: Math.random() > 0.5 ? n1.color : n2.color,
-          size: 2.2 + Math.random() * 1.6
-        });
-      }
-
-      // Harmonic brainwave ripples (covers top logo focus & bottom horizon)
-      const waveRings = [];
-      let lastRingTime = Date.now();
-
-      function spawnWaveRing(customX, customY, customColor) {
-        waveRings.push({
-          x: customX !== undefined ? customX : width * 0.5,
-          y: customY !== undefined ? customY : height * 0.32,
-          radius: 14,
-          maxRadius: Math.max(width, height) * 0.88,
-          speed: 1.3 + Math.random() * 0.45,
-          alpha: 0.38,
-          color: customColor || (Math.random() > 0.5 ? '255, 209, 89' : '168, 85, 247')
-        });
-      }
-
-      // Event listeners for interactivity across the entire viewport
+      // Gentle mouse / touch interactions
       splashScreen.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
-        pointer.targetX = e.clientX - rect.left;
-        pointer.targetY = e.clientY - rect.top;
+        pointer.x = e.clientX - rect.left;
+        pointer.y = e.clientY - rect.top;
         pointer.active = true;
       }, { passive: true });
 
@@ -2997,18 +2855,11 @@
         pointer.active = false;
       }, { passive: true });
 
-      splashScreen.addEventListener('pointerdown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const px = e.clientX - rect.left;
-        const py = e.clientY - rect.top;
-        spawnWaveRing(px, py, Math.random() > 0.5 ? '255, 209, 89' : '0, 229, 255');
-      }, { passive: true });
-
       splashScreen.addEventListener('touchmove', (e) => {
         if (e.touches && e.touches[0]) {
           const rect = canvas.getBoundingClientRect();
-          pointer.targetX = e.touches[0].clientX - rect.left;
-          pointer.targetY = e.touches[0].clientY - rect.top;
+          pointer.x = e.touches[0].clientX - rect.left;
+          pointer.y = e.touches[0].clientY - rect.top;
           pointer.active = true;
         }
       }, { passive: true });
@@ -3020,7 +2871,7 @@
       function render() {
         if (!isRunning) return;
 
-        // Skip heavy frame rendering if splash is hidden
+        // Skip rendering when splash screen is hidden
         if (splashScreen.classList.contains('opacity-0') || splashScreen.classList.contains('pointer-events-none')) {
           animationFrameId = requestAnimationFrame(render);
           return;
@@ -3028,187 +2879,40 @@
 
         ctx.clearRect(0, 0, width, height);
 
-        // Interpolate pointer for silky smoothness
-        if (pointer.active) {
-          pointer.x += (pointer.targetX - pointer.x) * 0.16;
-          pointer.y += (pointer.targetY - pointer.y) * 0.16;
-        } else {
-          pointer.x = -9999;
-          pointer.y = -9999;
-        }
+        // Render gentle drifting starry background
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
 
-        // 1. Stardust floating upwards
-        for (let i = 0; i < stardust.length; i++) {
-          const s = stardust[i];
+          // Gentle cosmic drift
           s.y -= s.speedY;
+          s.x += s.speedX;
+
+          // Wrap around seamlessly
           if (s.y < -10) {
             s.y = height + 10;
             s.x = Math.random() * width;
           }
+          if (s.x < -10) s.x = width + 10;
+          if (s.x > width + 10) s.x = -10;
+
+          // Gentle twinkling calculation (no pulses)
           s.twinklePhase += s.twinkleSpeed;
-          const alpha = s.alpha * (0.6 + 0.4 * Math.sin(s.twinklePhase));
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
+          let alpha = s.baseAlpha * (0.65 + 0.35 * Math.sin(s.twinklePhase));
 
-        // 2. Periodic brainwave ring expansion (Top logo harmonic + Bottom horizon ripples)
-        const now = Date.now();
-        if (now - lastRingTime > 2300) {
-          spawnWaveRing();
-          // Periodically pulse a bottom harmonic wave across the lower horizon
-          if (Math.random() > 0.35) {
-            spawnWaveRing(
-              width * (0.2 + Math.random() * 0.6), 
-              height * 0.82, 
-              Math.random() > 0.5 ? '0, 229, 255' : '255, 209, 89'
-            );
-          }
-          lastRingTime = now;
-        }
-
-        for (let i = waveRings.length - 1; i >= 0; i--) {
-          const ring = waveRings[i];
-          ring.radius += ring.speed;
-          ring.alpha *= 0.992;
-          if (ring.radius >= ring.maxRadius || ring.alpha < 0.01) {
-            waveRings.splice(i, 1);
-            continue;
-          }
-          ctx.strokeStyle = `rgba(${ring.color}, ${ring.alpha.toFixed(3)})`;
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // 3. Update & render neural nodes
-        const connectionDist = width < 640 ? 105 : 140;
-        const connectionDistSq = connectionDist * connectionDist;
-
-        for (let i = 0; i < nodes.length; i++) {
-          const node = nodes[i];
-
-          // Velocity drift
-          node.x += node.vx;
-          node.y += node.vy;
-
-          // Boundary bouncing
-          if (node.x < 15) { node.x = 15; node.vx = Math.abs(node.vx); }
-          if (node.x > width - 15) { node.x = width - 15; node.vx = -Math.abs(node.vx); }
-          if (node.y < 15) { node.y = 15; node.vy = Math.abs(node.vy); }
-          if (node.y > height - 15) { node.y = height - 15; node.vy = -Math.abs(node.vy); }
-
-          // Cursor magnetism
+          // Subtle proximity brightening near cursor (subtle, non-pulsing)
           if (pointer.active) {
-            const dx = node.x - pointer.x;
-            const dy = node.y - pointer.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < pointer.radius && dist > 1) {
-              const force = (1 - dist / pointer.radius) * 0.9;
-              node.x += (dx / dist) * force * 2.8;
-              node.y += (dy / dist) * force * 2.8;
-            }
-          }
-
-          // Pulsing radius
-          node.pulsePhase += node.pulseSpeed;
-          const currentRadius = node.baseRadius + Math.sin(node.pulsePhase) * 0.75;
-
-          // Radial halo glow
-          const glowGrad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, currentRadius * 4.2);
-          glowGrad.addColorStop(0, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, ${(node.alpha * 0.85).toFixed(3)})`);
-          glowGrad.addColorStop(0.5, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, ${(node.alpha * 0.25).toFixed(3)})`);
-          glowGrad.addColorStop(1, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, 0)`);
-          ctx.fillStyle = glowGrad;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, currentRadius * 4.2, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Bright core
-          ctx.fillStyle = `rgba(255, 255, 255, 0.95)`;
-          ctx.beginPath();
-          ctx.arc(node.x, node.y, currentRadius * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // 4. Draw synaptic connection filaments
-        for (let i = 0; i < nodes.length; i++) {
-          for (let j = i + 1; j < nodes.length; j++) {
-            const n1 = nodes[i];
-            const n2 = nodes[j];
-            const dx = n1.x - n2.x;
-            const dy = n1.y - n2.y;
-            const distSq = dx * dx + dy * dy;
-
-            if (distSq < connectionDistSq) {
-              const dist = Math.sqrt(distSq);
-              const filamentAlpha = (1 - dist / connectionDist) * 0.36;
-
-              const grad = ctx.createLinearGradient(n1.x, n1.y, n2.x, n2.y);
-              grad.addColorStop(0, `rgba(${n1.color.r}, ${n1.color.g}, ${n1.color.b}, ${filamentAlpha.toFixed(3)})`);
-              grad.addColorStop(1, `rgba(${n2.color.r}, ${n2.color.g}, ${n2.color.b}, ${filamentAlpha.toFixed(3)})`);
-
-              ctx.strokeStyle = grad;
-              ctx.lineWidth = 1;
-              ctx.beginPath();
-              ctx.moveTo(n1.x, n1.y);
-              ctx.lineTo(n2.x, n2.y);
-              ctx.stroke();
-
-              // Chance of spontaneous action potential
-              if (Math.random() < 0.002) {
-                spawnSpark(n1, n2);
-              }
-            }
-          }
-        }
-
-        // 5. Interactive pointer neural filaments
-        if (pointer.active) {
-          for (let i = 0; i < nodes.length; i++) {
-            const n = nodes[i];
-            const dx = pointer.x - n.x;
-            const dy = pointer.y - n.y;
+            const dx = pointer.x - s.x;
+            const dy = pointer.y - s.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < pointer.radius) {
-              const alpha = (1 - dist / pointer.radius) * 0.65;
-              ctx.strokeStyle = `rgba(255, 209, 89, ${alpha.toFixed(3)})`;
-              ctx.lineWidth = 1.3;
-              ctx.beginPath();
-              ctx.moveTo(pointer.x, pointer.y);
-              ctx.lineTo(n.x, n.y);
-              ctx.stroke();
+              const boost = (1 - dist / pointer.radius) * 0.4;
+              alpha = Math.min(1, alpha + boost);
             }
           }
-          const curGrad = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 22);
-          curGrad.addColorStop(0, 'rgba(255, 209, 89, 0.7)');
-          curGrad.addColorStop(1, 'rgba(255, 209, 89, 0)');
-          ctx.fillStyle = curGrad;
-          ctx.beginPath();
-          ctx.arc(pointer.x, pointer.y, 22, 0, Math.PI * 2);
-          ctx.fill();
-        }
 
-        // 6. Action potential sparks traversing filaments
-        for (let i = sparks.length - 1; i >= 0; i--) {
-          const spark = sparks[i];
-          spark.progress += spark.speed;
-          if (spark.progress >= 1) {
-            sparks.splice(i, 1);
-            continue;
-          }
-          const sx = spark.fromNode.x + (spark.toNode.x - spark.fromNode.x) * spark.progress;
-          const sy = spark.fromNode.y + (spark.toNode.y - spark.fromNode.y) * spark.progress;
-
-          const sparkGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, spark.size * 3.2);
-          sparkGrad.addColorStop(0, `rgba(255, 255, 255, 0.98)`);
-          sparkGrad.addColorStop(0.4, `rgba(${spark.color.r}, ${spark.color.g}, ${spark.color.b}, 0.85)`);
-          sparkGrad.addColorStop(1, `rgba(${spark.color.r}, ${spark.color.g}, ${spark.color.b}, 0)`);
-          ctx.fillStyle = sparkGrad;
+          ctx.fillStyle = `rgba(${s.color}, ${alpha.toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(sx, sy, spark.size * 3.2, 0, Math.PI * 2);
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
           ctx.fill();
         }
 
@@ -3541,6 +3245,13 @@
       if (window.splashWallpaperAnim) window.splashWallpaperAnim.stop();
     };
 
+    window.openAccountPage = function() {
+      if (typeof playSynthBeep === 'function') {
+        playSynthBeep(520, 'sine', 0.1, 0.04);
+      }
+      window.location.href = '/account';
+    };
+
     window.firebaseSignOut = async function() {
       try {
         await signOut(auth);
@@ -3567,9 +3278,12 @@
       }
     };
 
-    // Google Sign-In with Popup (configured with Google Tasks scopes)
+    // Google Sign-In with Popup (configured with Google Tasks and Calendar scopes)
     async function handleGoogleSignIn() {
-      if (authError) authError.classList.add('hidden');
+      if (authError) {
+        authError.classList.add('hidden');
+        authError.innerHTML = '';
+      }
       
       // If already signed in with token, simply enter the app
       if (auth.currentUser && cachedAccessToken) {
@@ -3581,7 +3295,7 @@
       }
 
       if (authStatus) {
-        authStatus.innerHTML = `<span class="text-gold-400 animate-pulse">CONNECTING TO GOOGLE AUTHENTICATION...</span>`;
+        authStatus.innerHTML = `<span class="text-gold-300 font-bold">CONNECTING TO GOOGLE AUTHENTICATION...</span>`;
       }
       
       const provider = new GoogleAuthProvider();
@@ -3651,22 +3365,53 @@
         }, 700);
 
       } catch (error) {
-        console.error('Google Sign-In Error:', error);
+        // Suppress noisy uncaught errors if popup was blocked or dismissed by user
+        if (error.code === 'auth/popup-blocked') {
+          console.warn('Google Sign-In: Popup was blocked by browser security settings.');
+        } else {
+          console.error('Google Sign-In Error:', error);
+        }
+
         if (authStatus) {
           authStatus.innerHTML = `<span>SIGN IN WITH GOOGLE TO INITIALIZE CO-PILOT</span>`;
         }
+
         if (authError) {
-          let msg = error.message || 'Sign in was cancelled or failed.';
-          if (error.code === 'auth/popup-closed-by-user') {
-            msg = 'Sign-in popup was closed before completing. Please try again.';
-          } else if (error.code === 'auth/popup-blocked') {
-            msg = 'Popup was blocked by your browser. Please allow popups for this site.';
+          if (error.code === 'auth/popup-blocked') {
+            authError.innerHTML = `
+              <div class="flex flex-col items-center gap-1.5 py-1">
+                <div class="font-bold text-amber-300 flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>Browser Blocked Sign-In Popup</span>
+                </div>
+                <div class="text-[11px] text-slate-300 leading-snug">
+                  Your browser prevented the Google login window from opening. Please enable popups for this site in your address bar, or click below:
+                </div>
+                <button type="button" onclick="window.handleDirectGoogleSignIn(event)" class="mt-1 px-3 py-1 rounded-lg text-[11px] font-bold tracking-wider bg-gold-400 text-space-950 hover:bg-gold-300 transition-colors shadow">
+                  TRY SIGN-IN AGAIN
+                </button>
+              </div>
+            `;
+          } else if (error.code === 'auth/popup-closed-by-user') {
+            authError.innerText = 'Sign-in window closed before finishing. Tap the Google button whenever you are ready.';
+          } else {
+            authError.innerText = error.message || 'Sign in was cancelled or failed.';
           }
-          authError.innerText = msg;
           authError.classList.remove('hidden');
         }
       }
     }
+
+    // Direct user-triggered re-attempt helper
+    window.handleDirectGoogleSignIn = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      handleGoogleSignIn();
+    };
 
     window.handleTasksGoogleSignIn = async function() {
       await handleGoogleSignIn();
@@ -6978,6 +6723,10 @@
       } else if (e.key === 't' || e.key === 'T') {
         if (!window.isTasksModalOpen && !window.isCalendarModalOpen) {
           window.openTasksModal();
+        }
+      } else if (e.key === 'a' || e.key === 'A') {
+        if (!window.isTasksModalOpen && !window.isCalendarModalOpen) {
+          window.openAccountPage();
         }
       } else if (e.key === 'Escape') {
         if (window.isCalendarModalOpen) window.closeCalendarModal();
