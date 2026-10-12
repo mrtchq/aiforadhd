@@ -262,17 +262,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 8rem;
-      height: 8rem;
+      width: 4.75rem;
+      height: 4.75rem;
       overflow: hidden;
       background-size: 300% 300%;
       cursor: pointer;
-      backdrop-filter: blur(1rem);
-      -webkit-backdrop-filter: blur(1rem);
+      backdrop-filter: blur(0.75rem);
+      -webkit-backdrop-filter: blur(0.75rem);
       border-radius: 50%;
       transition: 0.5s;
       animation: gradient_301 5s ease infinite;
-      border: double 4px transparent;
+      border: double 3px transparent;
       background-image: linear-gradient(#212121, #212121),
           linear-gradient(
               137.48deg,
@@ -310,7 +310,7 @@
     .circle {
       width: 100%;
       height: 100%;
-      filter: blur(2rem);
+      filter: blur(1.2rem);
       animation: pulse_3011 4s infinite;
       z-index: -1;
       position: absolute;
@@ -336,7 +336,7 @@
     }
 
     .btn:active {
-      border: double 4px #f5f1f2;
+      border: double 3px #f5f1f2;
       background-origin: border-box;
       background-clip: content-box, border-box;
       animation: none;
@@ -547,34 +547,43 @@
       }
     }
 
-    /* Pulsating Horizontal Swipe Arrow Indicator */
+    /* Pulsating Horizontal Swipe Arrow Indicators (Compact & Refined) */
     @keyframes swipeArrowPulse {
       0%, 100% {
         transform: scale(1);
-        box-shadow: 0 0 14px rgba(255, 209, 89, 0.35), 0 0 0 0 rgba(255, 209, 89, 0.5);
+        box-shadow: 0 0 8px rgba(255, 209, 89, 0.3), 0 0 0 0 rgba(255, 209, 89, 0.4);
       }
       50% {
-        transform: scale(1.06);
-        box-shadow: 0 0 28px rgba(255, 209, 89, 0.75), 0 0 0 9px rgba(255, 209, 89, 0);
+        transform: scale(1.04);
+        box-shadow: 0 0 16px rgba(255, 209, 89, 0.6), 0 0 0 5px rgba(255, 209, 89, 0);
       }
     }
 
-    @keyframes swipeArrowNudge {
+    @keyframes swipeArrowNudgeRight {
       0%, 100% {
         transform: translateX(0);
       }
       50% {
-        transform: translateX(5px);
+        transform: translateX(3px);
+      }
+    }
+
+    @keyframes swipeArrowNudgeLeft {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(-3px);
       }
     }
 
     @keyframes swipeWavePulse {
       0% {
-        transform: scale(0.9);
-        opacity: 0.8;
+        transform: scale(0.92);
+        opacity: 0.7;
       }
       65%, 100% {
-        transform: scale(1.55);
+        transform: scale(1.3);
         opacity: 0;
       }
     }
@@ -588,8 +597,13 @@
       animation-play-state: paused;
     }
 
-    .swipe-nudge-arrow {
-      animation: swipeArrowNudge 1.1s ease-in-out infinite;
+    .swipe-nudge-arrow-right {
+      animation: swipeArrowNudgeRight 1.1s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .swipe-nudge-arrow-left {
+      animation: swipeArrowNudgeLeft 1.1s ease-in-out infinite;
       will-change: transform;
     }
 
@@ -599,10 +613,160 @@
 
     @media (prefers-reduced-motion: reduce) {
       .pulsating-swipe-btn,
-      .swipe-nudge-arrow,
+      .swipe-nudge-arrow-right,
+      .swipe-nudge-arrow-left,
       .swipe-radar-wave {
         animation: none;
       }
+    }
+
+    /* ============================================================
+     * FANCY SPLASH WALLPAPER ANIMATIONS (Cosmic Synaptic Nebulae)
+     * ============================================================ */
+    @keyframes splashAurora1 {
+      0% {
+        transform: translate(-15%, -15%) scale(1) rotate(0deg);
+        opacity: 0.55;
+      }
+      33% {
+        transform: translate(12%, 8%) scale(1.18) rotate(120deg);
+        opacity: 0.75;
+      }
+      66% {
+        transform: translate(-8%, 18%) scale(0.92) rotate(240deg);
+        opacity: 0.5;
+      }
+      100% {
+        transform: translate(-15%, -15%) scale(1) rotate(360deg);
+        opacity: 0.55;
+      }
+    }
+
+    @keyframes splashAurora2 {
+      0% {
+        transform: translate(15%, 15%) scale(1) rotate(360deg);
+        opacity: 0.45;
+      }
+      50% {
+        transform: translate(-18%, -12%) scale(1.22) rotate(180deg);
+        opacity: 0.7;
+      }
+      100% {
+        transform: translate(15%, 15%) scale(1) rotate(0deg);
+        opacity: 0.45;
+      }
+    }
+
+    @keyframes splashAurora3 {
+      0%, 100% {
+        transform: translate(0%, 0%) scale(0.95);
+        opacity: 0.4;
+      }
+      50% {
+        transform: translate(-10%, 14%) scale(1.15);
+        opacity: 0.65;
+      }
+    }
+
+    .splash-aurora-glow-1 {
+      animation: splashAurora1 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+
+    .splash-aurora-glow-2 {
+      animation: splashAurora2 30s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+
+    .splash-aurora-glow-3 {
+      animation: splashAurora3 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .splash-aurora-glow-1,
+      .splash-aurora-glow-2,
+      .splash-aurora-glow-3,
+      .splash-brainwave-ring-1,
+      .splash-brainwave-ring-2,
+      .splash-brainwave-ring-3,
+      .splash-neuro-grid-anim {
+        animation: none !important;
+      }
+    }
+
+    /* Fancy Wallpaper Brainwave Resonance Waves & Neuro Grid */
+    @keyframes neuroWavePulse {
+      0% {
+        transform: translate(-50%, -50%) scale(0.35);
+        opacity: 0.75;
+      }
+      50% {
+        opacity: 0.35;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2.6);
+        opacity: 0;
+      }
+    }
+
+    .splash-brainwave-ring {
+      position: absolute;
+      top: 36%;
+      left: 50%;
+      border-radius: 9999px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      will-change: transform, opacity;
+    }
+    .splash-brainwave-ring-1 {
+      width: 280px;
+      height: 280px;
+      border: 1.5px solid rgba(255, 209, 89, 0.45);
+      box-shadow: 0 0 30px rgba(255, 209, 89, 0.28), inset 0 0 20px rgba(255, 209, 89, 0.15);
+      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+    }
+    .splash-brainwave-ring-2 {
+      width: 420px;
+      height: 420px;
+      border: 1.5px solid rgba(192, 132, 252, 0.4);
+      box-shadow: 0 0 35px rgba(192, 132, 252, 0.22), inset 0 0 25px rgba(192, 132, 252, 0.1);
+      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+      animation-delay: 2.15s;
+    }
+    .splash-brainwave-ring-3 {
+      width: 580px;
+      height: 580px;
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.18);
+      animation: neuroWavePulse 6.5s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+      animation-delay: 4.3s;
+    }
+
+    .splash-neuro-grid {
+      background-size: 64px 64px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 209, 89, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+      mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.85) 0%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.85) 0%, transparent 75%);
+    }
+
+    @keyframes gridDrift {
+      0% { background-position: 0 0; }
+      100% { background-position: 64px 64px; }
+    }
+    .splash-neuro-grid-anim {
+      animation: gridDrift 28s linear infinite;
+    }
+
+    /* Smooth fading transitions and hover enforcement for swipe arrows */
+    #swipeLeftIndicator, #swipeRightIndicator {
+      transition: opacity 0.5s ease-in-out, transform 0.3s ease;
+      will-change: opacity;
+    }
+    #swipeLeftIndicator:hover, #swipeRightIndicator:hover {
+      opacity: 1 !important;
     }
   </style>
 </head>
@@ -610,40 +774,50 @@
 <body class="h-full w-full font-sans antialiased text-slate-100 flex flex-col justify-between relative overflow-hidden">
 
   <!-- ================= SPLASH PAGE (First view users see when accessing the app) ================= -->
-  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-between p-6 sm:p-10 bg-space-950/95 backdrop-blur-2xl overflow-y-auto slide-scroll transition-opacity duration-700">
+  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-start pt-4 sm:pt-8 pb-10 px-4 sm:px-8 bg-space-950/95 backdrop-blur-2xl overflow-y-auto slide-scroll transition-opacity duration-700">
     
-    <!-- Ambient Nebulae for the Splash Screen -->
-    <div class="absolute inset-0 pointer-events-none opacity-60">
-      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gold-500/15 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl"></div>
-    </div>
+    <!-- Fancy Dynamic Cosmic Synaptic Wallpaper Animation -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      <!-- 1) Cybernetic Neuro-Matrix Grid -->
+      <div class="splash-neuro-grid splash-neuro-grid-anim absolute inset-0 opacity-40"></div>
 
-    <!-- Top Status Indicator -->
-    <div class="w-full max-w-xl flex justify-between items-center text-[11px] font-mono tracking-widest text-slate-400 uppercase shrink-0 pt-2 relative z-10">
-      <span class="flex items-center gap-1.5">
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        AI FOR ADHD // NEURO-ADAPTIVE
-      </span>
-      <span class="text-gold-400">COGNITIVE CO-PILOT</span>
-    </div>
-
-    <!-- Mid-Top Centered Logo and Animated Google Button right below -->
-    <div class="my-auto flex flex-col items-center justify-center text-center max-w-xl w-full relative z-10 py-4">
-      
-      <!-- 1) Attached Logo Image at Mid-Top and Centered -->
-      <div class="relative group mb-6 transition-transform duration-500 hover:scale-[1.02]">
-        <div class="absolute -inset-6 bg-gradient-to-r from-gold-500/20 via-purple-600/20 to-chroma-cyan/20 rounded-3xl blur-2xl opacity-60 group-hover:opacity-90 transition duration-700"></div>
-        <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png"
-             alt="AI for ADHD: The Cognitive Co-Pilot"
-             class="relative max-h-56 sm:max-h-72 w-auto object-contain filter drop-shadow-[0_12px_36px_rgba(255,209,89,0.35)] select-none pointer-events-none" />
+      <!-- 2) Swirling Multi-Layer Cosmic Aurora Nebulae -->
+      <div class="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] pointer-events-none filter blur-[80px] sm:blur-[100px] opacity-80">
+        <div class="splash-aurora-glow-1 absolute top-[10%] left-[15%] w-[550px] sm:w-[700px] h-[550px] sm:h-[700px] rounded-full bg-gradient-to-tr from-amber-500/35 via-gold-400/25 to-transparent"></div>
+        <div class="splash-aurora-glow-2 absolute bottom-[20%] right-[10%] w-[600px] sm:w-[750px] h-[600px] sm:h-[750px] rounded-full bg-gradient-to-bl from-purple-600/40 via-pink-600/30 to-transparent"></div>
+        <div class="splash-aurora-glow-3 absolute top-[35%] right-[25%] w-[500px] sm:w-[650px] h-[500px] sm:h-[650px] rounded-full bg-gradient-to-br from-cyan-500/35 via-blue-600/25 to-transparent"></div>
       </div>
 
-      <!-- 2) Animated Button Right Below the Centered Logo with Google Icon in the Center -->
-      <div class="flex flex-col items-center space-y-4">
+      <!-- 3) Resonant Brainwave Harmonic Rings (expanding behind the brain logo) -->
+      <div class="splash-brainwave-ring splash-brainwave-ring-1"></div>
+      <div class="splash-brainwave-ring splash-brainwave-ring-2"></div>
+      <div class="splash-brainwave-ring splash-brainwave-ring-3"></div>
+
+      <!-- 4) Dynamic Interactive Synaptic Constellation Canvas -->
+      <canvas id="splashWallpaperCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+      <!-- 5) Ambient Vignette Mask -->
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,3,7,0.7)_100%)] pointer-events-none z-0"></div>
+    </div>
+
+    <!-- Centered Hero Stack: High-Positioned Enlarged Logo & Controls -->
+    <div class="flex flex-col items-center text-center max-w-2xl w-full relative z-10 pt-2 sm:pt-4 my-auto">
+      
+      <!-- 1) Enlarged Brain Logo Moved Higher Up -->
+      <div class="relative group mt-1 sm:mt-2 mb-6 sm:mb-8 transition-transform duration-500 hover:scale-[1.02]">
+        <div class="absolute -inset-8 sm:-inset-10 bg-gradient-to-r from-gold-500/25 via-purple-600/25 to-chroma-cyan/25 rounded-3xl blur-3xl opacity-70 group-hover:opacity-95 transition duration-700 pointer-events-none"></div>
+        <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png"
+             alt="AI for ADHD: The Cognitive Co-Pilot"
+             class="relative max-h-72 sm:max-h-96 md:max-h-[26rem] w-auto max-w-[92vw] sm:max-w-xl md:max-w-2xl object-contain filter drop-shadow-[0_16px_48px_rgba(255,209,89,0.4)] select-none pointer-events-none" />
+      </div>
+
+      <!-- 2) Animated Button & Auth Controls -->
+      <div class="flex flex-col items-center space-y-4 w-full">
+        <!-- Animated Google Sign-In Button -->
         <button type="button" class="btn group" id="googleSignInBtn" aria-label="Sign in with Google">
           <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png"
                alt="Google Sign-In"
-               class="w-16 h-16 object-contain relative z-20 drop-shadow-[0_0_16px_rgba(255,255,255,0.85)] pointer-events-none select-none transition-transform duration-300 group-hover:scale-105" />
+               class="w-12 h-12 object-contain relative z-20 drop-shadow-[0_0_14px_rgba(255,255,255,0.85)] pointer-events-none select-none transition-transform duration-300 group-hover:scale-105" />
           <div id="container-stars">
             <div id="stars-btn"></div>
           </div>
@@ -654,21 +828,21 @@
         </button>
 
         <!-- Status & helper text -->
-        <div id="authStatusText" class="text-xs font-rajdhani font-semibold tracking-widest text-gold-300 uppercase flex items-center space-x-2">
+        <div id="authStatusText" class="text-xs font-rajdhani font-semibold tracking-widest text-gold-300 uppercase flex items-center justify-center space-x-2 text-center max-w-sm">
           <span>SIGN IN WITH GOOGLE TO INITIALIZE CO-PILOT</span>
         </div>
 
         <!-- Auth Error Banner -->
         <div id="authErrorMsg" class="hidden text-xs text-rose-300 font-mono max-w-sm text-center bg-rose-950/80 border border-rose-500/40 rounded-xl px-4 py-2 shadow-lg"></div>
 
-        <!-- Signed in profile card (when already authenticated) -->
-        <div id="signedInPreview" class="hidden items-center gap-3 p-2.5 px-5 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-xl">
-          <img id="splashUserAvatar" src="" alt="User Avatar" class="w-9 h-9 rounded-full border border-gold-400 object-cover" />
-          <div class="text-left text-xs">
-            <div id="splashUserName" class="font-bold text-white leading-tight"></div>
-            <div id="splashUserEmail" class="text-[10px] text-slate-400 leading-tight"></div>
+        <!-- Signed in profile card (when already authenticated) - moved down to leave space for enlarged logo -->
+        <div id="signedInPreview" class="hidden items-center justify-between gap-3 p-3 px-5 sm:px-6 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-2xl backdrop-blur-xl mt-6 sm:mt-8 max-w-md w-full sm:w-auto">
+          <img id="splashUserAvatar" src="" alt="User Avatar" class="w-10 h-10 rounded-full border border-gold-400 object-cover shrink-0" />
+          <div class="text-left text-xs min-w-0 flex-1">
+            <div id="splashUserName" class="font-bold text-white leading-tight truncate"></div>
+            <div id="splashUserEmail" class="text-[10px] text-slate-400 leading-tight truncate"></div>
           </div>
-          <button id="enterAppDirectBtn" class="ml-3 px-4 py-1.5 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-gold-400 to-amber-500 text-space-950 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20">
+          <button id="enterAppDirectBtn" class="ml-2 sm:ml-4 px-4 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-gold-400 to-amber-500 text-space-950 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20 shrink-0">
             ENTER CO-PILOT
           </button>
         </div>
@@ -679,11 +853,6 @@
         </button>
       </div>
 
-    </div>
-
-    <!-- Bottom Footer Meta -->
-    <div class="w-full text-center text-[11px] font-mono text-slate-500 py-2 relative z-10">
-      AUTHENTICATED BY GOOGLE FIREBASE // PRIVATE & SECURE // CLICK GOOGLE BUTTON TO BEGIN
     </div>
   </div>
 
@@ -729,7 +898,7 @@
     <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
       <!-- Sector Pill for Mobile/Tablet -->
       <div class="hidden sm:inline-flex md:hidden items-center px-2 py-0.5 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
-        <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>05
+        <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>03
       </div>
 
       <!-- Google Calendar Header Button (Desktop: md+) -->
@@ -768,44 +937,45 @@
         <span id="headerAuthLabel">SIGN IN</span>
       </button>
 
-      <!-- SFX Audio Toggle Button -->
-      <button id="audioToggle" onclick="toggleAudio()" class="flex items-center space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all shadow-sm" title="Toggle Sound Feedback">
-        <svg id="audioIcon" class="w-4 h-4 text-gold-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-        </svg>
-        <span id="audioLabel" class="hidden sm:inline">SFX</span>
-      </button>
     </div>
   </header>
 
   <!-- ================= MAIN VIEWPORT TRACK ================= -->
   <main class="relative z-20 flex-1 w-full overflow-hidden flex items-center">
     
-    <!-- Desktop Left Arrow (Hidden on Mobile to preserve touch real estate) -->
-    <button onclick="prevSlide()" aria-label="Previous Slide" class="hidden md:flex absolute left-4 z-30 w-11 h-11 rounded-full bg-space-900/85 border border-gold-400/30 text-gold-400 hover:text-white hover:border-gold-400 hover:bg-gold-500/20 backdrop-blur-md items-center justify-center transition-all group focus:outline-none shadow-lg shadow-black/50">
-      <svg class="w-5 h-5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
-      </svg>
-    </button>
+    <!-- Pulsating Left Navigation / Horizontal Swipe Indicator (Shown once user has swiped right at least once) -->
+    <aside id="swipeLeftIndicator" class="hidden absolute left-2 sm:left-4 md:left-5 top-1/2 -translate-y-1/2 z-30 select-none pointer-events-auto transition-all duration-300" aria-label="Swipe horizontally or click to go to previous page">
+      <button onclick="prevSlide()" id="prevSlidePulsingBtn" aria-label="Previous page" title="Swipe or click to go back" class="pulsating-swipe-btn group relative flex items-center p-0.5 rounded-full bg-space-900/90 hover:bg-space-850 border border-gold-400/60 hover:border-gold-300 text-gold-300 hover:text-white backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gold-400/50 cursor-pointer shadow-lg shadow-amber-500/20">
+        <!-- Expanding Radar Wave Rings -->
+        <span class="swipe-radar-wave absolute inset-0 rounded-full bg-gold-400/25 pointer-events-none"></span>
+
+        <!-- Inner Content: Mini Arrow Circle & Micro SWIPE Text -->
+        <div class="relative flex items-center space-x-1 pl-1 pr-1.5 sm:pr-2 py-0.5">
+          <!-- Mini Arrow Circle with Left Nudge -->
+          <div class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full bg-gradient-to-tr from-amber-500/25 to-gold-400/20 border border-gold-400/50 flex items-center justify-center shrink-0 shadow-inner group-hover:bg-gold-500/40 transition-colors">
+            <svg class="swipe-nudge-arrow-left w-3 h-3 text-gold-300 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </div>
+          <!-- Micro Text Cue: SWIPE -->
+          <span class="text-[8px] sm:text-[9px] font-orbitron font-bold tracking-wider text-gold-300 uppercase drop-shadow group-hover:text-white transition-colors leading-none">SWIPE</span>
+        </div>
+      </button>
+    </aside>
 
     <!-- Pulsating Right Navigation / Horizontal Swipe Indicator -->
-    <aside id="swipeRightIndicator" class="absolute right-2 sm:right-4 md:right-5 top-1/2 -translate-y-1/2 z-30 select-none pointer-events-auto" aria-label="Swipe horizontally to access more pages">
-      <button onclick="nextSlide()" id="nextSlidePulsingBtn" aria-label="Swipe horizontally or click to access next page" title="Swipe horizontally or click to access more pages" class="pulsating-swipe-btn group relative flex items-center p-1 sm:p-1.5 rounded-full bg-space-900/90 hover:bg-space-850 border border-gold-400/70 hover:border-gold-300 text-gold-300 hover:text-white backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gold-400/50 cursor-pointer shadow-xl shadow-amber-500/25">
+    <aside id="swipeRightIndicator" class="absolute right-2 sm:right-4 md:right-5 top-1/2 -translate-y-1/2 z-30 select-none pointer-events-auto transition-all duration-300" aria-label="Swipe horizontally or click to access next page">
+      <button onclick="nextSlide()" id="nextSlidePulsingBtn" aria-label="Next page" title="Swipe or click to access next page" class="pulsating-swipe-btn group relative flex items-center p-0.5 rounded-full bg-space-900/90 hover:bg-space-850 border border-gold-400/60 hover:border-gold-300 text-gold-300 hover:text-white backdrop-blur-xl transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-gold-400/50 cursor-pointer shadow-lg shadow-amber-500/20">
         <!-- Expanding Radar Wave Rings -->
-        <span class="swipe-radar-wave absolute inset-0 rounded-full bg-gold-400/30 pointer-events-none"></span>
-        <span class="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-500/25 via-gold-400/35 to-amber-300/20 blur-sm pointer-events-none opacity-70"></span>
+        <span class="swipe-radar-wave absolute inset-0 rounded-full bg-gold-400/25 pointer-events-none"></span>
 
-        <!-- Inner Content: "SWIPE" Pill Badge & Nudging Arrow -->
-        <div class="relative flex items-center space-x-1.5 pl-2 sm:pl-3 pr-1 py-1 sm:py-1.5">
-          <!-- Text Cue: SWIPE -->
-          <div class="flex flex-col text-left pr-0.5 leading-none">
-            <span class="text-[9px] sm:text-[11px] font-orbitron font-extrabold tracking-wider text-gold-300 uppercase drop-shadow group-hover:text-white transition-colors">SWIPE</span>
-            <span class="text-[7px] sm:text-[8px] font-mono tracking-widest text-slate-400 uppercase hidden sm:block">PAGES</span>
-          </div>
-
-          <!-- Pulsating Arrow Circle with Forward Nudge -->
-          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-amber-500/30 to-gold-400/20 border border-gold-400/60 flex items-center justify-center shrink-0 shadow-inner group-hover:bg-gold-500/40 transition-colors">
-            <svg class="swipe-nudge-arrow w-4 h-4 sm:w-4.5 sm:h-4.5 text-gold-300 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Inner Content: Micro SWIPE Text & Mini Arrow Circle -->
+        <div class="relative flex items-center space-x-1 pl-1.5 sm:pl-2 pr-1 py-0.5">
+          <!-- Micro Text Cue: SWIPE -->
+          <span class="text-[8px] sm:text-[9px] font-orbitron font-bold tracking-wider text-gold-300 uppercase drop-shadow group-hover:text-white transition-colors leading-none">SWIPE</span>
+          <!-- Mini Arrow Circle with Right Nudge -->
+          <div class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full bg-gradient-to-tr from-amber-500/25 to-gold-400/20 border border-gold-400/50 flex items-center justify-center shrink-0 shadow-inner group-hover:bg-gold-500/40 transition-colors">
+            <svg class="swipe-nudge-arrow-right w-3 h-3 text-gold-300 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
             </svg>
           </div>
@@ -847,12 +1017,12 @@
 
           <!-- Ergonomic CTA Buttons with 44px+ touch target -->
           <div class="mt-6 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <button onclick="jumpToSlide(2)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-gold-600 hover:from-gold-300 hover:to-amber-400 text-space-950 shadow-lg shadow-gold-500/30 transition-all flex items-center justify-center space-x-2 active:scale-95">
+            <button onclick="jumpToSlide(1)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-gold-600 hover:from-gold-300 hover:to-amber-400 text-space-950 shadow-lg shadow-gold-500/30 transition-all flex items-center justify-center space-x-2 active:scale-95">
               <span>EXPLORE MODES</span>
               <svg class="w-4 h-4 text-space-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </button>
-            <button onclick="jumpToSlide(4)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-semibold tracking-widest uppercase bg-space-900/90 hover:bg-space-850 text-slate-100 border border-purple-500/40 hover:border-chroma-magenta transition-all rainbow-border-pulse active:scale-95">
-              REQUEST ALPHA ACCESS
+            <button onclick="jumpToSlide(2)" class="w-full sm:w-auto touch-target px-7 py-3 rounded-xl font-orbitron text-xs font-semibold tracking-widest uppercase bg-space-900/90 hover:bg-space-850 text-slate-100 border border-purple-500/40 hover:border-chroma-magenta transition-all rainbow-border-pulse active:scale-95">
+              VIEW TELEMETRY
             </button>
           </div>
 
@@ -878,129 +1048,13 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 2: DUAL BRAIN ARCHITECTURE ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
-        <div class="max-w-5xl w-full mx-auto">
-          <!-- Section Header -->
-          <div class="text-center mb-4 sm:mb-6">
-            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
-              <span>02. Neural Architecture</span>
-              <span aria-hidden="true">·</span>
-              <span>Bilateral Symmetry</span>
-            </div>
-            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">THE DUAL-HEMISPHERE SYSTEM</h3>
-          </div>
-
-          <!-- Mobile Segmented View Switcher (Thumb Ergonomics) -->
-          <div class="md:hidden flex items-center justify-center mb-4">
-            <div class="flex items-center p-1 bg-space-900 border border-slate-700 rounded-xl w-full max-w-xs">
-              <button onclick="toggleMobileHemi('left')" id="mobileHemiTabLeft" class="flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-gold-500/20 text-gold-300 border border-gold-400/40">
-                EXECUTIVE LOGIC
-              </button>
-              <button onclick="toggleMobileHemi('right')" id="mobileHemiTabRight" class="flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white">
-                DIVERGENT FLOW
-              </button>
-            </div>
-          </div>
-
-          <!-- Cards Grid (Responsive 2-column or Tabbed on mobile) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch">
-            
-            <!-- Left Card: Executive Logic -->
-            <div id="hemiCardLeft" class="glass-hud p-5 sm:p-7 rounded-2xl border border-gold-400/40 relative flex flex-col justify-between transition-all">
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gold-500/10 border border-gold-400/40 flex items-center justify-center text-gold-400">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-[11px] font-rajdhani font-semibold tracking-wider text-gold-400 uppercase">LEFT HEMISPHERE</span>
-                </div>
-
-                <h4 class="font-orbitron font-bold text-lg sm:text-xl text-white">
-                  Executive Scaffold & Deconstruction
-                </h4>
-
-                <p class="font-sans text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-                  Overcomes task initiation friction and freeze. Decomposes intimidating mountains into painless 5-minute atomic micro-steps with ambient pacing timers.
-                </p>
-
-                <ul class="mt-4 space-y-2 text-xs font-rajdhani tracking-wider text-slate-300">
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span>
-                    <span>Micro-Chunking Engine: 5-minute frictionless wins</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-cyan shrink-0"></span>
-                    <span>Working Memory Offloader: zero lost context</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gold-400 shrink-0"></span>
-                    <span>Time-Blindness Calibrator: ambient visual pacing</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div class="mt-4 pt-3 border-t border-gold-400/20 flex justify-between items-center text-[11px] font-rajdhani tracking-wider text-gold-400">
-                <span>MODE: STRUCTURED CADENCE</span>
-                <span class="text-slate-300 tabular-nums">EFFICIENCY: 100%</span>
-              </div>
-            </div>
-
-            <!-- Right Card: Divergent Flow -->
-            <div id="hemiCardRight" class="glass-hud-rainbow p-5 sm:p-7 rounded-2xl border border-chroma-magenta/40 relative hidden md:flex flex-col justify-between transition-all">
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-pink-500/10 border border-chroma-magenta/40 flex items-center justify-center text-chroma-magenta">
-                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-[11px] font-rajdhani font-semibold tracking-wider text-chroma-magenta uppercase">RIGHT HEMISPHERE</span>
-                </div>
-
-                <h4 class="font-orbitron font-bold text-lg sm:text-xl text-white">
-                  Vibrant Ideation & Hyperfocus Harbor
-                </h4>
-
-                <p class="font-sans text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-                  Honors the rapid, lateral gift of the ADHD mind. Captures chaotic sparks raw without killing flow, connecting divergent insights into structured masterworks.
-                </p>
-
-                <ul class="mt-4 space-y-2 text-xs font-rajdhani tracking-wider text-slate-300">
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-purple shrink-0"></span>
-                    <span>Radial Mind Mapping: multidimensional idea clusters</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-magenta shrink-0"></span>
-                    <span>Hyperfocus Guard: protects deep flow states</span>
-                  </li>
-                  <li class="flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-chroma-lime shrink-0"></span>
-                    <span>Gamified Dopamine Loops: micro-reward pacing</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div class="mt-4 pt-3 border-t border-purple-500/20 flex justify-between items-center text-[11px] font-rajdhani tracking-wider text-chroma-magenta">
-                <span>MODE: EXPLORATORY FLOW</span>
-                <span class="text-slate-300 tabular-nums">LATITUDE: UNBOUNDED</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= SLIDE 3: INTERACTIVE MODES ================= -->
+      <!-- ================= SLIDE 2: INTERACTIVE MODES ================= -->
       <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
         <div class="max-w-5xl w-full mx-auto">
           <!-- Section Header -->
           <div class="text-center mb-3 sm:mb-5">
             <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
-              <span>03. Adaptive Engine</span>
+              <span>02. Adaptive Engine</span>
               <span aria-hidden="true">·</span>
               <span>Interactive Simulator</span>
             </div>
@@ -1087,13 +1141,13 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 4: NEURO-METRICS ================= -->
+      <!-- ================= SLIDE 3: NEURO-METRICS ================= -->
       <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
         <div class="max-w-5xl w-full mx-auto">
           <!-- Section Header -->
           <div class="text-center mb-3 sm:mb-5">
             <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-chroma-magenta uppercase">
-              <span>04. Synaptic Telemetry</span>
+              <span>03. Synaptic Telemetry</span>
               <span aria-hidden="true">·</span>
               <span>Neuro-Biometrics</span>
             </div>
@@ -1201,74 +1255,6 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 5: EARLY ACCESS WAITLIST ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
-        <div class="max-w-2xl w-full mx-auto">
-          <!-- Section Header -->
-          <div class="text-center mb-3 sm:mb-5">
-            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
-              <span>05. Early Access</span>
-              <span aria-hidden="true">·</span>
-              <span>Alpha Cohort</span>
-            </div>
-            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">REQUEST EARLY ACCESS</h3>
-            <p class="font-sans text-xs sm:text-sm text-slate-300 mt-1">Join neurodivergent creators, engineers, and founders unlocking effortless cognitive flow.</p>
-          </div>
-
-          <!-- Form Card -->
-          <div class="glass-hud p-5 sm:p-7 rounded-2xl border border-gold-400/30 rainbow-border-pulse">
-            <form id="waitlistForm" onsubmit="handleWaitlist(event)" class="space-y-3.5">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Your Name</label>
-                  <input type="text" name="name" required placeholder="Alex Hunter" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-                </div>
-                <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Email Address</label>
-                  <input type="email" name="email" required placeholder="alex@neuroflow.io" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-                </div>
-              </div>
-
-              <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Primary Cognitive Challenge</label>
-                <select name="primaryChallenge" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-slate-200 font-sans outline-none transition-all">
-                  <option value="Task Initiation">Task Initiation & Dissolving Freeze</option>
-                  <option value="Divergent Brainstorms">Capturing Divergent Brainstorms</option>
-                  <option value="Hyperfocus Burnout">Pacing Hyperfocus & Preventing Burnout</option>
-                  <option value="Working Memory Loss">Working Memory & Tab Hopping</option>
-                  <option value="All Synergy">Full Bilateral Synergy</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Role / Passion</label>
-                <input type="text" name="role" placeholder="e.g. Software Engineer, Designer, Founder" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-              </div>
-
-              <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="text-[11px] font-rajdhani text-slate-400 flex items-center gap-1.5 self-start sm:self-auto">
-                  <svg class="w-4 h-4 text-chroma-lime shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                  <span>ZERO-SPAM NEURO-ETHICAL PRIVACY GUARANTEE</span>
-                </div>
-                <button type="submit" class="touch-target w-full sm:w-auto px-8 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-magenta hover:opacity-95 text-space-950 shadow-lg shadow-gold-500/30 transition-all active:scale-95">
-                  SECURE MY ALPHA SPOT
-                </button>
-              </div>
-            </form>
-
-            <!-- Success Box -->
-            <div id="waitlistSuccess" class="hidden mt-4 p-4 rounded-xl bg-space-900 border border-gold-400 text-gold-300 text-xs sm:text-sm font-sans flex items-center space-x-3">
-              <svg class="w-6 h-6 text-chroma-lime shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <div>
-                <div class="font-orbitron font-bold text-xs uppercase text-white">VIP Invitation Confirmed!</div>
-                <div class="text-xs text-slate-300 mt-0.5">Your spot on the Alpha Cohort is secured. Welcome to the future of neuro-adaptive cognition.</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
     </div>
   </main>
 
@@ -1276,7 +1262,7 @@
   <footer class="hidden md:flex relative z-30 px-6 py-3.5 border-t border-gold-400/20 glass-hud backdrop-blur-md items-center justify-between gap-3 shrink-0">
     <!-- Sector Coordinates -->
     <div class="flex items-center space-x-3 font-rajdhani text-xs tracking-widest text-slate-400">
-      <span class="gold-gradient-text font-bold font-orbitron tabular-nums" id="sectorDisplay">SECTOR 01 / 05</span>
+      <span class="gold-gradient-text font-bold font-orbitron tabular-nums" id="sectorDisplay">SECTOR 01 / 03</span>
       <span class="text-slate-700">|</span>
       <span class="text-slate-300">DUAL-SYNAPSE CO-PILOT OS</span>
     </div>
@@ -1286,8 +1272,6 @@
       <button onclick="jumpToSlide(0)" class="carousel-dot w-8 h-2 rounded-full bg-gold-400 transition-all" aria-label="Go to slide 1"></button>
       <button onclick="jumpToSlide(1)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 2"></button>
       <button onclick="jumpToSlide(2)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 3"></button>
-      <button onclick="jumpToSlide(3)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 4"></button>
-      <button onclick="jumpToSlide(4)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 5"></button>
     </div>
 
     <!-- Quick Shortcuts Instructions -->
@@ -1297,35 +1281,6 @@
       <span>KEYS OR SWIPE TO NAVIGATE</span>
     </div>
   </footer>
-
-  <!-- ================= DOCKED BOTTOM WORKSPACE CONTROLS ================= -->
-  <div id="tasksBottomDock" class="fixed bottom-16 md:bottom-3 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 flex items-center space-x-2.5">
-    <!-- Google Calendar Pill -->
-    <button id="openCalendarTabBtn" onclick="window.openCalendarModal()" class="touch-target px-3.5 sm:px-5 py-2 rounded-full bg-space-900/90 hover:bg-space-850 border border-amber-400/50 hover:border-amber-300 text-slate-100 glass-hud flex items-center space-x-2 shadow-2xl shadow-amber-500/20 group transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xl" aria-label="Open Google Calendar">
-      <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/40">
-        <svg class="w-3.5 h-3.5 text-space-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="16" y1="2" x2="16" y2="6"></line>
-          <line x1="8" y1="2" x2="8" y2="6"></line>
-          <line x1="3" y1="10" x2="21" y2="10"></line>
-        </svg>
-      </div>
-      <span class="font-orbitron text-[11px] sm:text-xs font-bold tracking-wider text-amber-300">CALENDAR</span>
-      <span id="calendarDockCount" class="hidden px-2 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 font-bold border border-amber-400/30">0</span>
-    </button>
-
-    <!-- Google Tasks Pill -->
-    <button id="openTasksTabBtn" onclick="window.openTasksModal()" class="touch-target px-3.5 sm:px-5 py-2 rounded-full bg-space-900/90 hover:bg-space-850 border border-blue-400/50 hover:border-blue-300 text-slate-100 glass-hud flex items-center space-x-2 shadow-2xl shadow-blue-500/20 group transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-xl" aria-label="Open Google Tasks">
-      <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/40">
-        <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4"/>
-          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-        </svg>
-      </div>
-      <span class="font-orbitron text-[11px] sm:text-xs font-bold tracking-wider text-blue-300">TASKS</span>
-      <span id="tasksDockCount" class="hidden px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 font-bold border border-blue-400/30">0</span>
-    </button>
-  </div>
 
   <!-- ================= GOOGLE TASKS FULL SCREEN OVERLAY ================= -->
   <div id="googleTasksModal" class="fixed inset-0 z-50 bg-space-950/95 backdrop-blur-2xl flex flex-col transition-all duration-500 opacity-0 pointer-events-none translate-y-full" role="dialog" aria-modal="true" aria-labelledby="googleTasksTitle">
@@ -2321,7 +2276,7 @@
      * 3. CAROUSEL & NAVIGATION
      * ============================================================ */
     let currentSlide = 0;
-    const totalSlides = 5;
+    const totalSlides = 3;
     const track = document.getElementById('carouselTrack');
     const sectorDisplay = document.getElementById('sectorDisplay');
     const mobileSlideNum = document.getElementById('mobileSlideNum');
@@ -2368,23 +2323,38 @@
         }
       });
 
+      // Left pulsating swipe arrow: show once the user has swiped right at least once (currentSlide > 0)
+      const swipeLeftIndicator = document.getElementById('swipeLeftIndicator');
+      if (swipeLeftIndicator) {
+        if (currentSlide > 0) {
+          swipeLeftIndicator.classList.remove('hidden');
+          swipeLeftIndicator.classList.add('flex');
+        } else {
+          swipeLeftIndicator.classList.add('hidden');
+          swipeLeftIndicator.classList.remove('flex');
+        }
+      }
+
       playSynthBeep(440 + currentSlide * 60, 'sine', 0.1, 0.03);
     }
 
     function nextSlide() {
       currentSlide = (currentSlide + 1) % totalSlides;
       updateCarousel();
+      onSwipeAction();
     }
 
     function prevSlide() {
       currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
       updateCarousel();
+      onSwipeAction();
     }
 
     function jumpToSlide(index) {
       if (index >= 0 && index < totalSlides) {
         currentSlide = index;
         updateCarousel();
+        onSwipeAction();
       }
     }
 
@@ -2420,33 +2390,54 @@
     }, { passive: true });
 
     /* ============================================================
-     * 4. MOBILE HEMISPHERE TOGGLER (Slide 2)
+     * SWIPE ARROWS INACTIVITY FADING ENGINE
      * ============================================================ */
-    function toggleMobileHemi(side) {
-      const cardLeft = document.getElementById('hemiCardLeft');
-      const cardRight = document.getElementById('hemiCardRight');
-      const tabLeft = document.getElementById('mobileHemiTabLeft');
-      const tabRight = document.getElementById('mobileHemiTabRight');
+    let hasUserSwiped = false;
+    let swipeIdleTimer = null;
+    let isSwipeArrowsDimmed = false;
+    const SWIPE_IDLE_DELAY = 2500; // 2.5 seconds of inactivity after swiping
 
-      if (!cardLeft || !cardRight) return;
+    function setSwipeArrowsDimmed(dimmed) {
+      isSwipeArrowsDimmed = dimmed;
+      const leftInd = document.getElementById('swipeLeftIndicator');
+      const rightInd = document.getElementById('swipeRightIndicator');
+      const targetOpacity = dimmed ? '0.25' : '1';
+      if (leftInd) leftInd.style.opacity = targetOpacity;
+      if (rightInd) rightInd.style.opacity = targetOpacity;
+    }
 
-      if (side === 'left') {
-        cardLeft.classList.remove('hidden');
-        cardRight.classList.add('hidden');
-        tabLeft.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-gold-500/20 text-gold-300 border border-gold-400/40";
-        tabRight.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white";
-        playSynthBeep(520, 'triangle', 0.1, 0.03);
-      } else {
-        cardLeft.classList.add('hidden');
-        cardRight.classList.remove('hidden');
-        tabRight.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all bg-pink-500/20 text-chroma-magenta border border-chroma-magenta/40";
-        tabLeft.className = "flex-1 py-2 text-xs font-rajdhani font-bold tracking-wider rounded-lg transition-all text-slate-400 hover:text-white";
-        playSynthBeep(680, 'triangle', 0.1, 0.03);
+    function restartSwipeIdleTimer() {
+      if (swipeIdleTimer) clearTimeout(swipeIdleTimer);
+      if (!hasUserSwiped) return; // Only start idle dimming once user has swiped
+      swipeIdleTimer = setTimeout(() => {
+        setSwipeArrowsDimmed(true);
+      }, SWIPE_IDLE_DELAY);
+    }
+
+    function handleUserActivity() {
+      // If arrows are currently dimmed to 25%, immediately restore to 100%
+      if (isSwipeArrowsDimmed) {
+        setSwipeArrowsDimmed(false);
+      }
+      // If user has previously swiped, restart the idle timer
+      if (hasUserSwiped) {
+        restartSwipeIdleTimer();
       }
     }
 
+    function onSwipeAction() {
+      hasUserSwiped = true;
+      setSwipeArrowsDimmed(false);
+      restartSwipeIdleTimer();
+    }
+
+    // Activity triggers: tapping something, moving mouse cursor, pressing keys, or scrolling
+    ['mousemove', 'pointermove', 'touchstart', 'pointerdown', 'mousedown', 'keydown', 'wheel'].forEach(evt => {
+      window.addEventListener(evt, handleUserActivity, { passive: true });
+    });
+
     /* ============================================================
-     * 5. INTERACTIVE PROTOCOL DEMONSTRATOR (Slide 3)
+     * 4. INTERACTIVE PROTOCOL DEMONSTRATOR (Slide 2)
      * ============================================================ */
     const modeData = [
       {
@@ -2604,42 +2595,369 @@
     }
 
     /* ============================================================
-     * 6. WAITLIST FORM HANDLER
+     * 6. FANCY SPLASH WALLPAPER ANIMATION ENGINE (Synaptic Constellation)
      * ============================================================ */
-    function handleWaitlist(e) {
-      e.preventDefault();
-      playSynthBeep(980, 'triangle', 0.3, 0.06);
+    function initSplashWallpaper() {
+      const canvas = document.getElementById('splashWallpaperCanvas');
+      const splashScreen = document.getElementById('splashScreen');
+      if (!canvas || !splashScreen) return;
 
-      const form = e.target;
-      const formData = new FormData(form);
-      const payload = Object.fromEntries(formData.entries());
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-      fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(err => console.log('Waitlist saved'));
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let animationFrameId = null;
+      let isRunning = false;
 
-      if (typeof window.saveWaitlistToFirestore === 'function') {
-        window.saveWaitlistToFirestore(payload).catch(err => console.log('Firestore waitlist sync notice:', err));
+      // Pointer state for interactive neural influence
+      const pointer = {
+        x: -9999,
+        y: -9999,
+        targetX: -9999,
+        targetY: -9999,
+        active: false,
+        radius: 175
+      };
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = splashScreen.clientWidth || window.innerWidth;
+        height = splashScreen.clientHeight || window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
-      const successBox = document.getElementById('waitlistSuccess');
-      if (successBox) {
-        successBox.classList.remove('hidden');
-      }
-      form.reset();
+      // Bilateral ADHD Brain palette: Executive Golds + Radiant Divergent Cyans/Magentas/Emeralds
+      const palettes = [
+        { r: 255, g: 209, b: 89,  name: 'gold' },
+        { r: 245, g: 158, b: 11,  name: 'amber' },
+        { r: 0,   g: 229, b: 255, name: 'cyan' },
+        { r: 236, g: 72,  b: 153, name: 'magenta' },
+        { r: 168, g: 85,  b: 247, name: 'violet' },
+        { r: 16,  g: 185, b: 129, name: 'emerald' }
+      ];
 
-      setTimeout(() => {
-        if (successBox) {
-          successBox.classList.add('hidden');
+      const nodeCount = Math.min(Math.max(Math.floor((window.innerWidth * window.innerHeight) / 16000), 38), 75);
+      const nodes = [];
+
+      for (let i = 0; i < nodeCount; i++) {
+        const p = palettes[i % palettes.length];
+        nodes.push({
+          x: Math.random() * (window.innerWidth || 1000),
+          y: Math.random() * (window.innerHeight || 800),
+          vx: (Math.random() - 0.5) * 0.52,
+          vy: (Math.random() - 0.5) * 0.52,
+          baseRadius: 1.8 + Math.random() * 2.2,
+          pulsePhase: Math.random() * Math.PI * 2,
+          pulseSpeed: 0.02 + Math.random() * 0.025,
+          color: p,
+          alpha: 0.5 + Math.random() * 0.45
+        });
+      }
+
+      // Celestial Stardust
+      const stardust = [];
+      const stardustCount = 36;
+      for (let i = 0; i < stardustCount; i++) {
+        stardust.push({
+          x: Math.random() * (window.innerWidth || 1000),
+          y: Math.random() * (window.innerHeight || 800),
+          speedY: 0.15 + Math.random() * 0.35,
+          size: 0.7 + Math.random() * 1.5,
+          alpha: 0.2 + Math.random() * 0.55,
+          twinkleSpeed: 0.025 + Math.random() * 0.035,
+          twinklePhase: Math.random() * Math.PI * 2
+        });
+      }
+
+      // Action Potentials (synaptic sparks traveling across neural filaments)
+      const sparks = [];
+      const maxSparks = 16;
+
+      function spawnSpark(n1, n2) {
+        if (sparks.length >= maxSparks) return;
+        sparks.push({
+          fromNode: n1,
+          toNode: n2,
+          progress: 0,
+          speed: 0.016 + Math.random() * 0.024,
+          color: Math.random() > 0.5 ? n1.color : n2.color,
+          size: 2.2 + Math.random() * 1.6
+        });
+      }
+
+      // Harmonic brainwave ripples
+      const waveRings = [];
+      let lastRingTime = Date.now();
+
+      function spawnWaveRing() {
+        waveRings.push({
+          x: width * 0.5,
+          y: height * 0.36,
+          radius: 12,
+          maxRadius: Math.max(width, height) * 0.8,
+          speed: 1.25 + Math.random() * 0.45,
+          alpha: 0.38,
+          color: Math.random() > 0.5 ? '255, 209, 89' : '168, 85, 247'
+        });
+      }
+
+      // Event listeners for interactivity
+      splashScreen.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        pointer.targetX = e.clientX - rect.left;
+        pointer.targetY = e.clientY - rect.top;
+        pointer.active = true;
+      }, { passive: true });
+
+      splashScreen.addEventListener('mouseleave', () => {
+        pointer.active = false;
+      }, { passive: true });
+
+      splashScreen.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) {
+          const rect = canvas.getBoundingClientRect();
+          pointer.targetX = e.touches[0].clientX - rect.left;
+          pointer.targetY = e.touches[0].clientY - rect.top;
+          pointer.active = true;
         }
-      }, 8000);
+      }, { passive: true });
+
+      splashScreen.addEventListener('touchend', () => {
+        pointer.active = false;
+      }, { passive: true });
+
+      function render() {
+        if (!isRunning) return;
+
+        // Skip heavy frame rendering if splash is hidden
+        if (splashScreen.classList.contains('opacity-0') || splashScreen.classList.contains('pointer-events-none')) {
+          animationFrameId = requestAnimationFrame(render);
+          return;
+        }
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Interpolate pointer for silky smoothness
+        if (pointer.active) {
+          pointer.x += (pointer.targetX - pointer.x) * 0.16;
+          pointer.y += (pointer.targetY - pointer.y) * 0.16;
+        } else {
+          pointer.x = -9999;
+          pointer.y = -9999;
+        }
+
+        // 1. Stardust floating upwards
+        for (let i = 0; i < stardust.length; i++) {
+          const s = stardust[i];
+          s.y -= s.speedY;
+          if (s.y < -10) {
+            s.y = height + 10;
+            s.x = Math.random() * width;
+          }
+          s.twinklePhase += s.twinkleSpeed;
+          const alpha = s.alpha * (0.6 + 0.4 * Math.sin(s.twinklePhase));
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 2. Periodic brainwave ring expansion
+        const now = Date.now();
+        if (now - lastRingTime > 2600) {
+          spawnWaveRing();
+          lastRingTime = now;
+        }
+
+        for (let i = waveRings.length - 1; i >= 0; i--) {
+          const ring = waveRings[i];
+          ring.radius += ring.speed;
+          ring.alpha *= 0.992;
+          if (ring.radius >= ring.maxRadius || ring.alpha < 0.01) {
+            waveRings.splice(i, 1);
+            continue;
+          }
+          ctx.strokeStyle = `rgba(${ring.color}, ${ring.alpha.toFixed(3)})`;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // 3. Update & render neural nodes
+        const connectionDist = width < 640 ? 105 : 140;
+        const connectionDistSq = connectionDist * connectionDist;
+
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+
+          // Velocity drift
+          node.x += node.vx;
+          node.y += node.vy;
+
+          // Boundary bouncing
+          if (node.x < 15) { node.x = 15; node.vx = Math.abs(node.vx); }
+          if (node.x > width - 15) { node.x = width - 15; node.vx = -Math.abs(node.vx); }
+          if (node.y < 15) { node.y = 15; node.vy = Math.abs(node.vy); }
+          if (node.y > height - 15) { node.y = height - 15; node.vy = -Math.abs(node.vy); }
+
+          // Cursor magnetism
+          if (pointer.active) {
+            const dx = node.x - pointer.x;
+            const dy = node.y - pointer.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < pointer.radius && dist > 1) {
+              const force = (1 - dist / pointer.radius) * 0.9;
+              node.x += (dx / dist) * force * 2.8;
+              node.y += (dy / dist) * force * 2.8;
+            }
+          }
+
+          // Pulsing radius
+          node.pulsePhase += node.pulseSpeed;
+          const currentRadius = node.baseRadius + Math.sin(node.pulsePhase) * 0.75;
+
+          // Radial halo glow
+          const glowGrad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, currentRadius * 4.2);
+          glowGrad.addColorStop(0, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, ${(node.alpha * 0.85).toFixed(3)})`);
+          glowGrad.addColorStop(0.5, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, ${(node.alpha * 0.25).toFixed(3)})`);
+          glowGrad.addColorStop(1, `rgba(${node.color.r}, ${node.color.g}, ${node.color.b}, 0)`);
+          ctx.fillStyle = glowGrad;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, currentRadius * 4.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Bright core
+          ctx.fillStyle = `rgba(255, 255, 255, 0.95)`;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, currentRadius * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 4. Draw synaptic connection filaments
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const n1 = nodes[i];
+            const n2 = nodes[j];
+            const dx = n1.x - n2.x;
+            const dy = n1.y - n2.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < connectionDistSq) {
+              const dist = Math.sqrt(distSq);
+              const filamentAlpha = (1 - dist / connectionDist) * 0.36;
+
+              const grad = ctx.createLinearGradient(n1.x, n1.y, n2.x, n2.y);
+              grad.addColorStop(0, `rgba(${n1.color.r}, ${n1.color.g}, ${n1.color.b}, ${filamentAlpha.toFixed(3)})`);
+              grad.addColorStop(1, `rgba(${n2.color.r}, ${n2.color.g}, ${n2.color.b}, ${filamentAlpha.toFixed(3)})`);
+
+              ctx.strokeStyle = grad;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(n1.x, n1.y);
+              ctx.lineTo(n2.x, n2.y);
+              ctx.stroke();
+
+              // Chance of spontaneous action potential
+              if (Math.random() < 0.002) {
+                spawnSpark(n1, n2);
+              }
+            }
+          }
+        }
+
+        // 5. Interactive pointer neural filaments
+        if (pointer.active) {
+          for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+            const dx = pointer.x - n.x;
+            const dy = pointer.y - n.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < pointer.radius) {
+              const alpha = (1 - dist / pointer.radius) * 0.65;
+              ctx.strokeStyle = `rgba(255, 209, 89, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = 1.3;
+              ctx.beginPath();
+              ctx.moveTo(pointer.x, pointer.y);
+              ctx.lineTo(n.x, n.y);
+              ctx.stroke();
+            }
+          }
+          const curGrad = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 22);
+          curGrad.addColorStop(0, 'rgba(255, 209, 89, 0.7)');
+          curGrad.addColorStop(1, 'rgba(255, 209, 89, 0)');
+          ctx.fillStyle = curGrad;
+          ctx.beginPath();
+          ctx.arc(pointer.x, pointer.y, 22, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 6. Action potential sparks traversing filaments
+        for (let i = sparks.length - 1; i >= 0; i--) {
+          const spark = sparks[i];
+          spark.progress += spark.speed;
+          if (spark.progress >= 1) {
+            sparks.splice(i, 1);
+            continue;
+          }
+          const sx = spark.fromNode.x + (spark.toNode.x - spark.fromNode.x) * spark.progress;
+          const sy = spark.fromNode.y + (spark.toNode.y - spark.fromNode.y) * spark.progress;
+
+          const sparkGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, spark.size * 3.2);
+          sparkGrad.addColorStop(0, `rgba(255, 255, 255, 0.98)`);
+          sparkGrad.addColorStop(0.4, `rgba(${spark.color.r}, ${spark.color.g}, ${spark.color.b}, 0.85)`);
+          sparkGrad.addColorStop(1, `rgba(${spark.color.r}, ${spark.color.g}, ${spark.color.b}, 0)`);
+          ctx.fillStyle = sparkGrad;
+          ctx.beginPath();
+          ctx.arc(sx, sy, spark.size * 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        animationFrameId = requestAnimationFrame(render);
+      }
+
+      function start() {
+        if (!isRunning) {
+          isRunning = true;
+          resize();
+          render();
+        }
+      }
+
+      function stop() {
+        isRunning = false;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+      }
+
+      window.addEventListener('resize', () => {
+        resize();
+      }, { passive: true });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          stop();
+        } else {
+          start();
+        }
+      });
+
+      start();
+      window.splashWallpaperAnim = { start, stop, resize };
     }
 
     // Initialize all components on load
     window.addEventListener('DOMContentLoaded', () => {
       initDynamicStarfields();
+      initSplashWallpaper();
       selectMode(0);
       updateCarousel();
     });
@@ -2725,28 +3043,6 @@
       throw new Error(JSON.stringify(errInfo));
     }
 
-    // Save waitlist submissions directly to Firestore
-    window.saveWaitlistToFirestore = async function(payload) {
-      if (!payload || !payload.email) return;
-      const waitlistId = 'wl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
-      const docPath = `waitlist/${waitlistId}`;
-      try {
-        const entry = {
-          email: payload.email,
-          createdAt: serverTimestamp()
-        };
-        if (payload.role) entry.role = payload.role;
-        if (payload.challenge || payload.primaryChallenge) {
-          entry.primaryChallenge = payload.challenge || payload.primaryChallenge;
-        }
-        if (auth.currentUser?.uid) {
-          entry.userId = auth.currentUser.uid;
-        }
-        await setDoc(doc(db, 'waitlist', waitlistId), entry);
-      } catch (err) {
-        handleFirestoreError(err, OperationType.CREATE, docPath);
-      }
-    };
 
     // Validate Connection to Firestore at boot
     async function testConnection() {
@@ -2942,12 +3238,14 @@
       if (!splashScreen) return;
       splashScreen.classList.remove('opacity-0', 'pointer-events-none');
       splashScreen.classList.add('opacity-100');
+      if (window.splashWallpaperAnim) window.splashWallpaperAnim.start();
     };
 
     window.hideSplashScreen = function() {
       if (!splashScreen) return;
       splashScreen.classList.remove('opacity-100');
       splashScreen.classList.add('opacity-0', 'pointer-events-none');
+      if (window.splashWallpaperAnim) window.splashWallpaperAnim.stop();
     };
 
     window.firebaseSignOut = async function() {
@@ -6423,11 +6721,6 @@
           authStatus.innerHTML = `<span class="text-gold-300">CONNECTED AS ${user.displayName ? user.displayName.toUpperCase() : (user.email || 'USER')}</span>`;
         }
 
-        // Auto-fill waitlist email input if blank
-        const waitlistEmailInput = document.querySelector('input[name="email"]');
-        if (waitlistEmailInput && !waitlistEmailInput.value && user.email) {
-          waitlistEmailInput.value = user.email;
-        }
 
         // If modals are open and token is available, load data
         if (cachedAccessToken) {

@@ -552,14 +552,13 @@
       <button onclick="jumpToSlide(1)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="1">02. DUAL BRAIN</button>
       <button onclick="jumpToSlide(2)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="2">03. CO-PILOT MODES</button>
       <button onclick="jumpToSlide(3)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="3">04. NEURO-METRICS</button>
-      <button onclick="jumpToSlide(4)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="4">05. EARLY ACCESS</button>
     </nav>
 
     <!-- Zone 3: Audio Toggle, Auth Status & Quick CTA -->
     <div class="flex items-center space-x-2 sm:space-x-3">
       <!-- Sector Pill for Mobile -->
       <div class="md:hidden flex items-center px-2 py-1 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
-        <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>05
+        <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>04
       </div>
 
       <!-- User Auth State Pill (when signed in) -->
@@ -577,13 +576,7 @@
         <span id="headerAuthLabel" class="hidden sm:inline">SIGN IN</span>
       </button>
 
-      <!-- SFX Audio Toggle Button -->
-      <button id="audioToggle" onclick="toggleAudio()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Toggle Sound Feedback">
-        <svg id="audioIcon" class="w-4 h-4 text-gold-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-        </svg>
-        <span id="audioLabel" class="hidden sm:inline">SFX</span>
-      </button>
+
 
       <!-- Desktop Primary CTA -->
       <button onclick="jumpToSlide(4)" class="hidden md:flex px-4 py-1.5 rounded-lg font-orbitron text-xs font-bold tracking-wider text-space-950 bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20 whitespace-nowrap">
@@ -997,74 +990,6 @@
         </div>
       </section>
 
-      <!-- ================= SLIDE 5: EARLY ACCESS WAITLIST ================= -->
-      <section class="slide-section min-w-full h-full flex flex-col justify-start md:justify-center items-center px-4 sm:px-8 md:px-16 relative slide-scroll pb-24 md:pb-8 pt-4 md:pt-6">
-        <div class="max-w-2xl w-full mx-auto">
-          <!-- Section Header -->
-          <div class="text-center mb-3 sm:mb-5">
-            <div class="flex items-center justify-center gap-2 text-xs font-rajdhani tracking-widest text-gold-400 uppercase">
-              <span>05. Early Access</span>
-              <span aria-hidden="true">·</span>
-              <span>Alpha Cohort</span>
-            </div>
-            <h3 class="font-orbitron text-xl sm:text-3xl font-extrabold text-white mt-1">REQUEST EARLY ACCESS</h3>
-            <p class="font-sans text-xs sm:text-sm text-slate-300 mt-1">Join neurodivergent creators, engineers, and founders unlocking effortless cognitive flow.</p>
-          </div>
-
-          <!-- Form Card -->
-          <div class="glass-hud p-5 sm:p-7 rounded-2xl border border-gold-400/30 rainbow-border-pulse">
-            <form id="waitlistForm" onsubmit="handleWaitlist(event)" class="space-y-3.5">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Your Name</label>
-                  <input type="text" name="name" required placeholder="Alex Hunter" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-                </div>
-                <div>
-                  <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Email Address</label>
-                  <input type="email" name="email" required placeholder="alex@neuroflow.io" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-                </div>
-              </div>
-
-              <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Primary Cognitive Challenge</label>
-                <select name="primaryChallenge" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-slate-200 font-sans outline-none transition-all">
-                  <option value="Task Initiation">Task Initiation & Dissolving Freeze</option>
-                  <option value="Divergent Brainstorms">Capturing Divergent Brainstorms</option>
-                  <option value="Hyperfocus Burnout">Pacing Hyperfocus & Preventing Burnout</option>
-                  <option value="Working Memory Loss">Working Memory & Tab Hopping</option>
-                  <option value="All Synergy">Full Bilateral Synergy</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block font-rajdhani text-xs font-semibold tracking-wider uppercase text-gold-300 mb-1">Role / Passion</label>
-                <input type="text" name="role" placeholder="e.g. Software Engineer, Designer, Founder" class="w-full touch-target bg-space-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-slate-500 font-sans outline-none transition-all">
-              </div>
-
-              <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="text-[11px] font-rajdhani text-slate-400 flex items-center gap-1.5 self-start sm:self-auto">
-                  <svg class="w-4 h-4 text-chroma-lime shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                  <span>ZERO-SPAM NEURO-ETHICAL PRIVACY GUARANTEE</span>
-                </div>
-                <button type="submit" class="touch-target w-full sm:w-auto px-8 py-3 rounded-xl font-orbitron text-xs font-bold tracking-widest uppercase bg-gradient-to-r from-gold-400 via-amber-500 to-chroma-magenta hover:opacity-95 text-space-950 shadow-lg shadow-gold-500/30 transition-all active:scale-95">
-                  SECURE MY ALPHA SPOT
-                </button>
-              </div>
-            </form>
-
-            <!-- Success Box -->
-            <div id="waitlistSuccess" class="hidden mt-4 p-4 rounded-xl bg-space-900 border border-gold-400 text-gold-300 text-xs sm:text-sm font-sans flex items-center space-x-3">
-              <svg class="w-6 h-6 text-chroma-lime shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <div>
-                <div class="font-orbitron font-bold text-xs uppercase text-white">VIP Invitation Confirmed!</div>
-                <div class="text-xs text-slate-300 mt-0.5">Your spot on the Alpha Cohort is secured. Welcome to the future of neuro-adaptive cognition.</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
     </div>
   </main>
 
@@ -1072,7 +997,7 @@
   <footer class="hidden md:flex relative z-30 px-6 py-3.5 border-t border-gold-400/20 glass-hud backdrop-blur-md items-center justify-between gap-3 shrink-0">
     <!-- Sector Coordinates -->
     <div class="flex items-center space-x-3 font-rajdhani text-xs tracking-widest text-slate-400">
-      <span class="gold-gradient-text font-bold font-orbitron tabular-nums" id="sectorDisplay">SECTOR 01 / 05</span>
+      <span class="gold-gradient-text font-bold font-orbitron tabular-nums" id="sectorDisplay">SECTOR 01 / 04</span>
       <span class="text-slate-700">|</span>
       <span class="text-slate-300">DUAL-SYNAPSE CO-PILOT OS</span>
     </div>
@@ -1083,7 +1008,6 @@
       <button onclick="jumpToSlide(1)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 2"></button>
       <button onclick="jumpToSlide(2)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 3"></button>
       <button onclick="jumpToSlide(3)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 4"></button>
-      <button onclick="jumpToSlide(4)" class="carousel-dot w-2 h-2 rounded-full bg-slate-700 hover:bg-slate-500 transition-all" aria-label="Go to slide 5"></button>
     </div>
 
     <!-- Quick Shortcuts Instructions -->
@@ -1555,7 +1479,7 @@
      * 3. CAROUSEL & NAVIGATION
      * ============================================================ */
     let currentSlide = 0;
-    const totalSlides = 5;
+    const totalSlides = 4;
     const track = document.getElementById('carouselTrack');
     const sectorDisplay = document.getElementById('sectorDisplay');
     const mobileSlideNum = document.getElementById('mobileSlideNum');
