@@ -492,16 +492,180 @@
       background: rgba(255, 255, 255, 0.08);
     }
 
-    @keyframes hyperfocusGlowPulse {
-      0%, 100% {
-        box-shadow: 0 0 18px rgba(245, 158, 11, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.05);
+    /* ============================================================ */
+    /* POMODORO ACTIVE TASK CARD: GENTLE BLUE-TO-GOLD COLOR SHIFT   */
+    /* ============================================================ */
+    @keyframes pomoCardToneShift {
+      0% {
+        /* Calming Neuro-Focus Blue / Cyan */
+        border-color: rgba(56, 189, 248, 0.85); /* sky-400 */
+        background-color: rgba(8, 20, 38, 0.96);
+        box-shadow: 0 0 24px -2px rgba(14, 165, 233, 0.45),
+                    0 0 50px -6px rgba(59, 130, 246, 0.25),
+                    inset 0 0 16px rgba(14, 165, 233, 0.12);
+      }
+      25% {
+        /* Deep Electric Blue */
+        border-color: rgba(96, 165, 250, 0.88); /* blue-400 */
+        background-color: rgba(10, 22, 44, 0.96);
+        box-shadow: 0 0 28px -2px rgba(59, 130, 246, 0.45),
+                    0 0 54px -6px rgba(99, 102, 241, 0.22),
+                    inset 0 0 20px rgba(59, 130, 246, 0.14);
       }
       50% {
-        box-shadow: 0 0 30px rgba(245, 158, 11, 0.45), inset 0 0 20px rgba(245, 158, 11, 0.12);
+        /* Transitional Warm Amber */
+        border-color: rgba(245, 158, 11, 0.9); /* amber-500 */
+        background-color: rgba(22, 19, 12, 0.96);
+        box-shadow: 0 0 28px -2px rgba(245, 158, 11, 0.45),
+                    0 0 54px -6px rgba(251, 191, 36, 0.22),
+                    inset 0 0 20px rgba(245, 158, 11, 0.14);
+      }
+      75% {
+        /* Radiant Hyperfocus Gold */
+        border-color: rgba(251, 191, 36, 0.95); /* gold-400 / amber-400 */
+        background-color: rgba(28, 22, 10, 0.97);
+        box-shadow: 0 0 32px -1px rgba(251, 191, 36, 0.5),
+                    0 0 60px -5px rgba(245, 158, 11, 0.28),
+                    inset 0 0 24px rgba(251, 191, 36, 0.16);
+      }
+      100% {
+        /* Smooth return to Calming Neuro-Focus Blue / Cyan */
+        border-color: rgba(56, 189, 248, 0.85);
+        background-color: rgba(8, 20, 38, 0.96);
+        box-shadow: 0 0 24px -2px rgba(14, 165, 233, 0.45),
+                    0 0 50px -6px rgba(59, 130, 246, 0.25),
+                    inset 0 0 16px rgba(14, 165, 233, 0.12);
       }
     }
-    .hyperfocus-active-card {
-      animation: hyperfocusGlowPulse 3s ease-in-out infinite;
+
+    @keyframes pomoTopShimmer {
+      0% {
+        background-position: 0% 50%;
+        opacity: 0.85;
+      }
+      50% {
+        background-position: 100% 50%;
+        opacity: 1;
+      }
+      100% {
+        background-position: 0% 50%;
+        opacity: 0.85;
+      }
+    }
+
+    @keyframes pomoTextToneShift {
+      0%, 100% {
+        color: #38bdf8;
+      }
+      25% {
+        color: #60a5fa;
+      }
+      50% {
+        color: #f59e0b;
+      }
+      75% {
+        color: #fbbf24;
+      }
+    }
+
+    @keyframes pomoDotToneShift {
+      0%, 100% {
+        background-color: #38bdf8;
+      }
+      25% {
+        background-color: #60a5fa;
+      }
+      50% {
+        background-color: #f59e0b;
+      }
+      75% {
+        background-color: #fbbf24;
+      }
+    }
+
+    @keyframes pomoButtonToneShift {
+      0%, 100% {
+        border-color: rgba(56, 189, 248, 0.75);
+        background-color: rgba(56, 189, 248, 0.15);
+        color: #7dd3fc;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+      }
+      50% {
+        border-color: rgba(251, 191, 36, 0.85);
+        background-color: rgba(251, 191, 36, 0.18);
+        color: #fde047;
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.28);
+      }
+    }
+
+    .task-card-item.hyperfocus-active-card {
+      position: relative;
+      animation: pomoCardToneShift 6s ease-in-out infinite;
+      border-width: 2px !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    /* Ambient top-edge neon streamer shifting smoothly between blue and gold */
+    .task-card-item.hyperfocus-active-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.5px;
+      background: linear-gradient(90deg, #38bdf8, #3b82f6, #6366f1, #f59e0b, #fbbf24, #f59e0b, #3b82f6, #38bdf8);
+      background-size: 300% 100%;
+      animation: pomoTopShimmer 6s ease-in-out infinite;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .task-card-item.hyperfocus-active-card .pomo-tone-title {
+      animation: pomoTextToneShift 6s ease-in-out infinite;
+    }
+
+    .task-card-item.hyperfocus-active-card .pomo-tone-dot {
+      animation: pomoDotToneShift 6s ease-in-out infinite;
+    }
+
+    .task-card-item.hyperfocus-active-card .pomo-tone-button {
+      animation: pomoButtonToneShift 6s ease-in-out infinite;
+    }
+
+    /* When the Pomodoro countdown is actively running, gently accelerate tone shift */
+    .task-card-item.hyperfocus-active-card.pomo-timer-running {
+      animation: pomoCardToneShift 4.5s ease-in-out infinite;
+    }
+
+    .task-card-item.hyperfocus-active-card.pomo-timer-running::before {
+      animation: pomoTopShimmer 4.5s ease-in-out infinite;
+      height: 4px;
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.7);
+    }
+
+    .task-card-item.hyperfocus-active-card.pomo-timer-running .pomo-tone-title {
+      animation: pomoTextToneShift 4.5s ease-in-out infinite;
+    }
+
+    .task-card-item.hyperfocus-active-card.pomo-timer-running .pomo-tone-dot {
+      animation: pomoDotToneShift 4.5s ease-in-out infinite;
+    }
+
+    .task-card-item.hyperfocus-active-card.pomo-timer-running .pomo-tone-button {
+      animation: pomoButtonToneShift 4.5s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .task-card-item.hyperfocus-active-card,
+      .task-card-item.hyperfocus-active-card::before,
+      .task-card-item.hyperfocus-active-card .pomo-tone-title,
+      .task-card-item.hyperfocus-active-card .pomo-tone-dot,
+      .task-card-item.hyperfocus-active-card .pomo-tone-button {
+        animation: none !important;
+        border-color: rgba(251, 191, 36, 0.9) !important;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
+      }
     }
 
     /* Subtle Heartbeat Pulse Animation for Critical (🔥) Urgency Badges */
@@ -683,10 +847,90 @@
       will-change: transform, opacity;
     }
 
+    /* Bottom Aurora Shimmer Waves (Energizing the bottom section) */
+    @keyframes splashAuroraBottom1 {
+      0% {
+        transform: translate(-10%, 8%) scale(1) rotate(0deg);
+        opacity: 0.5;
+      }
+      50% {
+        transform: translate(14%, -14%) scale(1.22) rotate(180deg);
+        opacity: 0.75;
+      }
+      100% {
+        transform: translate(-10%, 8%) scale(1) rotate(360deg);
+        opacity: 0.5;
+      }
+    }
+
+    @keyframes splashAuroraBottom2 {
+      0% {
+        transform: translate(10%, -8%) scale(1.1) rotate(360deg);
+        opacity: 0.45;
+      }
+      50% {
+        transform: translate(-12%, 16%) scale(0.96) rotate(180deg);
+        opacity: 0.72;
+      }
+      100% {
+        transform: translate(10%, -8%) scale(1.1) rotate(0deg);
+        opacity: 0.45;
+      }
+    }
+
+    @keyframes splashAuroraBottom3 {
+      0%, 100% {
+        transform: translate(0%, 4%) scale(1);
+        opacity: 0.4;
+      }
+      50% {
+        transform: translate(-8%, -10%) scale(1.25);
+        opacity: 0.65;
+      }
+    }
+
+    .splash-aurora-glow-bottom-1 {
+      animation: splashAuroraBottom1 22s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+    .splash-aurora-glow-bottom-2 {
+      animation: splashAuroraBottom2 28s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+    .splash-aurora-glow-bottom-3 {
+      animation: splashAuroraBottom3 24s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      will-change: transform, opacity;
+    }
+
+    /* Fluid Bottom Synaptic Wave Drift */
+    @keyframes bottomWaveDrift1 {
+      0% { transform: translateX(0) translateZ(0) scaleY(1); }
+      50% { transform: translateX(-25%) translateZ(0) scaleY(1.12); }
+      100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+    }
+    @keyframes bottomWaveDrift2 {
+      0% { transform: translateX(-50%) translateZ(0) scaleY(1.08); }
+      50% { transform: translateX(-25%) translateZ(0) scaleY(0.92); }
+      100% { transform: translateX(0) translateZ(0) scaleY(1.08); }
+    }
+    .splash-bottom-wave-1 {
+      animation: bottomWaveDrift1 24s linear infinite;
+      will-change: transform;
+    }
+    .splash-bottom-wave-2 {
+      animation: bottomWaveDrift2 18s linear infinite;
+      will-change: transform;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .splash-aurora-glow-1,
       .splash-aurora-glow-2,
       .splash-aurora-glow-3,
+      .splash-aurora-glow-bottom-1,
+      .splash-aurora-glow-bottom-2,
+      .splash-aurora-glow-bottom-3,
+      .splash-bottom-wave-1,
+      .splash-bottom-wave-2,
       .splash-brainwave-ring-1,
       .splash-brainwave-ring-2,
       .splash-brainwave-ring-3,
@@ -746,10 +990,10 @@
     .splash-neuro-grid {
       background-size: 64px 64px;
       background-image: 
-        linear-gradient(to right, rgba(255, 209, 89, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
-      mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.85) 0%, transparent 75%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0.85) 0%, transparent 75%);
+        linear-gradient(to right, rgba(255, 209, 89, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.045) 1px, transparent 1px);
+      mask-image: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.88) 0%, transparent 92%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.88) 0%, transparent 92%);
     }
 
     @keyframes gridDrift {
@@ -774,18 +1018,24 @@
 <body class="h-full w-full font-sans antialiased text-slate-100 flex flex-col justify-between relative overflow-hidden">
 
   <!-- ================= SPLASH PAGE (First view users see when accessing the app) ================= -->
-  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-start pt-4 sm:pt-8 pb-10 px-4 sm:px-8 bg-space-950/95 backdrop-blur-2xl overflow-y-auto slide-scroll transition-opacity duration-700">
+  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-between min-h-screen pt-4 sm:pt-6 pb-6 px-4 sm:px-8 bg-space-950/90 backdrop-blur-2xl overflow-y-auto slide-scroll transition-opacity duration-700">
     
     <!-- Fancy Dynamic Cosmic Synaptic Wallpaper Animation -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
       <!-- 1) Cybernetic Neuro-Matrix Grid -->
-      <div class="splash-neuro-grid splash-neuro-grid-anim absolute inset-0 opacity-40"></div>
+      <div class="splash-neuro-grid splash-neuro-grid-anim absolute inset-0 opacity-45"></div>
 
-      <!-- 2) Swirling Multi-Layer Cosmic Aurora Nebulae -->
-      <div class="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] pointer-events-none filter blur-[80px] sm:blur-[100px] opacity-80">
-        <div class="splash-aurora-glow-1 absolute top-[10%] left-[15%] w-[550px] sm:w-[700px] h-[550px] sm:h-[700px] rounded-full bg-gradient-to-tr from-amber-500/35 via-gold-400/25 to-transparent"></div>
-        <div class="splash-aurora-glow-2 absolute bottom-[20%] right-[10%] w-[600px] sm:w-[750px] h-[600px] sm:h-[750px] rounded-full bg-gradient-to-bl from-purple-600/40 via-pink-600/30 to-transparent"></div>
-        <div class="splash-aurora-glow-3 absolute top-[35%] right-[25%] w-[500px] sm:w-[650px] h-[500px] sm:h-[650px] rounded-full bg-gradient-to-br from-cyan-500/35 via-blue-600/25 to-transparent"></div>
+      <!-- 2) Swirling Multi-Layer Cosmic Aurora Nebulae (Upper, Center & Lower Viewport) -->
+      <div class="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] pointer-events-none filter blur-[80px] sm:blur-[100px] opacity-85">
+        <!-- Top & Center Nebulae -->
+        <div class="splash-aurora-glow-1 absolute top-[8%] left-[15%] w-[550px] sm:w-[700px] h-[550px] sm:h-[700px] rounded-full bg-gradient-to-tr from-amber-500/35 via-gold-400/25 to-transparent"></div>
+        <div class="splash-aurora-glow-2 absolute top-[22%] right-[10%] w-[600px] sm:w-[750px] h-[600px] sm:h-[750px] rounded-full bg-gradient-to-bl from-purple-600/40 via-pink-600/30 to-transparent"></div>
+        <div class="splash-aurora-glow-3 absolute top-[32%] left-[28%] w-[500px] sm:w-[650px] h-[500px] sm:h-[650px] rounded-full bg-gradient-to-br from-cyan-500/35 via-blue-600/25 to-transparent"></div>
+
+        <!-- Dynamic Bottom Nebulae (Eliminates dead dark section at bottom) -->
+        <div class="splash-aurora-glow-bottom-1 absolute bottom-[6%] left-[8%] w-[650px] sm:w-[820px] h-[480px] sm:h-[640px] rounded-full bg-gradient-to-tr from-cyan-500/35 via-emerald-500/25 to-transparent"></div>
+        <div class="splash-aurora-glow-bottom-2 absolute bottom-[4%] right-[12%] w-[700px] sm:w-[860px] h-[520px] sm:h-[680px] rounded-full bg-gradient-to-tl from-amber-500/40 via-gold-400/30 to-transparent"></div>
+        <div class="splash-aurora-glow-bottom-3 absolute bottom-[12%] left-[32%] w-[620px] sm:w-[760px] h-[440px] sm:h-[580px] rounded-full bg-gradient-to-t from-purple-600/35 via-pink-600/25 to-transparent"></div>
       </div>
 
       <!-- 3) Resonant Brainwave Harmonic Rings (expanding behind the brain logo) -->
@@ -793,22 +1043,50 @@
       <div class="splash-brainwave-ring splash-brainwave-ring-2"></div>
       <div class="splash-brainwave-ring splash-brainwave-ring-3"></div>
 
-      <!-- 4) Dynamic Interactive Synaptic Constellation Canvas -->
+      <!-- 4) Dynamic Interactive Synaptic Constellation Canvas (Full Viewport) -->
       <canvas id="splashWallpaperCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
-      <!-- 5) Ambient Vignette Mask -->
-      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,3,7,0.7)_100%)] pointer-events-none z-0"></div>
+      <!-- 5) Ambient Bioluminescent Neural Horizon Wave Stream at Bottom -->
+      <div class="absolute bottom-0 left-0 right-0 h-40 sm:h-52 pointer-events-none overflow-hidden z-0 opacity-70">
+        <svg class="splash-bottom-wave-1 absolute bottom-0 left-0 w-[200%] h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="splashWaveGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ffd159" stop-opacity="0.08" />
+              <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.32" />
+              <stop offset="70%" stop-color="#fbbf24" stop-opacity="0.22" />
+              <stop offset="100%" stop-color="#ffd159" stop-opacity="0.08" />
+            </linearGradient>
+          </defs>
+          <path d="M0,50 C150,95 350,-10 500,50 C650,110 850,-5 1000,55 C1100,90 1180,65 1200,60 L1200,120 L0,120 Z" fill="url(#splashWaveGoldGrad)"></path>
+        </svg>
+        <svg class="splash-bottom-wave-2 absolute bottom-0 left-0 w-[200%] h-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="splashWaveCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.08" />
+              <stop offset="40%" stop-color="#a855f7" stop-opacity="0.26" />
+              <stop offset="75%" stop-color="#00e5ff" stop-opacity="0.18" />
+              <stop offset="100%" stop-color="#ec4899" stop-opacity="0.1" />
+            </linearGradient>
+          </defs>
+          <path d="M0,65 C200,15 380,90 600,45 C800,0 980,85 1200,50 L1200,120 L0,120 Z" fill="url(#splashWaveCyanGrad)"></path>
+        </svg>
+        <!-- Shimmering Horizon Boundary Filament -->
+        <div class="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/35 via-cyan-400/35 to-transparent blur-[1px]"></div>
+      </div>
+
+      <!-- 6) Gentle Ambient Vignette (Softened to preserve full-bleed vibrancy) -->
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,3,7,0.45)_100%)] pointer-events-none z-0"></div>
     </div>
 
     <!-- Centered Hero Stack: High-Positioned Enlarged Logo & Controls -->
     <div class="flex flex-col items-center text-center max-w-2xl w-full relative z-10 pt-2 sm:pt-4 my-auto">
       
       <!-- 1) Enlarged Brain Logo Moved Higher Up -->
-      <div class="relative group mt-1 sm:mt-2 mb-6 sm:mb-8 transition-transform duration-500 hover:scale-[1.02]">
-        <div class="absolute -inset-8 sm:-inset-10 bg-gradient-to-r from-gold-500/25 via-purple-600/25 to-chroma-cyan/25 rounded-3xl blur-3xl opacity-70 group-hover:opacity-95 transition duration-700 pointer-events-none"></div>
+      <div class="relative group mt-1 sm:mt-2 mb-5 sm:mb-7 transition-transform duration-500 hover:scale-[1.02]">
+        <div class="absolute -inset-8 sm:-inset-10 bg-gradient-to-r from-gold-500/25 via-purple-600/25 to-chroma-cyan/25 rounded-3xl blur-3xl opacity-75 group-hover:opacity-95 transition duration-700 pointer-events-none"></div>
         <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png"
              alt="AI for ADHD: The Cognitive Co-Pilot"
-             class="relative max-h-72 sm:max-h-96 md:max-h-[26rem] w-auto max-w-[92vw] sm:max-w-xl md:max-w-2xl object-contain filter drop-shadow-[0_16px_48px_rgba(255,209,89,0.4)] select-none pointer-events-none" />
+             class="relative max-h-64 sm:max-h-80 md:max-h-[22rem] w-auto max-w-[92vw] sm:max-w-xl md:max-w-2xl object-contain filter drop-shadow-[0_16px_48px_rgba(255,209,89,0.4)] select-none pointer-events-none" />
       </div>
 
       <!-- 2) Animated Button & Auth Controls -->
@@ -836,7 +1114,7 @@
         <div id="authErrorMsg" class="hidden text-xs text-rose-300 font-mono max-w-sm text-center bg-rose-950/80 border border-rose-500/40 rounded-xl px-4 py-2 shadow-lg"></div>
 
         <!-- Signed in profile card (when already authenticated) - moved down to leave space for enlarged logo -->
-        <div id="signedInPreview" class="hidden items-center justify-between gap-3 p-3 px-5 sm:px-6 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-2xl backdrop-blur-xl mt-6 sm:mt-8 max-w-md w-full sm:w-auto">
+        <div id="signedInPreview" class="hidden items-center justify-between gap-3 p-3 px-5 sm:px-6 rounded-2xl bg-space-850/90 border border-gold-400/40 glass-hud shadow-2xl backdrop-blur-xl mt-5 sm:mt-7 max-w-md w-full sm:w-auto">
           <img id="splashUserAvatar" src="" alt="User Avatar" class="w-10 h-10 rounded-full border border-gold-400 object-cover shrink-0" />
           <div class="text-left text-xs min-w-0 flex-1">
             <div id="splashUserName" class="font-bold text-white leading-tight truncate"></div>
@@ -2660,16 +2938,16 @@
         });
       }
 
-      // Celestial Stardust
+      // Celestial Stardust (Bi-directional shimmering particle dust)
       const stardust = [];
-      const stardustCount = 36;
+      const stardustCount = 54;
       for (let i = 0; i < stardustCount; i++) {
         stardust.push({
           x: Math.random() * (window.innerWidth || 1000),
           y: Math.random() * (window.innerHeight || 800),
           speedY: 0.15 + Math.random() * 0.35,
-          size: 0.7 + Math.random() * 1.5,
-          alpha: 0.2 + Math.random() * 0.55,
+          size: 0.7 + Math.random() * 1.6,
+          alpha: 0.22 + Math.random() * 0.58,
           twinkleSpeed: 0.025 + Math.random() * 0.035,
           twinklePhase: Math.random() * Math.PI * 2
         });
@@ -2677,7 +2955,7 @@
 
       // Action Potentials (synaptic sparks traveling across neural filaments)
       const sparks = [];
-      const maxSparks = 16;
+      const maxSparks = 18;
 
       function spawnSpark(n1, n2) {
         if (sparks.length >= maxSparks) return;
@@ -2691,23 +2969,23 @@
         });
       }
 
-      // Harmonic brainwave ripples
+      // Harmonic brainwave ripples (covers top logo focus & bottom horizon)
       const waveRings = [];
       let lastRingTime = Date.now();
 
-      function spawnWaveRing() {
+      function spawnWaveRing(customX, customY, customColor) {
         waveRings.push({
-          x: width * 0.5,
-          y: height * 0.36,
-          radius: 12,
-          maxRadius: Math.max(width, height) * 0.8,
-          speed: 1.25 + Math.random() * 0.45,
+          x: customX !== undefined ? customX : width * 0.5,
+          y: customY !== undefined ? customY : height * 0.32,
+          radius: 14,
+          maxRadius: Math.max(width, height) * 0.88,
+          speed: 1.3 + Math.random() * 0.45,
           alpha: 0.38,
-          color: Math.random() > 0.5 ? '255, 209, 89' : '168, 85, 247'
+          color: customColor || (Math.random() > 0.5 ? '255, 209, 89' : '168, 85, 247')
         });
       }
 
-      // Event listeners for interactivity
+      // Event listeners for interactivity across the entire viewport
       splashScreen.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         pointer.targetX = e.clientX - rect.left;
@@ -2717,6 +2995,13 @@
 
       splashScreen.addEventListener('mouseleave', () => {
         pointer.active = false;
+      }, { passive: true });
+
+      splashScreen.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        spawnWaveRing(px, py, Math.random() > 0.5 ? '255, 209, 89' : '0, 229, 255');
       }, { passive: true });
 
       splashScreen.addEventListener('touchmove', (e) => {
@@ -2768,10 +3053,18 @@
           ctx.fill();
         }
 
-        // 2. Periodic brainwave ring expansion
+        // 2. Periodic brainwave ring expansion (Top logo harmonic + Bottom horizon ripples)
         const now = Date.now();
-        if (now - lastRingTime > 2600) {
+        if (now - lastRingTime > 2300) {
           spawnWaveRing();
+          // Periodically pulse a bottom harmonic wave across the lower horizon
+          if (Math.random() > 0.35) {
+            spawnWaveRing(
+              width * (0.2 + Math.random() * 0.6), 
+              height * 0.82, 
+              Math.random() > 0.5 ? '0, 229, 255' : '255, 209, 89'
+            );
+          }
           lastRingTime = now;
         }
 
@@ -4962,6 +5255,9 @@
       const tid = activeContextMenuTaskId;
       window.closeTaskContextMenu();
       window.selectTaskForFocus(tid);
+      if (!pomodoroIsRunning) {
+        window.startPomodoro();
+      }
     };
 
     window.applyContextMenuToggleStar = function() {
@@ -5331,10 +5627,10 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center space-x-2">
                     <span class="relative flex h-2.5 w-2.5">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${pomodoroIsRunning ? 'bg-amber-400' : 'bg-slate-400'} opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 ${pomodoroIsRunning ? 'bg-amber-500' : 'bg-slate-500'}"></span>
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${pomodoroIsRunning ? 'pomo-tone-dot' : 'bg-slate-400'} opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 ${pomodoroIsRunning ? 'pomo-tone-dot' : 'bg-slate-500'}"></span>
                     </span>
-                    <span class="font-orbitron text-xs font-bold ${pomodoroIsRunning ? 'text-amber-300' : 'text-slate-200'} tracking-wider uppercase">
+                    <span class="font-orbitron text-xs font-bold ${pomodoroIsRunning ? 'pomo-tone-title' : 'text-slate-200'} tracking-wider uppercase">
                       ${pomodoroIsRunning ? '⚡ HYPERFOCUS ACTIVE' : '🎯 POMODORO FOCUS STATION'}
                     </span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-400/30">
@@ -5431,7 +5727,7 @@
 
           return `
             <div
-              class="task-card-item group relative p-3.5 sm:p-4 rounded-xl ${urgency.config.borderAccent} ${isFocused ? 'hyperfocus-active-card ring-2 ring-amber-400/90 border-amber-400 bg-space-900/95 shadow-xl shadow-amber-500/15' : (isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50')} ${urgency.level === 'critical' && !isDone ? 'ring-1 ring-rose-500/35 shadow-rose-500/10' : ''} border transition-all glass-hud flex flex-col gap-2 shadow-md cursor-default"
+              class="task-card-item group relative p-3.5 sm:p-4 rounded-xl ${isFocused ? `hyperfocus-active-card ${pomodoroIsRunning ? 'pomo-timer-running' : ''}` : `${urgency.config.borderAccent} ${isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50'}`} ${urgency.level === 'critical' && !isDone && !isFocused ? 'ring-1 ring-rose-500/35 shadow-rose-500/10' : ''} border transition-all glass-hud flex flex-col gap-2 shadow-md cursor-default"
               draggable="true"
               data-task-id="${task.id}"
               ondragstart="window.handleTaskDragStart(event, '${task.id}')"
@@ -5604,7 +5900,7 @@
                 <!-- Right Actions: Focus Selector Button + Star Toggle + Delete Action -->
                 <div class="flex items-center space-x-1.5 shrink-0">
                   ${isFocused ? `
-                    <button type="button" onclick="window.deselectFocusTask(event)" class="px-2.5 py-1 rounded-lg bg-amber-500/25 border border-amber-400 text-amber-300 text-[11px] font-rajdhani font-bold flex items-center space-x-1 shadow-sm" title="Active Focus Sprint - Click to hide timer">
+                    <button type="button" onclick="window.deselectFocusTask(event)" class="px-2.5 py-1 rounded-lg border text-[11px] font-rajdhani font-bold flex items-center space-x-1 shadow-sm pomo-tone-button" title="Active Focus Sprint - Click to hide timer">
                       <span>⚡ ACTIVE</span>
                     </button>
                   ` : `
