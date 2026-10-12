@@ -444,6 +444,54 @@
       border-bottom: 3px solid #ffd159 !important;
       box-shadow: 0 6px 16px rgba(255, 209, 89, 0.35) !important;
     }
+
+    /* Distinct High-Contrast Drag-and-Drop Grip Handle */
+    .drag-handle {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.15s ease-in-out;
+    }
+    .drag-handle:hover {
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.5) !important;
+    }
+    .drag-handle:active {
+      transform: scale(0.92);
+    }
+
+    /* Task Context Menu Micro-interactions */
+    #taskContextMenu {
+      transform-origin: top left;
+    }
+    #taskContextMenu .context-menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.4rem 0.55rem;
+      border-radius: 0.5rem;
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+    #taskContextMenu .context-menu-item:hover {
+      background: rgba(251, 191, 36, 0.15);
+      color: #ffd159;
+    }
+    #taskContextMenu .context-menu-subitem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.35rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.72rem;
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+    #taskContextMenu .context-menu-subitem:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     @keyframes hyperfocusGlowPulse {
       0%, 100% {
         box-shadow: 0 0 18px rgba(245, 158, 11, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.05);
@@ -454,6 +502,49 @@
     }
     .hyperfocus-active-card {
       animation: hyperfocusGlowPulse 3s ease-in-out infinite;
+    }
+
+    /* Subtle Heartbeat Pulse Animation for Critical (🔥) Urgency Badges */
+    @keyframes heartbeatPulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.45);
+      }
+      14% {
+        transform: scale(1.055);
+        box-shadow: 0 0 8px 2px rgba(244, 63, 94, 0.55);
+      }
+      28% {
+        transform: scale(1);
+        box-shadow: 0 0 2px 0 rgba(244, 63, 94, 0.25);
+      }
+      42% {
+        transform: scale(1.075);
+        box-shadow: 0 0 12px 3px rgba(244, 63, 94, 0.65);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+      }
+    }
+
+    .animate-heartbeat,
+    .critical-heartbeat-pulse {
+      animation: heartbeatPulse 1.85s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      transform-origin: center center;
+      display: inline-flex;
+      will-change: transform, box-shadow;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .animate-heartbeat,
+      .critical-heartbeat-pulse {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -546,9 +637,9 @@
   </div>
 
   <!-- ================= TOP APP BAR (Max 56px height, conforms to mobile & desktop contracts) ================= -->
-  <header class="relative z-30 h-14 px-4 sm:px-6 flex items-center justify-between border-b border-gold-400/20 glass-hud backdrop-blur-md shrink-0">
+  <header class="relative z-30 h-14 px-3 sm:px-6 flex items-center justify-between gap-3 border-b border-gold-400/20 glass-hud backdrop-blur-md shrink-0">
     <!-- Brand / Split Logo Wordmark (Zone 1) -->
-    <div class="flex items-center space-x-2.5 cursor-pointer touch-target" onclick="jumpToSlide(0)">
+    <div class="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer select-none shrink-0" onclick="jumpToSlide(0)">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-gold-500 via-purple-600 to-chroma-magenta p-[1.5px] flex items-center justify-center shrink-0 shadow-md shadow-gold-500/20">
         <div class="w-full h-full bg-space-950 rounded-[7px] flex items-center justify-center">
           <svg class="w-5 h-5" viewBox="0 0 40 40" fill="none">
@@ -576,33 +667,15 @@
       </div>
     </div>
 
-    <!-- Desktop Navigation Links (Zone 2) -->
-    <nav class="hidden md:flex items-center space-x-6 font-rajdhani text-sm font-semibold tracking-wider text-slate-300">
-      <button onclick="jumpToSlide(0)" class="nav-btn transition-colors hover:text-gold-400 py-1 text-gold-400 font-bold" data-index="0">01. THE VISION</button>
-      <button onclick="jumpToSlide(1)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="1">02. DUAL BRAIN</button>
-      <button onclick="jumpToSlide(2)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="2">03. CO-PILOT MODES</button>
-      <button onclick="jumpToSlide(3)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="3">04. NEURO-METRICS</button>
-      <button onclick="jumpToSlide(4)" class="nav-btn transition-colors hover:text-gold-400 py-1" data-index="4">05. EARLY ACCESS</button>
-    </nav>
-
-    <!-- Zone 3: Audio Toggle, Auth Status & Quick CTA -->
-    <div class="flex items-center space-x-2 sm:space-x-3">
-      <!-- Sector Pill for Mobile -->
-      <div class="md:hidden flex items-center px-2 py-1 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
+    <!-- Quick Tools & Auth Controls (Zone 2) -->
+    <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+      <!-- Sector Pill for Mobile/Tablet -->
+      <div class="hidden sm:inline-flex md:hidden items-center px-2 py-0.5 rounded bg-space-950/80 border border-gold-400/30 text-[11px] font-mono text-gold-400 tabular-nums">
         <span id="mobileSlideNum">01</span><span class="text-slate-600 mx-0.5">/</span>05
       </div>
 
-      <!-- User Auth State Pill (when signed in) -->
-      <div id="headerUserPill" class="hidden items-center space-x-2 px-2.5 py-1 rounded-full bg-space-850/90 border border-gold-400/40 text-xs text-slate-200 glass-hud">
-        <img id="headerUserAvatar" src="" alt="Avatar" class="w-5 h-5 rounded-full border border-gold-400 object-cover" />
-        <span id="headerUserName" class="hidden sm:inline font-semibold text-gold-300 max-w-[90px] truncate"></span>
-        <button id="headerSignOutBtn" onclick="window.firebaseSignOut()" class="text-[10px] font-mono text-slate-400 hover:text-rose-400 pl-1.5 border-l border-slate-700 transition-colors" title="Sign Out">
-          LOGOUT
-        </button>
-      </div>
-
-      <!-- Google Calendar Header Button -->
-      <button id="headerCalendarBtn" onclick="window.openCalendarModal()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-amber-400 text-xs font-rajdhani tracking-wider text-amber-300 hover:text-white transition-all flex items-center space-x-1.5 shadow-sm" title="Open Google Calendar (C)">
+      <!-- Google Calendar Header Button (Desktop: md+) -->
+      <button id="headerCalendarBtn" onclick="window.openCalendarModal()" class="hidden md:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700/80 hover:border-amber-400 text-xs font-rajdhani tracking-wider text-amber-300 hover:text-white transition-all shadow-sm" title="Open Google Calendar (C)">
         <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
           <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -613,8 +686,8 @@
         <span id="headerCalBadge" class="hidden w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
       </button>
 
-      <!-- Google Tasks Header Button -->
-      <button id="headerTasksBtn" onclick="window.openTasksModal()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-blue-400 text-xs font-rajdhani tracking-wider text-blue-300 hover:text-white transition-all flex items-center space-x-1.5 shadow-sm" title="Open Google Tasks (T)">
+      <!-- Google Tasks Header Button (Desktop: md+) -->
+      <button id="headerTasksBtn" onclick="window.openTasksModal()" class="hidden md:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700/80 hover:border-blue-400 text-xs font-rajdhani tracking-wider text-blue-300 hover:text-white transition-all shadow-sm" title="Open Google Tasks (T)">
         <svg class="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 11l3 3L22 4"/>
           <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
@@ -622,23 +695,27 @@
         <span class="hidden lg:inline">TASKS</span>
       </button>
 
-      <!-- Welcome / Re-open Splash Button -->
-      <button id="splashToggleBtn" onclick="window.showSplashScreen()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Welcome Splash Screen">
+      <!-- User Auth State Pill (when signed in) -->
+      <div id="headerUserPill" class="hidden items-center space-x-1.5 sm:space-x-2 px-2 sm:px-2.5 py-1 rounded-full bg-space-850/90 border border-gold-400/40 text-xs text-slate-200 glass-hud cursor-pointer hover:border-gold-400 transition-colors" onclick="window.showSplashScreen()" title="View Account Settings">
+        <img id="headerUserAvatar" src="" alt="Avatar" class="w-5 h-5 rounded-full border border-gold-400 object-cover" />
+        <span id="headerUserName" class="hidden sm:inline font-semibold text-gold-300 max-w-[85px] truncate"></span>
+        <button id="headerSignOutBtn" onclick="event.stopPropagation(); window.firebaseSignOut();" class="text-[10px] font-mono text-slate-400 hover:text-rose-400 pl-1.5 border-l border-slate-700 transition-colors" title="Sign Out">
+          LOGOUT
+        </button>
+      </div>
+
+      <!-- Welcome / Re-open Splash Button (shown when signed out) -->
+      <button id="splashToggleBtn" onclick="window.showSplashScreen()" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-200 hover:text-white transition-all shadow-sm" title="Sign In with Google">
         <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/63b8f11f-ae2b-4fba-abac-1f9234aab708.png" class="w-3.5 h-3.5" alt="Google" />
-        <span id="headerAuthLabel" class="hidden sm:inline">SIGN IN</span>
+        <span id="headerAuthLabel">SIGN IN</span>
       </button>
 
       <!-- SFX Audio Toggle Button -->
-      <button id="audioToggle" onclick="toggleAudio()" class="touch-target px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all flex items-center space-x-1.5" title="Toggle Sound Feedback">
+      <button id="audioToggle" onclick="toggleAudio()" class="flex items-center space-x-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-space-850 border border-slate-700 hover:border-gold-400 text-xs font-rajdhani tracking-wider text-slate-300 hover:text-white transition-all shadow-sm" title="Toggle Sound Feedback">
         <svg id="audioIcon" class="w-4 h-4 text-gold-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
         </svg>
         <span id="audioLabel" class="hidden sm:inline">SFX</span>
-      </button>
-
-      <!-- Desktop Primary CTA -->
-      <button onclick="jumpToSlide(4)" class="hidden md:flex px-4 py-1.5 rounded-lg font-orbitron text-xs font-bold tracking-wider text-space-950 bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 transition-all shadow-md shadow-gold-500/20 whitespace-nowrap">
-        JOIN ALPHA
       </button>
     </div>
   </header>
@@ -1299,21 +1376,58 @@
           </div>
         </div>
 
-        <!-- Filter Controls -->
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center space-x-1.5 bg-space-900/90 p-1 rounded-xl border border-slate-800">
-            <button onclick="window.setTasksFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all">ALL</button>
-            <button onclick="window.setTasksFilter('needsAction')" id="filterBtnPending" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">NEEDS ACTION</button>
-            <button onclick="window.setTasksFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">COMPLETED</button>
-            <button onclick="window.setTasksFilter('starred')" id="filterBtnStarred" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all flex items-center space-x-1" title="Show only starred tasks">
-              <span class="text-amber-400">★</span>
-              <span>STARRED</span>
+        <!-- Filter & Priority Urgency Controls -->
+        <div class="flex flex-col space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <!-- Status Filters -->
+            <div class="flex items-center space-x-1.5 bg-space-900/90 p-1 rounded-xl border border-slate-800">
+              <button onclick="window.setTasksFilter('all')" id="filterBtnAll" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-bold tracking-wider bg-gold-500/20 text-gold-300 border border-gold-400 transition-all">ALL</button>
+              <button onclick="window.setTasksFilter('needsAction')" id="filterBtnPending" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">NEEDS ACTION</button>
+              <button onclick="window.setTasksFilter('completed')" id="filterBtnCompleted" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all">COMPLETED</button>
+              <button onclick="window.setTasksFilter('starred')" id="filterBtnStarred" class="px-3 py-1 rounded-lg text-xs font-rajdhani font-semibold tracking-wider text-slate-400 hover:text-white transition-all flex items-center space-x-1" title="Show only starred tasks">
+                <span class="text-amber-400">★</span>
+                <span>STARRED</span>
+              </button>
+            </div>
+
+            <!-- Sort by Urgency Toggle -->
+            <button
+              id="sortUrgencyToggleBtn"
+              type="button"
+              onclick="window.toggleSortByUrgency()"
+              class="px-3 py-1 rounded-xl text-xs font-rajdhani font-bold tracking-wider bg-space-900/90 hover:bg-space-850 text-slate-400 hover:text-gold-300 border border-slate-800 hover:border-gold-400/50 transition-all flex items-center space-x-1.5 shadow-sm"
+              title="Toggle sorting tasks by deadline urgency severity (Overdue/Today first)"
+            >
+              <svg class="w-3.5 h-3.5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span id="sortUrgencyToggleLabel">SORT: DEFAULT</span>
             </button>
           </div>
 
-          <div class="text-xs font-mono text-slate-400 flex items-center space-x-2">
-            <span id="taskCountSummary">Loading tasks...</span>
-            <span id="searchActiveTag" class="hidden px-2 py-0.5 rounded text-[10px] font-mono bg-gold-500/20 text-gold-300 border border-gold-400/30">FILTERED</span>
+          <!-- Priority / Urgency Severity Filter Pills -->
+          <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1 border-t border-slate-800/60">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[10px] font-orbitron font-bold text-slate-400 uppercase tracking-wider mr-1">PRIORITY:</span>
+              <button type="button" onclick="window.setPriorityFilter('all')" id="prioFilterAll" class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-gold-500/20 text-gold-300 border-gold-400 font-bold transition-all">
+                ALL <span id="prioCountAll" class="text-[10px] opacity-80">(0)</span>
+              </button>
+              <button type="button" onclick="window.setPriorityFilter('critical')" id="prioFilterCritical" class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-space-900 border-slate-700 text-rose-300 hover:border-rose-400 transition-all">
+                🔥 CRITICAL <span id="prioCountCritical" class="text-[10px] opacity-80">(0)</span>
+              </button>
+              <button type="button" onclick="window.setPriorityFilter('high')" id="prioFilterHigh" class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-space-900 border-slate-700 text-amber-300 hover:border-amber-400 transition-all">
+                ⚡ HIGH <span id="prioCountHigh" class="text-[10px] opacity-80">(0)</span>
+              </button>
+              <button type="button" onclick="window.setPriorityFilter('medium')" id="prioFilterMedium" class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-space-900 border-slate-700 text-gold-300 hover:border-gold-400 transition-all">
+                ⏳ MEDIUM <span id="prioCountMedium" class="text-[10px] opacity-80">(0)</span>
+              </button>
+              <button type="button" onclick="window.setPriorityFilter('low')" id="prioFilterLow" class="px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-space-900 border-slate-700 text-emerald-300 hover:border-emerald-400 transition-all">
+                🟢 LOW <span id="prioCountLow" class="text-[10px] opacity-80">(0)</span>
+              </button>
+            </div>
+
+            <div class="text-xs font-mono text-slate-400 flex items-center space-x-2">
+              <span id="taskCountSummary">Loading tasks...</span>
+              <span id="searchActiveTag" class="hidden px-2 py-0.5 rounded text-[10px] font-mono bg-gold-500/20 text-gold-300 border border-gold-400/30">FILTERED</span>
+            </div>
           </div>
         </div>
 
@@ -1415,6 +1529,64 @@
               </div>
             </div>
 
+            <!-- Priority & Deadline Severity Level Selector -->
+            <div class="space-y-1.5 p-3 rounded-xl bg-space-950/70 border border-slate-800">
+              <div class="flex items-center justify-between text-[11px] font-rajdhani">
+                <div class="flex items-center space-x-1.5">
+                  <span class="text-gold-400 font-bold uppercase tracking-wider">🎯 PRIORITY & URGENCY:</span>
+                  <span id="newTaskPriorityHint" class="text-slate-400 font-sans">Set explicit priority or leave auto</span>
+                </div>
+                <span id="newTaskPriorityBadgePreview" class="font-mono text-gold-300 text-[10px]">🔄 AUTO</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5 pt-1" id="newTaskPriorityBtnGroup">
+                <button
+                  type="button"
+                  id="prioBtn_auto"
+                  onclick="window.selectNewTaskPriority('auto')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono border bg-gold-500/20 text-gold-300 border-gold-400 font-bold transition-all shadow-sm"
+                  title="Automatically compute priority from Due Date / Deadline"
+                >
+                  🔄 Auto (By Deadline)
+                </button>
+                <button
+                  type="button"
+                  id="prioBtn_critical"
+                  onclick="window.selectNewTaskPriority('critical')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono border bg-space-900 border-slate-700 text-rose-300 hover:border-rose-400 transition-all"
+                  title="Overdue or due within 24 hours"
+                >
+                  🔥 Critical (24h / Overdue)
+                </button>
+                <button
+                  type="button"
+                  id="prioBtn_high"
+                  onclick="window.selectNewTaskPriority('high')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono border bg-space-900 border-slate-700 text-amber-300 hover:border-amber-400 transition-all"
+                  title="Due in 48 hours / next 2 days"
+                >
+                  ⚡ High (48h)
+                </button>
+                <button
+                  type="button"
+                  id="prioBtn_medium"
+                  onclick="window.selectNewTaskPriority('medium')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono border bg-space-900 border-slate-700 text-gold-300 hover:border-gold-400 transition-all"
+                  title="Due within 7 days"
+                >
+                  ⏳ Medium (This Week)
+                </button>
+                <button
+                  type="button"
+                  id="prioBtn_low"
+                  onclick="window.selectNewTaskPriority('low')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono border bg-space-900 border-slate-700 text-emerald-300 hover:border-emerald-400 transition-all"
+                  title="Due later or flexible timing"
+                >
+                  🟢 Low / Flexible
+                </button>
+              </div>
+            </div>
+
             <div class="flex justify-end pt-1">
               <button type="submit" id="saveTaskSubmitBtn" class="px-5 py-2 rounded-xl text-xs font-orbitron font-bold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 text-white shadow-md shadow-blue-500/25 transition-all">
                 ADD TO GOOGLE TASKS
@@ -1479,6 +1651,178 @@
           Delete Task
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= TASK CARD CONTEXT MENU (Right-Click & Long-Press) ================= -->
+  <div
+    id="taskContextMenu"
+    class="fixed z-[60] hidden w-64 bg-space-950/98 border border-gold-400/50 rounded-2xl shadow-2xl p-2 backdrop-blur-2xl ring-1 ring-gold-400/25 text-slate-200 text-xs font-rajdhani select-none transition-all duration-150 opacity-0 scale-95"
+    role="menu"
+    aria-label="Task Card Actions Context Menu"
+    onclick="event.stopPropagation()"
+  >
+    <!-- Header: Task Title & Close -->
+    <div class="px-2 py-1.5 pb-2 mb-1 border-b border-slate-800/90 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-1.5 min-w-0 flex-1">
+        <span class="w-2 h-2 rounded-full bg-gold-400 shrink-0"></span>
+        <span id="contextMenuTaskTitle" class="font-orbitron font-bold text-[11px] text-gold-300 truncate tracking-wide">Task Options</span>
+      </div>
+      <button
+        type="button"
+        onclick="window.closeTaskContextMenu()"
+        class="text-slate-500 hover:text-white p-0.5 rounded transition-colors"
+        title="Close menu (Esc)"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Quick Actions List -->
+    <div class="space-y-0.5">
+      
+      <!-- 1. SET PRIORITY (Submenu) -->
+      <div>
+        <button
+          type="button"
+          onclick="window.toggleContextMenuSubmenu('prioSubmenu', event)"
+          class="context-menu-item text-slate-200 hover:text-gold-300 font-semibold"
+        >
+          <span class="flex items-center space-x-2">
+            <span class="text-sm">🔥</span>
+            <span>Set Priority</span>
+          </span>
+          <svg id="prioSubmenuArrow" class="w-3 h-3 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div id="prioSubmenu" class="hidden pl-2 pr-1 py-1 space-y-1 bg-space-900/80 rounded-xl my-1 border border-slate-800">
+          <button type="button" onclick="window.applyContextMenuPriority('critical')" class="context-menu-subitem text-rose-300 hover:bg-rose-500/20">
+            <span class="flex items-center space-x-1.5"><span>🔥</span><span class="font-bold">Critical (24h/Overdue)</span></span>
+            <span id="ctxPrioCheck_critical" class="hidden text-rose-400 font-bold">✓</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuPriority('high')" class="context-menu-subitem text-amber-300 hover:bg-amber-500/20">
+            <span class="flex items-center space-x-1.5"><span>⚡</span><span class="font-bold">High (Next 48h)</span></span>
+            <span id="ctxPrioCheck_high" class="hidden text-amber-400 font-bold">✓</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuPriority('medium')" class="context-menu-subitem text-gold-300 hover:bg-gold-500/20">
+            <span class="flex items-center space-x-1.5"><span>⏳</span><span class="font-bold">Medium (This Week)</span></span>
+            <span id="ctxPrioCheck_medium" class="hidden text-gold-400 font-bold">✓</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuPriority('low')" class="context-menu-subitem text-emerald-300 hover:bg-emerald-500/20">
+            <span class="flex items-center space-x-1.5"><span>🟢</span><span class="font-bold">Low / Flexible</span></span>
+            <span id="ctxPrioCheck_low" class="hidden text-emerald-400 font-bold">✓</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuPriority('auto')" class="context-menu-subitem text-slate-400 hover:bg-space-800">
+            <span class="flex items-center space-x-1.5"><span>🔄</span><span>Reset to Auto</span></span>
+            <span id="ctxPrioCheck_auto" class="hidden text-white font-bold">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. RESCHEDULE (Presets & Date Picker) -->
+      <div>
+        <button
+          type="button"
+          onclick="window.toggleContextMenuSubmenu('rescheduleSubmenu', event)"
+          class="context-menu-item text-slate-200 hover:text-amber-300 font-semibold"
+        >
+          <span class="flex items-center space-x-2">
+            <span class="text-sm">📅</span>
+            <span>Reschedule</span>
+          </span>
+          <svg id="rescheduleSubmenuArrow" class="w-3 h-3 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <div id="rescheduleSubmenu" class="hidden pl-2 pr-1 py-1 space-y-1 bg-space-900/80 rounded-xl my-1 border border-slate-800">
+          <button type="button" onclick="window.applyContextMenuReschedule('today')" class="context-menu-subitem text-amber-300 hover:bg-amber-500/20">
+            <span class="flex items-center space-x-1.5"><span>☀️</span><span>Due Today</span></span>
+            <span class="text-[10px] font-mono text-slate-400">TODAY</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuReschedule('tomorrow')" class="context-menu-subitem text-sky-300 hover:bg-sky-500/20">
+            <span class="flex items-center space-x-1.5"><span>🌅</span><span>Due Tomorrow</span></span>
+            <span class="text-[10px] font-mono text-slate-400">+1 DAY</span>
+          </button>
+          <button type="button" onclick="window.applyContextMenuReschedule('next_week')" class="context-menu-subitem text-purple-300 hover:bg-purple-500/20">
+            <span class="flex items-center space-x-1.5"><span>📆</span><span>Next Week</span></span>
+            <span class="text-[10px] font-mono text-slate-400">+7 DAYS</span>
+          </button>
+          <div class="px-1.5 py-1 flex items-center justify-between gap-1 text-[11px] border-t border-slate-800/80 mt-1 pt-1">
+            <span class="text-slate-400 text-[10px] font-mono">CUSTOM:</span>
+            <input
+              type="date"
+              id="contextMenuCustomDateInput"
+              onchange="window.applyContextMenuCustomDate(this.value)"
+              class="bg-space-950 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] font-mono text-gold-300 focus:outline-none focus:border-gold-400"
+            />
+          </div>
+          <button type="button" onclick="window.applyContextMenuReschedule('clear')" class="context-menu-subitem text-slate-400 hover:text-rose-300 hover:bg-rose-500/10">
+            <span class="flex items-center space-x-1.5"><span>✕</span><span>Remove Due Date</span></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. DUPLICATE -->
+      <button
+        type="button"
+        onclick="window.applyContextMenuDuplicate()"
+        class="context-menu-item text-slate-200 hover:text-cyan-300 font-semibold"
+      >
+        <span class="flex items-center space-x-2">
+          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span>Duplicate Task</span>
+        </span>
+        <span class="text-[9px] font-mono text-cyan-400/80">CLONE</span>
+      </button>
+
+      <!-- 4. DELETE (Destructive) -->
+      <button
+        type="button"
+        onclick="window.applyContextMenuDelete()"
+        class="context-menu-item text-rose-300 hover:bg-rose-500/20 font-semibold"
+      >
+        <span class="flex items-center space-x-2">
+          <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Delete Task</span>
+        </span>
+        <span class="text-[9px] font-mono text-rose-400/80">DEL</span>
+      </button>
+
+      <div class="border-t border-slate-800/80 my-1"></div>
+
+      <!-- Quick Utility: Focus Pomodoro -->
+      <button
+        type="button"
+        onclick="window.applyContextMenuFocus()"
+        class="context-menu-item text-amber-300 hover:bg-amber-500/15"
+      >
+        <span class="flex items-center space-x-2">
+          <span>🎯</span>
+          <span>Start Pomodoro Focus</span>
+        </span>
+        <span class="text-[9px] font-mono text-amber-400">25 MIN</span>
+      </button>
+
+      <!-- Quick Utility: Star / Unstar -->
+      <button
+        type="button"
+        onclick="window.applyContextMenuToggleStar()"
+        class="context-menu-item text-slate-300 hover:text-amber-300"
+      >
+        <span class="flex items-center space-x-2">
+          <span id="ctxStarIcon">★</span>
+          <span id="ctxStarLabel">Star Task</span>
+        </span>
+      </button>
+
+      <!-- Quick Utility: Mark Completed / Pending -->
+      <button
+        type="button"
+        onclick="window.applyContextMenuToggleStatus()"
+        class="context-menu-item text-slate-300 hover:text-emerald-300"
+      >
+        <span class="flex items-center space-x-2">
+          <span id="ctxStatusIcon">✓</span>
+          <span id="ctxStatusLabel">Mark Completed</span>
+        </span>
+      </button>
     </div>
   </div>
 
@@ -2356,6 +2700,7 @@
     const headerUserAvatar = document.getElementById('headerUserAvatar');
     const headerUserName = document.getElementById('headerUserName');
     const headerAuthLabel = document.getElementById('headerAuthLabel');
+    const splashToggleBtn = document.getElementById('splashToggleBtn');
 
     // In-memory token caching for Google Workspace Tasks API (least privilege, no localStorage)
     let cachedAccessToken = null;
@@ -2365,11 +2710,86 @@
     let activeTaskListId = '@default';
     let currentTasks = [];
     let activeTaskFilter = 'all'; // 'all' | 'needsAction' | 'completed' | 'starred'
+    let activePriorityFilter = 'all'; // 'all' | 'critical' | 'high' | 'medium' | 'low'
+    let sortTasksByUrgency = false; // toggle sorting tasks by deadline severity
+    let selectedNewTaskPriority = 'auto'; // 'auto' | 'critical' | 'high' | 'medium' | 'low'
+    let taskPriorityOverrides = {}; // { [taskId]: 'critical' | 'high' | 'medium' | 'low' | 'auto' }
     let activeTasksSearchQuery = '';
     let selectedAdhdTags = new Set();
     let autoSuggestedAdhdTags = new Set();
     let starredTaskIds = new Set();
     window.isTasksModalOpen = false;
+
+    // ============================================================
+    // GOOGLE TASKS VISUAL PRIORITY & DEADLINE SEVERITY ENGINE
+    // ============================================================
+    const PRIORITY_LEVELS = {
+      critical: {
+        id: 'critical',
+        label: 'Critical / Overdue',
+        shortLabel: 'CRITICAL',
+        badge: '🔥 CRITICAL',
+        badgeClass: 'bg-rose-500/25 text-rose-300 border-rose-400/60 shadow-sm shadow-rose-500/20 ring-1 ring-rose-400/40 critical-heartbeat-pulse',
+        borderAccent: 'border-l-4 border-l-rose-500 shadow-sm shadow-rose-500/10',
+        textColor: 'text-rose-400',
+        rank: 1,
+        desc: 'Overdue or due within 24 hours'
+      },
+      high: {
+        id: 'high',
+        label: 'High Urgency',
+        shortLabel: 'HIGH',
+        badge: '⚡ HIGH',
+        badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-sm shadow-amber-500/15',
+        borderAccent: 'border-l-4 border-l-amber-500 shadow-sm shadow-amber-500/10',
+        textColor: 'text-amber-400',
+        rank: 2,
+        desc: 'Due within 48 hours / next 2 days'
+      },
+      medium: {
+        id: 'medium',
+        label: 'Medium Urgency',
+        shortLabel: 'MEDIUM',
+        badge: '⏳ MEDIUM',
+        badgeClass: 'bg-gold-500/20 text-gold-300 border-gold-400/50 shadow-sm shadow-gold-500/15',
+        borderAccent: 'border-l-4 border-l-gold-400 shadow-sm shadow-gold-500/10',
+        textColor: 'text-gold-400',
+        rank: 3,
+        desc: 'Due within 7 days (this week)'
+      },
+      low: {
+        id: 'low',
+        label: 'Low / Flexible',
+        shortLabel: 'LOW',
+        badge: '🟢 LOW',
+        badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/40 shadow-sm shadow-emerald-500/10',
+        borderAccent: 'border-l-4 border-l-emerald-500/60',
+        textColor: 'text-emerald-400',
+        rank: 4,
+        desc: 'Due later or flexible timing'
+      }
+    };
+
+    function loadTaskPriorityOverrides() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        const saved = localStorage.getItem(`adhd_task_priorities_${uid}`);
+        if (saved) {
+          taskPriorityOverrides = JSON.parse(saved);
+        } else {
+          taskPriorityOverrides = {};
+        }
+      } catch (e) {
+        taskPriorityOverrides = {};
+      }
+    }
+
+    function saveTaskPriorityOverrides() {
+      try {
+        const uid = auth.currentUser ? auth.currentUser.uid : 'guest';
+        localStorage.setItem(`adhd_task_priorities_${uid}`, JSON.stringify(taskPriorityOverrides));
+      } catch (e) {}
+    }
 
     // ============================================================
     // POMODORO FOCUS TIMER ENGINE STATE (ADHD Hyperfocus Station)
@@ -2628,6 +3048,7 @@
       if (!tasksModal) return;
       window.isTasksModalOpen = true;
       loadStarredTasks();
+      loadTaskPriorityOverrides();
       tasksModal.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
       tasksModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
 
@@ -2665,16 +3086,16 @@
     };
 
     // SWIPE UP GESTURE (From anywhere on screen)
-    let touchStartY = 0;
-    let touchStartX = 0;
-    let touchStartTime = 0;
+    let swipeUpTouchStartY = 0;
+    let swipeUpTouchStartX = 0;
+    let swipeUpTouchStartTime = 0;
 
     window.addEventListener('touchstart', (e) => {
       if (window.isTasksModalOpen) return;
       if (e.touches && e.touches.length === 1) {
-        touchStartY = e.touches[0].clientY;
-        touchStartX = e.touches[0].clientX;
-        touchStartTime = Date.now();
+        swipeUpTouchStartY = e.touches[0].clientY;
+        swipeUpTouchStartX = e.touches[0].clientX;
+        swipeUpTouchStartTime = Date.now();
       }
     }, { passive: true });
 
@@ -2683,9 +3104,9 @@
       if (e.changedTouches && e.changedTouches.length === 1) {
         const endY = e.changedTouches[0].clientY;
         const endX = e.changedTouches[0].clientX;
-        const diffY = touchStartY - endY; // positive = swiped upwards
-        const diffX = Math.abs(touchStartX - endX);
-        const duration = Date.now() - touchStartTime;
+        const diffY = swipeUpTouchStartY - endY; // positive = swiped upwards
+        const diffX = Math.abs(swipeUpTouchStartX - endX);
+        const duration = Date.now() - swipeUpTouchStartTime;
 
         // Swiped up by >= 45px, predominantly vertical, within 550ms
         if (diffY >= 45 && diffY > diffX * 1.15 && duration < 550) {
@@ -3279,6 +3700,284 @@
     }
 
     // ============================================================
+    // TASK URGENCY & DEADLINE SEVERITY CALCULATOR
+    // ============================================================
+    function calculateTaskUrgency(task) {
+      if (!task) {
+        return {
+          level: 'low',
+          config: PRIORITY_LEVELS.low,
+          isOverdue: false,
+          isToday: false,
+          countdownText: 'Flexible',
+          isManualOverride: false,
+          severityScore: 500
+        };
+      }
+
+      // 1. Check for explicit manual override in localStorage/memory
+      const manualOverride = taskPriorityOverrides[task.id];
+
+      // Also check if notes or title has [Priority: critical|high|medium|low]
+      let notePriority = null;
+      const noteMatch = (task.notes || '').match(/\[Priority:\s*(critical|high|medium|low)\]/i) ||
+                        (task.title || '').match(/\[Priority:\s*(critical|high|medium|low)\]/i);
+      if (noteMatch && noteMatch[1]) {
+        notePriority = noteMatch[1].toLowerCase();
+      }
+
+      const effectiveManual = (manualOverride && manualOverride !== 'auto') ? manualOverride : notePriority;
+
+      // 2. Deadline / Due Date Analysis
+      const dueRaw = task.due || null;
+      const deadlineRaw = getTaskDeadline(task);
+      const targetDateStr = deadlineRaw || dueRaw;
+
+      let targetDate = null;
+      if (targetDateStr) {
+        const parsed = new Date(targetDateStr);
+        if (!isNaN(parsed.getTime())) {
+          targetDate = parsed;
+        }
+      }
+
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+      let isOverdue = false;
+      let isToday = false;
+      let countdownText = '';
+      let computedLevel = 'low';
+      let severityScore = 400; // default for low
+
+      if (targetDate) {
+        const targetDayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).getTime();
+        const diffDays = Math.round((targetDayStart - todayStart) / (1000 * 60 * 60 * 24));
+        const diffMs = targetDate.getTime() - now.getTime();
+        const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+
+        if (diffDays < 0) {
+          // Past deadline = Overdue
+          isOverdue = true;
+          const overdueDays = Math.abs(diffDays);
+          countdownText = `${overdueDays}d overdue`;
+          computedLevel = 'critical';
+          severityScore = Math.max(1, 10 - overdueDays); // 1-9 (lowest score is highest urgency)
+        } else if (diffDays === 0) {
+          // Due today
+          isToday = true;
+          if (diffHours > 0 && diffHours <= 12) {
+            countdownText = `in ${diffHours}h`;
+          } else {
+            countdownText = 'due today';
+          }
+          computedLevel = 'critical';
+          severityScore = 20;
+        } else if (diffDays === 1) {
+          // Due tomorrow (within 48h)
+          countdownText = 'tomorrow';
+          computedLevel = 'high';
+          severityScore = 100;
+        } else if (diffDays === 2) {
+          countdownText = 'in 2 days';
+          computedLevel = 'high';
+          severityScore = 110;
+        } else if (diffDays <= 7) {
+          // Due this week (3-7 days)
+          countdownText = `in ${diffDays}d`;
+          computedLevel = 'medium';
+          severityScore = 200 + diffDays;
+        } else {
+          // Due later (> 7 days)
+          countdownText = `in ${diffDays}d`;
+          computedLevel = 'low';
+          severityScore = 300 + Math.min(99, diffDays);
+        }
+      } else {
+        // No deadline: check keywords or starred status
+        const combined = `${task.title || ''} ${task.notes || ''}`.toLowerCase();
+        if (combined.includes('urgent') || combined.includes('asap') || combined.includes('critical') || combined.includes('emergency')) {
+          computedLevel = 'high';
+          severityScore = 150;
+          countdownText = 'urgent keyword';
+        } else if (isTaskStarred(task)) {
+          computedLevel = 'high';
+          severityScore = 180;
+          countdownText = 'starred focus';
+        } else {
+          computedLevel = 'low';
+          severityScore = 500;
+          countdownText = 'flexible';
+        }
+      }
+
+      // If user chose an explicit manual priority, honor it
+      const finalLevel = effectiveManual || computedLevel;
+      const config = PRIORITY_LEVELS[finalLevel] || PRIORITY_LEVELS.low;
+
+      if (effectiveManual) {
+        if (finalLevel === 'critical') severityScore = isOverdue ? 5 : 25;
+        else if (finalLevel === 'high') severityScore = 105;
+        else if (finalLevel === 'medium') severityScore = 205;
+        else if (finalLevel === 'low') severityScore = 380;
+      }
+
+      return {
+        level: finalLevel,
+        config,
+        isOverdue,
+        isToday,
+        countdownText,
+        isManualOverride: Boolean(effectiveManual),
+        severityScore,
+        targetDate
+      };
+    }
+
+    window.setPriorityFilter = function(level) {
+      activePriorityFilter = level;
+      const levels = ['all', 'critical', 'high', 'medium', 'low'];
+      levels.forEach(lvl => {
+        const btn = document.getElementById(`prioFilter${lvl.charAt(0).toUpperCase() + lvl.slice(1)}`);
+        if (!btn) return;
+        if (lvl === level) {
+          if (lvl === 'critical') {
+            btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-rose-500/25 text-rose-300 border-rose-400 font-bold shadow-sm transition-all critical-heartbeat-pulse";
+          } else if (lvl === 'high') {
+            btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-amber-500/25 text-amber-300 border-amber-400 font-bold shadow-sm transition-all";
+          } else if (lvl === 'medium') {
+            btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-gold-500/25 text-gold-300 border-gold-400 font-bold shadow-sm transition-all";
+          } else if (lvl === 'low') {
+            btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-emerald-500/25 text-emerald-300 border-emerald-400 font-bold shadow-sm transition-all";
+          } else {
+            btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-gold-500/20 text-gold-300 border-gold-400 font-bold shadow-sm transition-all";
+          }
+        } else {
+          btn.className = "px-2.5 py-0.5 rounded-lg text-[11px] font-mono border bg-space-900 border-slate-700 text-slate-400 hover:text-white transition-all";
+        }
+      });
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(620, 'sine', 0.08, 0.03);
+      }
+      renderTasks();
+    };
+
+    window.toggleSortByUrgency = function() {
+      sortTasksByUrgency = !sortTasksByUrgency;
+      const btn = document.getElementById('sortUrgencyToggleBtn');
+      const lbl = document.getElementById('sortUrgencyToggleLabel');
+      if (btn && lbl) {
+        if (sortTasksByUrgency) {
+          btn.className = "px-3 py-1 rounded-xl text-xs font-rajdhani font-bold tracking-wider bg-gold-500/25 text-gold-300 border border-gold-400 shadow-md shadow-gold-500/20 transition-all flex items-center space-x-1.5";
+          lbl.innerText = "SORT: URGENCY (ACTIVE)";
+        } else {
+          btn.className = "px-3 py-1 rounded-xl text-xs font-rajdhani font-bold tracking-wider bg-space-900/90 hover:bg-space-850 text-slate-400 hover:text-gold-300 border border-slate-800 hover:border-gold-400/50 transition-all flex items-center space-x-1.5 shadow-sm";
+          lbl.innerText = "SORT: DEFAULT";
+        }
+      }
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(sortTasksByUrgency ? 880 : 440, 'triangle', 0.1, 0.04);
+      }
+      renderTasks();
+    };
+
+    window.selectNewTaskPriority = function(level) {
+      selectedNewTaskPriority = level;
+      const previewBadge = document.getElementById('newTaskPriorityBadgePreview');
+      const hint = document.getElementById('newTaskPriorityHint');
+
+      const levels = ['auto', 'critical', 'high', 'medium', 'low'];
+      levels.forEach(lvl => {
+        const btn = document.getElementById(`prioBtn_${lvl}`);
+        if (!btn) return;
+        if (lvl === level) {
+          if (lvl === 'critical') btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-rose-500/25 text-rose-300 border-rose-400 font-bold shadow-sm transition-all critical-heartbeat-pulse";
+          else if (lvl === 'high') btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-amber-500/25 text-amber-300 border-amber-400 font-bold shadow-sm transition-all";
+          else if (lvl === 'medium') btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-gold-500/25 text-gold-300 border-gold-400 font-bold shadow-sm transition-all";
+          else if (lvl === 'low') btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-emerald-500/25 text-emerald-300 border-emerald-400 font-bold shadow-sm transition-all";
+          else btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-gold-500/20 text-gold-300 border-gold-400 font-bold shadow-sm transition-all";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-lg text-xs font-mono border bg-space-900 border-slate-700 text-slate-400 hover:text-white transition-all";
+        }
+      });
+
+      if (previewBadge) {
+        if (level === 'auto') {
+          previewBadge.innerHTML = '🔄 AUTO';
+          previewBadge.className = 'font-mono text-gold-300 text-[10px] font-bold';
+          if (hint) hint.innerText = "Auto-calculates priority from Due Date or Hard Deadline";
+        } else {
+          const cfg = PRIORITY_LEVELS[level];
+          previewBadge.innerHTML = cfg ? cfg.badge : level.toUpperCase();
+          previewBadge.className = `font-mono text-[10px] font-bold ${cfg ? cfg.textColor : 'text-white'} ${level === 'critical' ? 'critical-heartbeat-pulse' : ''}`;
+          if (hint) hint.innerText = cfg ? cfg.desc : '';
+        }
+      }
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(660, 'sine', 0.08, 0.03);
+      }
+    };
+
+    window.setTaskPriority = function(taskId, newLevel, evt) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      if (!taskId) return;
+
+      if (newLevel === 'auto') {
+        delete taskPriorityOverrides[taskId];
+      } else if (['critical', 'high', 'medium', 'low'].includes(newLevel)) {
+        taskPriorityOverrides[taskId] = newLevel;
+      }
+
+      saveTaskPriorityOverrides();
+
+      if (typeof window.playSynthBeep === 'function') {
+        if (newLevel === 'critical') {
+          window.playSynthBeep(880, 'sawtooth', 0.12, 0.04);
+          setTimeout(() => window.playSynthBeep(1046, 'sawtooth', 0.16, 0.05), 80);
+        } else if (newLevel === 'high') {
+          window.playSynthBeep(659, 'sine', 0.1, 0.04);
+          setTimeout(() => window.playSynthBeep(880, 'triangle', 0.14, 0.05), 80);
+        } else if (newLevel === 'medium') {
+          window.playSynthBeep(587, 'sine', 0.1, 0.03);
+        } else {
+          window.playSynthBeep(440, 'sine', 0.1, 0.03);
+        }
+      }
+
+      // Close all priority popovers
+      document.querySelectorAll('.priority-popover').forEach(el => el.classList.add('hidden'));
+
+      renderTasks();
+    };
+
+    window.togglePriorityDropdown = function(taskId, evt) {
+      if (evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+      }
+      const menu = document.getElementById(`prio-menu-${taskId}`);
+      if (!menu) return;
+
+      const isHidden = menu.classList.contains('hidden');
+      document.querySelectorAll('.priority-popover').forEach(el => el.classList.add('hidden'));
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+      }
+    };
+
+    // Global listener to close priority popovers on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.priority-dropdown-container')) {
+        document.querySelectorAll('.priority-popover').forEach(el => el.classList.add('hidden'));
+      }
+    });
+
+    // ============================================================
     // POMODORO FOCUS TIMER ENGINE (ADHD Hyperfocus Station)
     // ============================================================
     function formatPomoTime(totalSec) {
@@ -3671,6 +4370,363 @@
     }
 
     // ============================================================
+    // TASK CARD CONTEXT MENU & QUICK ACTIONS (Right-Click & Long-Press)
+    // ============================================================
+    let activeContextMenuTaskId = null;
+    let taskTouchTimer = null;
+    let taskTouchStartX = 0;
+    let taskTouchStartY = 0;
+    let taskTouchTargetTaskId = null;
+
+    window.handleTaskContextMenu = function(evt, taskId) {
+      if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+      }
+      window.openTaskContextMenu(taskId, evt.clientX, evt.clientY);
+    };
+
+    window.handleTaskTouchStart = function(evt, taskId) {
+      if (!evt.touches || evt.touches.length !== 1) return;
+      const t = evt.touches[0];
+      taskTouchStartX = t.clientX;
+      taskTouchStartY = t.clientY;
+      taskTouchTargetTaskId = taskId;
+      clearTimeout(taskTouchTimer);
+      taskTouchTimer = setTimeout(() => {
+        if (taskTouchTargetTaskId === taskId) {
+          if (navigator.vibrate) navigator.vibrate([25, 35]);
+          window.openTaskContextMenu(taskId, taskTouchStartX, taskTouchStartY);
+          taskTouchTargetTaskId = null;
+        }
+      }, 480);
+    };
+
+    window.handleTaskTouchMove = function(evt) {
+      if (!taskTouchTargetTaskId || !evt.touches || evt.touches.length === 0) return;
+      const t = evt.touches[0];
+      if (Math.hypot(t.clientX - taskTouchStartX, t.clientY - taskTouchStartY) > 10) {
+        clearTimeout(taskTouchTimer);
+        taskTouchTargetTaskId = null;
+      }
+    };
+
+    window.handleTaskTouchEnd = function() {
+      clearTimeout(taskTouchTimer);
+      taskTouchTargetTaskId = null;
+    };
+
+    window.handleTaskMenuButtonClick = function(evt, taskId) {
+      if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+      }
+      const rect = evt.currentTarget.getBoundingClientRect();
+      window.openTaskContextMenu(taskId, rect.left - 180, rect.bottom + 6);
+    };
+
+    window.openTaskContextMenu = function(taskId, clientX, clientY) {
+      activeContextMenuTaskId = taskId;
+      const task = currentTasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const menu = document.getElementById('taskContextMenu');
+      if (!menu) return;
+
+      // Update Header Title
+      const titleEl = document.getElementById('contextMenuTaskTitle');
+      if (titleEl) {
+        const rawTitle = task.title || 'Task Options';
+        titleEl.innerText = rawTitle.length > 26 ? rawTitle.slice(0, 26) + '...' : rawTitle;
+      }
+
+      // Update Priority checkmarks
+      const urgency = calculateTaskUrgency(task);
+      const currentPriority = taskPriorityOverrides[taskId] || urgency.level;
+      const hasOverride = !!taskPriorityOverrides[taskId];
+      ['critical', 'high', 'medium', 'low', 'auto'].forEach(lvl => {
+        const check = document.getElementById(`ctxPrioCheck_${lvl}`);
+        if (check) {
+          if (lvl === 'auto') {
+            check.classList.toggle('hidden', hasOverride);
+          } else {
+            check.classList.toggle('hidden', currentPriority !== lvl);
+          }
+        }
+      });
+
+      // Update Star Icon/Label
+      const isStarred = isTaskStarred(task);
+      const starIcon = document.getElementById('ctxStarIcon');
+      const starLabel = document.getElementById('ctxStarLabel');
+      if (starIcon) starIcon.innerText = isStarred ? '★' : '☆';
+      if (starLabel) starLabel.innerText = isStarred ? 'Unstar Task' : 'Star Task';
+
+      // Update Status Icon/Label
+      const isDone = task.status === 'completed';
+      const statusIcon = document.getElementById('ctxStatusIcon');
+      const statusLabel = document.getElementById('ctxStatusLabel');
+      if (statusIcon) statusIcon.innerText = isDone ? '↩' : '✓';
+      if (statusLabel) statusLabel.innerText = isDone ? 'Mark as Pending' : 'Mark as Completed';
+
+      // Reset submenus
+      const prioSub = document.getElementById('prioSubmenu');
+      if (prioSub) prioSub.classList.add('hidden');
+      const reschedSub = document.getElementById('rescheduleSubmenu');
+      if (reschedSub) reschedSub.classList.add('hidden');
+
+      // Set custom date picker initial value
+      const customDateInput = document.getElementById('contextMenuCustomDateInput');
+      if (customDateInput) {
+        customDateInput.value = task.due ? task.due.split('T')[0] : '';
+      }
+
+      // Show and position menu
+      menu.classList.remove('hidden');
+      menu.classList.remove('opacity-0', 'scale-95');
+      menu.classList.add('opacity-100', 'scale-100');
+
+      const menuWidth = 256;
+      const menuHeight = 330;
+      let x = Math.min(clientX, window.innerWidth - menuWidth - 12);
+      let y = Math.min(clientY, window.innerHeight - menuHeight - 12);
+      if (x < 12) x = 12;
+      if (y < 12) y = 12;
+
+      menu.style.left = `${x}px`;
+      menu.style.top = `${y}px`;
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(740, 'sine', 0.05, 0.02);
+      }
+    };
+
+    window.closeTaskContextMenu = function() {
+      const menu = document.getElementById('taskContextMenu');
+      if (!menu || menu.classList.contains('hidden')) return;
+      menu.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => {
+        menu.classList.add('hidden');
+        activeContextMenuTaskId = null;
+      }, 100);
+    };
+
+    window.toggleContextMenuSubmenu = function(submenuId, evt) {
+      if (evt) evt.stopPropagation();
+      const el = document.getElementById(submenuId);
+      if (!el) return;
+      const isHidden = el.classList.contains('hidden');
+      // Close other submenus first
+      document.querySelectorAll('#taskContextMenu [id$="Submenu"]').forEach(sub => {
+        if (sub.id !== submenuId) sub.classList.add('hidden');
+      });
+      if (isHidden) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    };
+
+    window.applyContextMenuPriority = function(level) {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      window.setTaskPriority(tid, level);
+      window.closeTaskContextMenu();
+    };
+
+    window.applyContextMenuReschedule = async function(preset) {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      let newDueIso = null;
+      const now = new Date();
+
+      if (preset === 'today') {
+        const str = now.toISOString().split('T')[0];
+        newDueIso = `${str}T00:00:00.000Z`;
+      } else if (preset === 'tomorrow') {
+        now.setDate(now.getDate() + 1);
+        const str = now.toISOString().split('T')[0];
+        newDueIso = `${str}T00:00:00.000Z`;
+      } else if (preset === 'next_week') {
+        now.setDate(now.getDate() + 7);
+        const str = now.toISOString().split('T')[0];
+        newDueIso = `${str}T00:00:00.000Z`;
+      } else if (preset === 'clear') {
+        newDueIso = null;
+      }
+
+      window.closeTaskContextMenu();
+      await window.rescheduleTask(tid, newDueIso);
+    };
+
+    window.applyContextMenuCustomDate = async function(dateStr) {
+      if (!activeContextMenuTaskId || !dateStr) return;
+      const tid = activeContextMenuTaskId;
+      const newDueIso = `${dateStr}T00:00:00.000Z`;
+      window.closeTaskContextMenu();
+      await window.rescheduleTask(tid, newDueIso);
+    };
+
+    window.applyContextMenuDuplicate = async function() {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      window.closeTaskContextMenu();
+      await window.duplicateTask(tid);
+    };
+
+    window.applyContextMenuDelete = function() {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      const task = currentTasks.find(t => t.id === tid);
+      window.closeTaskContextMenu();
+      if (task) {
+        window.requestDeleteTask(tid, task.title || 'this task', task._listId);
+      }
+    };
+
+    window.applyContextMenuFocus = function() {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      window.closeTaskContextMenu();
+      window.selectTaskForFocus(tid);
+    };
+
+    window.applyContextMenuToggleStar = function() {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      window.closeTaskContextMenu();
+      window.toggleTaskStar(tid);
+    };
+
+    window.applyContextMenuToggleStatus = function() {
+      if (!activeContextMenuTaskId) return;
+      const tid = activeContextMenuTaskId;
+      const task = currentTasks.find(t => t.id === tid);
+      window.closeTaskContextMenu();
+      if (task) {
+        window.toggleTaskStatus(tid, task.status);
+      }
+    };
+
+    window.rescheduleTask = async function(taskId, newDueIso) {
+      const target = currentTasks.find(t => t.id === taskId);
+      if (!target) return;
+      const oldDue = target.due;
+      target.due = newDueIso;
+      renderTasks();
+      updateTasksBadges();
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(523, 'sine', 0.1, 0.04);
+        setTimeout(() => window.playSynthBeep(659, 'triangle', 0.12, 0.04), 80);
+      }
+
+      try {
+        const targetListId = (target && target._listId) || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
+        if (cachedAccessToken) {
+          const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(targetListId)}/tasks/${encodeURIComponent(taskId)}`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${cachedAccessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ due: newDueIso })
+          });
+          if (!res.ok) throw new Error('Failed to update due date in Google Tasks');
+        }
+      } catch (err) {
+        console.error('Error rescheduling task in Google Tasks:', err);
+        target.due = oldDue;
+        renderTasks();
+        updateTasksBadges();
+      }
+    };
+
+    window.duplicateTask = async function(taskId) {
+      const target = currentTasks.find(t => t.id === taskId);
+      if (!target) return;
+
+      const newTitle = `${target.title || 'Task'} (Copy)`;
+      const newNotes = target.notes || '';
+      const newDue = target.due || null;
+      const targetListId = target._listId || (activeTaskListId !== 'all' ? activeTaskListId : '@default');
+
+      if (typeof window.playSynthBeep === 'function') {
+        window.playSynthBeep(440, 'sine', 0.09, 0.03);
+        setTimeout(() => window.playSynthBeep(880, 'sine', 0.14, 0.05), 80);
+      }
+
+      const tempId = 'task_copy_' + Date.now();
+      const duplicateTaskObj = {
+        ...target,
+        id: tempId,
+        title: newTitle,
+        notes: newNotes,
+        due: newDue,
+        status: 'needsAction',
+        updated: new Date().toISOString()
+      };
+
+      if (taskPriorityOverrides[taskId]) {
+        taskPriorityOverrides[tempId] = taskPriorityOverrides[taskId];
+        saveTaskPriorityOverrides();
+      }
+
+      currentTasks.unshift(duplicateTaskObj);
+      renderTasks();
+      updateTasksBadges();
+
+      if (cachedAccessToken) {
+        try {
+          const payload = { title: newTitle };
+          if (newNotes) payload.notes = newNotes;
+          if (newDue) payload.due = newDue;
+
+          const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(targetListId)}/tasks`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${cachedAccessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('Failed to create duplicated task');
+          const created = await res.json();
+          const idx = currentTasks.findIndex(t => t.id === tempId);
+          if (idx !== -1) {
+            created._listId = targetListId;
+            created._listTitle = target._listTitle || 'My Tasks';
+            created._isInbox = target._isInbox;
+            if (taskPriorityOverrides[tempId]) {
+              taskPriorityOverrides[created.id] = taskPriorityOverrides[tempId];
+              delete taskPriorityOverrides[tempId];
+              saveTaskPriorityOverrides();
+            }
+            currentTasks[idx] = created;
+            renderTasks();
+          }
+        } catch (err) {
+          console.error('Error persisting duplicated task to Google Tasks:', err);
+        }
+      }
+    };
+
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('taskContextMenu');
+      if (menu && !menu.classList.contains('hidden') && !e.target.closest('#taskContextMenu')) {
+        window.closeTaskContextMenu();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        window.closeTaskContextMenu();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      window.closeTaskContextMenu();
+    }, true);
+
+    // ============================================================
     // TASK FILTERING & RENDERING
     // ============================================================
     window.setTasksFilter = function(filter) {
@@ -3696,11 +4752,46 @@
 
       const query = activeTasksSearchQuery;
 
+      // Compute priority breakdown counts across all pending tasks
+      let countAll = 0;
+      let countCrit = 0;
+      let countHigh = 0;
+      let countMed = 0;
+      let countLow = 0;
+
+      currentTasks.forEach(t => {
+        if (t.status === 'completed') return;
+        countAll++;
+        const u = calculateTaskUrgency(t);
+        if (u.level === 'critical') countCrit++;
+        else if (u.level === 'high') countHigh++;
+        else if (u.level === 'medium') countMed++;
+        else if (u.level === 'low') countLow++;
+      });
+
+      const pAll = document.getElementById('prioCountAll');
+      const pCrit = document.getElementById('prioCountCritical');
+      const pHigh = document.getElementById('prioCountHigh');
+      const pMed = document.getElementById('prioCountMedium');
+      const pLow = document.getElementById('prioCountLow');
+
+      if (pAll) pAll.innerText = `(${countAll})`;
+      if (pCrit) pCrit.innerText = `(${countCrit})`;
+      if (pHigh) pHigh.innerText = `(${countHigh})`;
+      if (pMed) pMed.innerText = `(${countMed})`;
+      if (pLow) pLow.innerText = `(${countLow})`;
+
       const filtered = currentTasks.filter(task => {
         // Status & Starred filter
         if (activeTaskFilter === 'needsAction' && task.status !== 'needsAction') return false;
         if (activeTaskFilter === 'completed' && task.status !== 'completed') return false;
         if (activeTaskFilter === 'starred' && !isTaskStarred(task)) return false;
+
+        // Priority filter
+        if (activePriorityFilter !== 'all') {
+          const u = calculateTaskUrgency(task);
+          if (u.level !== activePriorityFilter) return false;
+        }
 
         // Search filter (filters by task title and notes content)
         if (query) {
@@ -3713,7 +4804,19 @@
         return true;
       });
 
-      if (filtered.length === 0) {
+      // Sort by urgency if toggle is enabled
+      let sortedTasks = [...filtered];
+      if (sortTasksByUrgency) {
+        sortedTasks.sort((a, b) => {
+          if (a.status === 'completed' && b.status !== 'completed') return 1;
+          if (b.status === 'completed' && a.status !== 'completed') return -1;
+          const uA = calculateTaskUrgency(a);
+          const uB = calculateTaskUrgency(b);
+          return uA.severityScore - uB.severityScore;
+        });
+      }
+
+      if (sortedTasks.length === 0) {
         tasksListContainer.innerHTML = '';
         if (tasksEmptyState) {
           tasksEmptyState.classList.remove('hidden');
@@ -3727,6 +4830,16 @@
               <div class="font-orbitron text-sm font-semibold text-slate-200 mb-1">No Tasks Matching Search</div>
               <div class="text-xs text-slate-400 max-w-sm mb-3">No tasks found matching "${escapeHtml(query)}" in title or notes content.</div>
               <button type="button" onclick="window.clearTasksSearch()" class="px-3.5 py-1.5 rounded-xl text-xs font-mono bg-space-850 hover:bg-space-800 border border-gold-400/40 text-gold-300 hover:text-white transition-all">Clear Search Query</button>
+            `;
+          } else if (activePriorityFilter !== 'all') {
+            const pName = PRIORITY_LEVELS[activePriorityFilter]?.label || activePriorityFilter;
+            tasksEmptyState.innerHTML = `
+              <div class="w-12 h-12 rounded-full bg-space-950 border border-slate-700 flex items-center justify-center text-gold-400 mb-3 shadow-inner">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div class="font-orbitron text-sm font-semibold text-slate-200 mb-1">No ${escapeHtml(pName)} Tasks</div>
+              <div class="text-xs text-slate-400 max-w-sm mb-3">No tasks found matching the ${escapeHtml(pName)} urgency filter.</div>
+              <button type="button" onclick="window.setPriorityFilter('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-mono bg-space-850 hover:bg-space-800 border border-gold-400/40 text-gold-300 hover:text-white transition-all">Show All Priorities</button>
             `;
           } else if (activeTaskFilter === 'starred') {
             tasksEmptyState.innerHTML = `
@@ -3752,12 +4865,13 @@
           tasksEmptyState.classList.remove('flex');
         }
 
-        tasksListContainer.innerHTML = filtered.map(task => {
+        tasksListContainer.innerHTML = sortedTasks.map(task => {
           const isDone = task.status === 'completed';
           const isStarred = isTaskStarred(task);
           const hasAttachment = hasTaskAttachment(task);
           const isFocused = (selectedFocusTaskId === task.id);
           const sprintCount = getTaskSprintCount(task.id);
+          const urgency = calculateTaskUrgency(task);
 
           // Creation Date
           const rawCreated = task.created || task.updated;
@@ -3938,9 +5052,13 @@
             `;
           }
 
+          const prioBadgeClass = (urgency.level === 'critical' && isDone)
+            ? urgency.config.badgeClass.replace('critical-heartbeat-pulse', '')
+            : urgency.config.badgeClass;
+
           return `
             <div
-              class="task-card-item group relative p-3.5 sm:p-4 rounded-xl ${isFocused ? 'hyperfocus-active-card ring-2 ring-amber-400/90 border-amber-400 bg-space-900/95 shadow-xl shadow-amber-500/15' : (isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50')} border transition-all glass-hud flex flex-col gap-2 shadow-md"
+              class="task-card-item group relative p-3.5 sm:p-4 rounded-xl ${urgency.config.borderAccent} ${isFocused ? 'hyperfocus-active-card ring-2 ring-amber-400/90 border-amber-400 bg-space-900/95 shadow-xl shadow-amber-500/15' : (isDone ? 'bg-space-900/40 border-slate-800/80 opacity-70' : 'bg-space-900/80 border-slate-700/60 hover:border-gold-400/50')} ${urgency.level === 'critical' && !isDone ? 'ring-1 ring-rose-500/35 shadow-rose-500/10' : ''} border transition-all glass-hud flex flex-col gap-2 shadow-md cursor-default"
               draggable="true"
               data-task-id="${task.id}"
               ondragstart="window.handleTaskDragStart(event, '${task.id}')"
@@ -3949,24 +5067,35 @@
               ondrop="window.handleTaskDrop(event, '${task.id}')"
               ondragend="window.handleTaskDragEnd(event)"
               onclick="window.handleTaskCardClick(event, '${task.id}')"
+              oncontextmenu="window.handleTaskContextMenu(event, '${task.id}')"
+              ontouchstart="window.handleTaskTouchStart(event, '${task.id}')"
+              ontouchmove="window.handleTaskTouchMove(event)"
+              ontouchend="window.handleTaskTouchEnd(event)"
             >
               <div class="flex items-start justify-between gap-3 w-full">
                 <div class="flex items-start space-x-2 sm:space-x-3 flex-1 min-w-0">
                   
-                  <!-- Drag-and-Drop Grip Handle & Priority Arrows -->
-                  <div class="flex items-center space-x-0.5 shrink-0 pt-0.5">
-                    <div class="drag-handle touch-none cursor-grab active:cursor-grabbing p-1 text-slate-500 hover:text-gold-400 transition-colors select-none" title="Drag to reorder priority in Google Tasks">
-                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                        <circle cx="9" cy="5" r="1.5"/><circle cx="15" cy="5" r="1.5"/>
-                        <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
-                        <circle cx="9" cy="19" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+                  <!-- Distinct, High-Contrast Drag Handle (Left Side) & Priority Steppers -->
+                  <div class="flex items-center space-x-1 shrink-0 pt-0.5" onclick="event.stopPropagation()">
+                    <div
+                      class="drag-handle touch-none cursor-grab active:cursor-grabbing px-1.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-400/35 border-2 border-amber-400 hover:border-amber-300 text-amber-300 hover:text-white shadow-md shadow-amber-500/20 transition-all select-none group/handle flex items-center justify-center ring-1 ring-gold-400/40"
+                      title="⠿ High-Contrast Drag Handle: Grab and drag to reorder task priority"
+                      aria-label="Drag to reorder task"
+                    >
+                      <svg class="w-3.5 h-4.5 text-amber-300 group-hover/handle:text-amber-100 transition-colors drop-shadow-[0_0_4px_rgba(251,191,36,0.8)]" viewBox="0 0 16 22" fill="currentColor">
+                        <circle cx="5" cy="4" r="1.8" />
+                        <circle cx="11" cy="4" r="1.8" />
+                        <circle cx="5" cy="11" r="1.8" />
+                        <circle cx="11" cy="11" r="1.8" />
+                        <circle cx="5" cy="18" r="1.8" />
+                        <circle cx="11" cy="18" r="1.8" />
                       </svg>
                     </div>
-                    <div class="flex flex-col -space-y-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'up', event)" class="p-0.5 text-slate-400 hover:text-gold-300 transition-colors" title="Move task up in priority">
+                    <div class="flex flex-col -space-y-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'up', event)" class="p-0.5 text-slate-400 hover:text-amber-300 transition-colors" title="Move task up in priority">
                         <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
                       </button>
-                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'down', event)" class="p-0.5 text-slate-400 hover:text-gold-300 transition-colors" title="Move task down in priority">
+                      <button type="button" onclick="window.moveTaskPriority('${task.id}', 'down', event)" class="p-0.5 text-slate-400 hover:text-amber-300 transition-colors" title="Move task down in priority">
                         <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
                       </button>
                     </div>
@@ -3979,8 +5108,53 @@
 
                   <!-- Title & Details -->
                   <div class="flex-1 min-w-0">
-                    <!-- Badges Header: List/Inbox + Starred + Attachment + Sprints + ADHD Patterns -->
+                    <!-- Badges Header: Priority / Urgency (Direct on Card) + List/Inbox + Starred + Attachment + Sprints + ADHD Patterns -->
                     <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+                      <!-- Direct Visual Priority Severity Badge with Dropdown Changer -->
+                      <div class="relative inline-block priority-dropdown-container">
+                        <button
+                          type="button"
+                          onclick="window.togglePriorityDropdown('${task.id}', event)"
+                          class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border font-semibold ${prioBadgeClass} hover:brightness-125 transition-all shadow-sm group/prio cursor-pointer"
+                          title="Priority: ${urgency.config.label} (${urgency.config.desc}). Click to change priority."
+                        >
+                          <span>${urgency.config.badge}</span>
+                          ${urgency.countdownText && !urgency.isOverdue ? `<span class="ml-1 text-[9px] opacity-85 uppercase font-mono">· ${urgency.countdownText}</span>` : ''}
+                          ${urgency.isManualOverride ? '<span class="ml-1 text-[9px] text-gold-300 font-bold" title="Manual priority override">★</span>' : ''}
+                          <svg class="w-2.5 h-2.5 ml-1 opacity-70 group-hover/prio:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+
+                        <!-- Priority Selector Popover -->
+                        <div
+                          id="prio-menu-${task.id}"
+                          class="priority-popover hidden absolute left-0 top-full mt-1.5 z-40 w-48 bg-space-950/95 border border-slate-700/90 rounded-xl shadow-2xl p-1.5 space-y-1 backdrop-blur-xl ring-1 ring-gold-400/20"
+                          onclick="event.stopPropagation()"
+                        >
+                          <div class="px-2 py-1 text-[9px] font-orbitron font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">Change Priority</div>
+                          <button type="button" onclick="window.setTaskPriority('${task.id}', 'critical', event)" class="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-mono flex items-center justify-between text-rose-300 hover:bg-rose-500/20 transition-colors ${urgency.level === 'critical' ? 'bg-rose-500/20 font-bold' : ''}">
+                            <span class="flex items-center space-x-1.5"><span>🔥</span><span>Critical (24h/Overdue)</span></span>
+                            ${urgency.level === 'critical' ? '✓' : ''}
+                          </button>
+                          <button type="button" onclick="window.setTaskPriority('${task.id}', 'high', event)" class="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-mono flex items-center justify-between text-amber-300 hover:bg-amber-500/20 transition-colors ${urgency.level === 'high' ? 'bg-amber-500/20 font-bold' : ''}">
+                            <span class="flex items-center space-x-1.5"><span>⚡</span><span>High (Next 48h)</span></span>
+                            ${urgency.level === 'high' ? '✓' : ''}
+                          </button>
+                          <button type="button" onclick="window.setTaskPriority('${task.id}', 'medium', event)" class="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-mono flex items-center justify-between text-gold-300 hover:bg-gold-500/20 transition-colors ${urgency.level === 'medium' ? 'bg-gold-500/20 font-bold' : ''}">
+                            <span class="flex items-center space-x-1.5"><span>⏳</span><span>Medium (This Week)</span></span>
+                            ${urgency.level === 'medium' ? '✓' : ''}
+                          </button>
+                          <button type="button" onclick="window.setTaskPriority('${task.id}', 'low', event)" class="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-mono flex items-center justify-between text-emerald-300 hover:bg-emerald-500/20 transition-colors ${urgency.level === 'low' ? 'bg-emerald-500/20 font-bold' : ''}">
+                            <span class="flex items-center space-x-1.5"><span>🟢</span><span>Low / Flexible</span></span>
+                            ${urgency.level === 'low' ? '✓' : ''}
+                          </button>
+                          <div class="border-t border-slate-800/80 my-0.5"></div>
+                          <button type="button" onclick="window.setTaskPriority('${task.id}', 'auto', event)" class="w-full text-left px-2 py-1.5 rounded-lg text-[10px] font-mono flex items-center justify-between text-slate-400 hover:text-white hover:bg-space-900 transition-colors">
+                            <span class="flex items-center space-x-1.5"><span>🔄</span><span>Reset to Auto (Deadline)</span></span>
+                            ${!urgency.isManualOverride ? '✓' : ''}
+                          </button>
+                        </div>
+                      </div>
+
                       ${listBadge}
 
                       ${isStarred ? `
@@ -4019,7 +5193,7 @@
                     <!-- Linked Attachments -->
                     ${linksHtml}
 
-                    <!-- Metadata Details: Creation Date, Due Date, Deadline Date, Completion Status -->
+                    <!-- Metadata Details: Creation Date, Due Date, Deadline Date, Priority Severity, Completion Status -->
                     <div class="flex flex-wrap items-center gap-2 mt-2 pt-1 border-t border-slate-800/50 text-[10px] font-mono">
                       ${createdFormatted ? `
                         <span class="inline-flex items-center px-2 py-0.5 rounded bg-space-950 border border-slate-700/70 text-slate-400" title="Creation Date: ${createdFormatted}">
@@ -4038,6 +5212,16 @@
                           <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>DEADLINE ${deadlineFormatted}
                         </span>
                       ` : ''}
+
+                      ${urgency.isOverdue && !isDone ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/25 border border-rose-400/60 text-rose-300 font-bold critical-heartbeat-pulse shadow-sm" title="Deadline exceeded">
+                          <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>OVERDUE (${urgency.countdownText})
+                        </span>
+                      ` : (urgency.isToday && !isDone ? `
+                        <span class="inline-flex items-center px-2 py-0.5 rounded bg-rose-500/20 border border-rose-400/40 text-rose-300 font-bold" title="Due today">
+                          <svg class="w-3 h-3 mr-1 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>DUE TODAY (${urgency.countdownText})
+                        </span>
+                      ` : '')}
 
                       ${isDone ? '<span class="text-emerald-400 font-semibold">✓ COMPLETED</span>' : '<span class="text-slate-500">PENDING FOCUS</span>'}
                     </div>
@@ -4067,6 +5251,15 @@
                     </svg>
                   </button>
 
+                  <!-- 3-Dots Quick Actions Trigger Button -->
+                  <button type="button" onclick="window.handleTaskMenuButtonClick(event, '${task.id}')" class="p-1 rounded text-slate-400 hover:text-gold-300 hover:bg-space-950 transition-all shrink-0 cursor-pointer" title="Quick Actions Menu (Right-Click or Long-Press for Set Priority, Reschedule, Duplicate, Delete)">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="5" r="1.75"/>
+                      <circle cx="12" cy="12" r="1.75"/>
+                      <circle cx="12" cy="19" r="1.75"/>
+                    </svg>
+                  </button>
+
                   <button onclick="window.requestDeleteTask('${task.id}', '${escapeQuote(task.title || 'this task')}', '${task._listId || ''}')" class="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-space-950 transition-all shrink-0" title="Delete Task from Google Tasks">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -4090,10 +5283,12 @@
         const starred = currentTasks.filter(t => isTaskStarred(t)).length;
         if (query) {
           taskCountSummary.innerText = `${filtered.length} of ${total} matched • "${query}"`;
+        } else if (activePriorityFilter !== 'all') {
+          taskCountSummary.innerText = `${filtered.length} ${PRIORITY_LEVELS[activePriorityFilter]?.shortLabel || ''} • ${total} Total`;
         } else if (activeTaskFilter === 'starred') {
           taskCountSummary.innerText = `${filtered.length} Starred • ${total} Total`;
         } else {
-          taskCountSummary.innerText = `${pending} Pending • ${done} Completed • ${starred} Starred • ${total} Total`;
+          taskCountSummary.innerText = `${pending} Pending (🔥 ${countCrit} · ⚡ ${countHigh} · ⏳ ${countMed} · 🟢 ${countLow}) • ${done} Done`;
         }
       }
     }
@@ -4222,6 +5417,13 @@
         finalNotes = finalNotes ? `${tagsNoteHeader}\n${finalNotes}` : tagsNoteHeader;
       }
 
+      // Append priority level if explicitly selected
+      if (selectedNewTaskPriority && selectedNewTaskPriority !== 'auto') {
+        const pCfg = PRIORITY_LEVELS[selectedNewTaskPriority];
+        const prioTag = `[Priority: ${selectedNewTaskPriority}]`;
+        finalNotes = finalNotes ? `${finalNotes}\n${prioTag}` : prioTag;
+      }
+
       // Append deadline if specified
       if (deadline) {
         finalNotes = finalNotes ? `${finalNotes}\n[Deadline: ${deadline}]` : `[Deadline: ${deadline}]`;
@@ -4254,6 +5456,12 @@
         created._isInbox = (targetListId === '@default' || (activeListObj.title || '').toLowerCase().includes('inbox') || (activeListObj.title || '').toLowerCase() === 'my tasks');
         if (deadline) created.deadline = deadline;
 
+        // Persist priority override for newly created task
+        if (selectedNewTaskPriority && selectedNewTaskPriority !== 'auto') {
+          taskPriorityOverrides[created.id] = selectedNewTaskPriority;
+          saveTaskPriorityOverrides();
+        }
+
         currentTasks.unshift(created);
         renderTasks();
         updateTasksBadges();
@@ -4266,6 +5474,7 @@
         selectedAdhdTags.clear();
         autoSuggestedAdhdTags.clear();
         renderAdhdTags();
+        window.selectNewTaskPriority('auto');
 
         window.toggleNewTaskForm();
 
@@ -5113,10 +6322,15 @@
         // User is signed in
         loadStarredTasks();
         loadPomodoroStats();
+        loadTaskPriorityOverrides();
 
         if (headerUserPill) {
           headerUserPill.classList.remove('hidden');
           headerUserPill.classList.add('flex');
+        }
+        if (splashToggleBtn) {
+          splashToggleBtn.classList.add('hidden');
+          splashToggleBtn.classList.remove('flex');
         }
         if (headerUserAvatar) headerUserAvatar.src = user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80';
         if (headerUserName) headerUserName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Explorer';
@@ -5152,6 +6366,10 @@
         if (headerUserPill) {
           headerUserPill.classList.add('hidden');
           headerUserPill.classList.remove('flex');
+        }
+        if (splashToggleBtn) {
+          splashToggleBtn.classList.remove('hidden');
+          splashToggleBtn.classList.add('flex');
         }
         if (headerAuthLabel) headerAuthLabel.innerText = "SIGN IN";
         if (signedInPreview) {
