@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="{{@site.locale}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Members Portal - {{@site.title}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-gold': '#facc15',
+                        'neon-purple': '#a855f7',
+                        'neon-blue': '#3b82f6',
+                        'neon-green': '#22c55e',
+                        'dark-bg': '#0f0f13',
+                        'panel-bg': '#1a1a24',
+                    },
+                    fontFamily: {
+                        'orbitron': ['Orbitron', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'ai-gradient': 'linear-gradient(to right, #facc15, #22c55e, #a855f7)',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root { --pane-h: 100vh; }
+        @supports (height: 100dvh) { :root { --pane-h: 100dvh; } }
+        html, body { height: 100%; }
+        body { background: #0f0f13; overscroll-behavior-y: none; position: relative; }
+
+        /* ============ animated background ============ */
+        .bg-fx { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .bg-blob { position: absolute; border-radius: 50%; filter: blur(70px); will-change: transform; }
+        .bg-blob--gold   { width: 44vmax; height: 44vmax; left: -12vmax; top: -14vmax;
+            background: radial-gradient(circle at center, rgba(250,204,21,.17), transparent 65%);
+            animation: driftA 34s ease-in-out infinite alternate; }
+        .bg-blob--purple { width: 40vmax; height: 40vmax; right: -14vmax; top: 22vmax;
+            background: radial-gradient(circle at center, rgba(168,85,247,.16), transparent 65%);
+            animation: driftB 42s ease-in-out infinite alternate; }
+        .bg-blob--green  { width: 36vmax; height: 36vmax; left: 18vmax; bottom: -18vmax;
+            background: radial-gradient(circle at center, rgba(34,197,94,.12), transparent 65%);
+            animation: driftC 38s ease-in-out infinite alternate; }
+        .bg-grid { position: absolute; inset: -20%; opacity: .5;
+            background-image: radial-gradient(rgba(250,204,21,.10) 1px, transparent 1px);
+            background-size: 44px 44px;
+            animation: gridPan 90s linear infinite; }
+        .bg-vignette { position: absolute; inset: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(3,3,7,.72) 100%); }
+        @keyframes driftA { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(9vmax, 6vmax) scale(1.12); } 100% { transform: translate(-4vmax, 10vmax) scale(.94); } }
+        @keyframes driftB { 0% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(-11vmax, 5vmax) scale(.92); } 100% { transform: translate(5vmax, -8vmax) scale(1.1); } }
+        @keyframes driftC { 0% { transform: translate(0,0) scale(.96); } 50% { transform: translate(8vmax, -7vmax) scale(1.14); } 100% { transform: translate(-6vmax, -3vmax) scale(1); } }
+        @keyframes gridPan { 0% { background-position: 0 0; } 100% { background-position: 440px 440px; } }
+        @media (prefers-reduced-motion: reduce) {
+            .bg-blob, .bg-grid { animation: none; }
+        }
+
+        .portal-shell { display: flex; flex-direction: column; height: var(--pane-h); position: relative; }
+        .portal-track {
+            flex: 1; min-height: 0;
+            overflow-y: auto; scroll-snap-type: y mandatory; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .portal-pane {
+            min-height: 100%; scroll-snap-align: start;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 1.25rem 1rem 4.5rem; overflow-y: auto;
+        }
+        @media (min-width: 768px) { .portal-pane { padding: 3rem 3rem 5.5rem; } }
+        @media (min-width: 1024px) { .portal-pane { padding: 3.5rem 5rem 6rem; } }
+        .pane-label { letter-spacing: .25em; }
+        .panel {
+            background: rgba(26,26,36,.85); border: 1px solid rgba(250,204,21,.18);
+            border-radius: 1rem; backdrop-filter: blur(8px);
+        }
+        .panel:hover { border-color: rgba(250,204,21,.45); }
+        .tool-row, .post-row { transition: transform .15s ease, border-color .15s ease, background-color .15s ease; }
+        .tool-row:active, .post-row:active { transform: scale(.98); }
+        /* right-side vertical dot rail */
+        .portal-rail { position: fixed; right: .65rem; top: 50%; transform: translateY(-50%); z-index: 40;
+            display: flex; flex-direction: column; gap: .6rem; }
+        .portal-dot { width: .55rem; height: .55rem; border-radius: 9999px; background: #3f3f46;
+            border: 0; padding: 0; cursor: pointer; transition: all .25s ease; }
+        .portal-dot.is-active { background: #facc15; height: 1.4rem; box-shadow: 0 0 8px rgba(250,204,21,.6); }
+        .portal-dot:focus-visible { outline: 2px solid #facc15; outline-offset: 2px; }
+        @media (max-width: 768px) {
+            .portal-rail { right: .35rem; gap: .35rem; }
+            .portal-dot { width: .35rem; height: .35rem; }
+            .portal-dot.is-active { height: .9rem; }
+        }
+        /* swipe hint */
+        .swipe-hint { position: absolute; bottom: 1.1rem; left: 50%; transform: translateX(-50%);
+            color: #71717a; font-size: .62rem; letter-spacing: .3em; text-transform: uppercase;
+            display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+        .swipe-hint i { animation: hintBob 1.6s ease-in-out infinite; }
+        @keyframes hintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        .post-row { display: block; padding: .85rem 1.1rem; border-bottom: 1px solid rgba(250,204,21,.12); }
+        @media (min-width: 768px) { .post-row { padding: 1.15rem 1.75rem; } }
+        .post-row:last-child { border-bottom: 0; }
+        .post-row:hover { background: rgba(250,204,21,.05); }
+
+        /* ============ nav menu ============ */
+        .menu-btn { display: inline-flex; align-items: center; gap: .45rem; }
+        .nav-menu { position: absolute; top: 3.4rem; right: .75rem; z-index: 50; width: 15rem;
+            background: rgba(16,16,24,.97); border: 1px solid rgba(250,204,21,.25); border-radius: .9rem;
+            box-shadow: 0 18px 50px rgba(0,0,0,.55); backdrop-filter: blur(14px);
+            opacity: 0; transform: translateY(-6px) scale(.98); pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease; }
+        .nav-menu.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+        .nav-menu .menu-section { padding: .55rem .5rem; }
+        .nav-menu .menu-section + .menu-section { border-top: 1px solid rgba(250,204,21,.14); }
+        .nav-menu .menu-heading { font-size: .58rem; letter-spacing: .3em; color: #71717a;
+            text-transform: uppercase; padding: .5rem .8rem .3rem; }
+        .nav-menu a.menu-link { display: flex; align-items: center; gap: .6rem; padding: .6rem .8rem;
+            border-radius: .55rem; font-size: .82rem; color: #d4d4d8; transition: all .15s ease; }
+        .nav-menu a.menu-link:hover { background: rgba(250,204,21,.1); color: #facc15; }
+        .nav-menu a.menu-link i { width: 1rem; text-align: center; font-size: .75rem; color: #a1a1aa; }
+        .nav-menu a.menu-link:hover i { color: #facc15; }
+        /* Ghost {{navigation}} helper markup */
+        .nav-menu ul.nav { list-style: none; margin: 0; padding: 0; }
+        .nav-menu ul.nav li a { display: flex; align-items: center; gap: .6rem; padding: .6rem .8rem;
+            border-radius: .55rem; font-size: .82rem; color: #d4d4d8; transition: all .15s ease; }
+        .nav-menu ul.nav li a:hover { background: rgba(250,204,21,.1); color: #facc15; }
+        .nav-menu ul.nav li.nav-current a { color: #facc15; font-weight: 600; }
+        @media (min-width: 768px) { .nav-menu { width: 17rem; } }
+        @media (prefers-reduced-motion: reduce) { .portal-track { scroll-behavior: auto; } .swipe-hint i { animation: none; } }
+    </style>
+    {{ghost_head}}
+</head>
+<body class="font-inter text-white antialiased">
+
+    <!-- animated background -->
+    <div class="bg-fx" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="bg-blob bg-blob--gold"></div>
+        <div class="bg-blob bg-blob--purple"></div>
+        <div class="bg-blob bg-blob--green"></div>
+        <div class="bg-vignette"></div>
+    </div>
+
+<div class="portal-shell">
+
+    <header class="h-14 shrink-0 flex items-center justify-between px-4 border-b border-neon-gold/20 bg-panel-bg/80 backdrop-blur-md relative z-30">
+        <a href="{{@site.url}}" class="flex items-center gap-2" aria-label="AI for ADHD home">
+            <span class="w-7 h-7 rounded-lg bg-ai-gradient flex items-center justify-center text-dark-bg font-orbitron font-black text-xs">AI</span>
+            <span class="font-orbitron font-bold text-xs tracking-widest">AI FOR ADHD</span>
+        </a>
+        <nav class="flex items-center gap-2">
+            <div class="relative">
+                <button type="button" id="menuBtn" class="menu-btn px-3 py-1.5 rounded-lg text-[11px] font-orbitron font-semibold tracking-widest uppercase border border-neon-gold/40 text-neon-gold hover:bg-neon-gold hover:text-dark-bg transition-all" aria-expanded="false" aria-controls="navMenu" aria-haspopup="true">
+                    <i class="fa-solid fa-bars text-[10px]"></i><span class="hidden sm:inline">Menu</span>
+                </button>
+                <div class="nav-menu" id="navMenu" role="menu" aria-label="Site navigation">
+                    <div class="menu-section">
+                        <p class="menu-heading">Navigate</p>
+                        {{navigation}}
+                    </div>
+                    {{#if @site.secondary_navigation}}
+                    <div class="menu-section">
+                        <p class="menu-heading">More</p>
+                        {{navigation type="secondary"}}
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+            {{#if @member}}
+                <a href="#account" data-portal="account" class="px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-widest uppercase border border-neon-gold/40 text-neon-gold hover:bg-neon-gold hover:text-dark-bg transition-all">Account</a>
+            {{else}}
+                <a href="#/portal/signin" class="px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-widest uppercase border border-neon-gold/40 text-neon-gold hover:bg-neon-gold hover:text-dark-bg transition-all">Sign In</a>
+            {{/if}}
+        </nav>
+    </header>
+
+    <div class="portal-track" id="portalTrack">
+
+        <!-- ============ PANE 1 — THE STORE ============ -->
+        <section class="portal-pane relative" id="pane-store" aria-label="The Store">
+            <div class="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto">
+                <p class="pane-label text-neon-gold text-[11px] md:text-xs font-bold uppercase mb-2 md:mb-3">01 / The Store</p>
+                <h1 class="font-orbitron font-black text-4xl md:text-6xl lg:text-7xl leading-tight md:leading-[1.05] mb-3 md:mb-5">Upgrade your<br><span class="text-neon-gold">external brain.</span></h1>
+                <p class="text-zinc-400 text-sm md:text-xl leading-relaxed mb-6 md:mb-10 max-w-2xl">Prompt packs, toolkits and done-for-you systems built specifically for ADHD brains. Everything ships instantly.</p>
+                <a href="https://aiforadhd.gumroad.com" target="_blank" rel="noopener" class="panel block p-7 md:p-12 lg:p-14 group">
+                    <div class="flex items-center gap-4 md:gap-6 mb-5 md:mb-8">
+                        <div class="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-ai-gradient flex items-center justify-center text-dark-bg text-lg md:text-2xl shrink-0">
+                            <i class="fa-solid fa-bag-shopping"></i>
+                        </div>
+                        <div>
+                            <p class="font-orbitron font-bold text-base md:text-2xl tracking-wide">THE STORE</p>
+                            <p class="text-zinc-500 text-xs md:text-base">aiforadhd.gumroad.com</p>
+                        </div>
+                    </div>
+                    <p class="text-zinc-400 text-sm md:text-lg leading-relaxed mb-6 md:mb-10 max-w-2xl">Browse every product — prompt packs, the External Brain Framework, automation setups and more. Secure checkout, instant download.</p>
+                    <span class="inline-flex items-center gap-2 md:gap-3 px-6 md:px-9 py-3 md:py-4 rounded-xl bg-ai-gradient text-dark-bg font-orbitron font-bold text-[11px] md:text-sm tracking-widest uppercase group-hover:brightness-110 transition-all">
+                        Enter the store <i class="fa-solid fa-arrow-right text-xs md:text-sm"></i>
+                    </span>
+                </a>
+            </div>
+            <div class="swipe-hint" aria-hidden="true"><i class="fa-solid fa-chevron-up"></i>Swipe</div>
+        </section>
+
+        <!-- ============ PANE 2 — FREE TOOLS ============ -->
+        <section class="portal-pane relative" id="pane-tools" aria-label="Free tools">
+            <div class="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto">
+                <p class="pane-label text-neon-green text-[11px] md:text-xs font-bold uppercase mb-2 md:mb-3">02 / Free Tools</p>
+                <h2 class="font-orbitron font-black text-3xl md:text-5xl leading-tight mb-1 md:mb-3">Start here, <span class="text-neon-green">free.</span></h2>
+                <p class="text-zinc-400 text-sm md:text-xl leading-relaxed mb-5 md:mb-9 max-w-2xl">No signup required. Pick the one that matches today's bottleneck.</p>
+                <div class="panel divide-y divide-neon-gold/10 overflow-hidden">
+                    <a href="{{@site.url}}/5-day-sprint/" class="tool-row flex items-center gap-4 md:gap-6 p-5 md:p-7">
+                        <i class="fa-solid fa-person-running text-neon-gold text-lg md:text-2xl w-6 md:w-8 text-center shrink-0"></i>
+                        <span class="flex-1"><span class="block text-base md:text-xl font-semibold mb-0.5">5-Day Executive Function Sprint</span><span class="block text-zinc-500 text-xs md:text-base">Five days, five systems. The fastest place to start.</span></span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs md:text-base shrink-0"></i>
+                    </a>
+                    <a href="{{@site.url}}/task-automation-setup/" class="tool-row flex items-center gap-4 md:gap-6 p-5 md:p-7">
+                        <i class="fa-solid fa-robot text-neon-purple text-lg md:text-2xl w-6 md:w-8 text-center shrink-0"></i>
+                        <span class="flex-1"><span class="block text-base md:text-xl font-semibold mb-0.5">Task Automation Setup</span><span class="block text-zinc-500 text-xs md:text-base">Let AI handle the tasks you keep dropping.</span></span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs md:text-base shrink-0"></i>
+                    </a>
+                    <a href="{{@site.url}}/email-setup/" class="tool-row flex items-center gap-4 md:gap-6 p-5 md:p-7">
+                        <i class="fa-solid fa-inbox text-neon-blue text-lg md:text-2xl w-6 md:w-8 text-center shrink-0"></i>
+                        <span class="flex-1"><span class="block text-base md:text-xl font-semibold mb-0.5">Email Setup</span><span class="block text-zinc-500 text-xs md:text-base">Tame the inbox that eats your mornings.</span></span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs md:text-base shrink-0"></i>
+                    </a>
+                    <a href="{{@site.url}}/desktop-course/" class="tool-row flex items-center gap-4 md:gap-6 p-5 md:p-7">
+                        <i class="fa-solid fa-desktop text-neon-green text-lg md:text-2xl w-6 md:w-8 text-center shrink-0"></i>
+                        <span class="flex-1"><span class="block text-base md:text-xl font-semibold mb-0.5">Desktop Course</span><span class="block text-zinc-500 text-xs md:text-base">Build the command center you'll actually use.</span></span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs md:text-base shrink-0"></i>
+                    </a>
+                    <a href="{{@site.url}}/installer-setup/" class="tool-row flex items-center gap-4 md:gap-6 p-5 md:p-7">
+                        <i class="fa-solid fa-screwdriver-wrench text-neon-gold text-lg md:text-2xl w-6 md:w-8 text-center shrink-0"></i>
+                        <span class="flex-1"><span class="block text-base md:text-xl font-semibold mb-0.5">Installer Setup</span><span class="block text-zinc-500 text-xs md:text-base">One-time setup, zero thinking later.</span></span>
+                        <i class="fa-solid fa-chevron-right text-zinc-600 text-xs md:text-base shrink-0"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="swipe-hint" aria-hidden="true"><i class="fa-solid fa-chevron-up"></i>Swipe</div>
+        </section>
+
+        <!-- ============ PANE 3 — RECENT POSTS ============ -->
+        <section class="portal-pane relative" id="pane-posts" aria-label="Recent blog posts">
+            <div class="w-full max-w-md md:max-w-3xl lg:max-w-4xl mx-auto">
+                <p class="pane-label text-neon-purple text-[11px] md:text-xs font-bold uppercase mb-2 md:mb-3">03 / Field Notes</p>
+                <h2 class="font-orbitron font-black text-3xl md:text-5xl leading-tight mb-1 md:mb-3">Latest from the <span class="text-neon-purple">blog.</span></h2>
+                <p class="text-zinc-400 text-sm md:text-xl leading-relaxed mb-5 md:mb-9 max-w-2xl">Field notes on running an external brain with AI.</p>
+                <div class="panel overflow-hidden">
+                    {{#get "posts" limit="5" include="tags,authors"}}
+                        {{#foreach posts}}
+                        <a href="{{url}}" class="post-row">
+                            <p class="text-[10px] md:text-xs tracking-widest uppercase text-neon-gold/80 mb-1 md:mb-1.5">{{date format="D MMM YYYY"}}</p>
+                            <p class="text-base md:text-xl font-semibold leading-snug mb-1 md:mb-1.5">{{title}}</p>
+                            <p class="text-zinc-500 text-xs md:text-base leading-relaxed line-clamp-2">{{excerpt}}</p>
+                        </a>
+                        {{else}}
+                        <p class="p-6 text-zinc-500 text-sm">No posts yet — the first dispatch lands soon.</p>
+                        {{/foreach}}
+                    {{/get}}
+                </div>
+                <a href="{{@site.url}}" class="inline-flex items-center gap-2 mt-4 md:mt-6 text-xs md:text-sm font-semibold tracking-widest uppercase text-zinc-400 hover:text-neon-gold transition-colors">
+                    All field notes <i class="fa-solid fa-arrow-right text-[10px] md:text-xs"></i>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <nav class="portal-rail" aria-label="Portal sections">
+        <button class="portal-dot is-active" data-index="0" aria-label="The Store" aria-current="true"></button>
+        <button class="portal-dot" data-index="1" aria-label="Free Tools"></button>
+        <button class="portal-dot" data-index="2" aria-label="Recent Blog Posts"></button>
+    </nav>
+</div>
+
+<script>
+(function () {
+    /* ---------- carousel ---------- */
+    var track = document.getElementById('portalTrack');
+    if (track) {
+        var panes = track.querySelectorAll('.portal-pane');
+        var dots = document.querySelectorAll('.portal-rail .portal-dot');
+
+        function setActive(i) {
+            dots.forEach(function (d, j) {
+                d.classList.toggle('is-active', j === i);
+                if (j === i) { d.setAttribute('aria-current', 'true'); } else { d.removeAttribute('aria-current'); }
+            });
+        }
+        function currentIndex() { return Math.round(track.scrollTop / track.clientHeight); }
+
+        var ticking = false;
+        track.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                ticking = false;
+                var i = currentIndex();
+                if (i >= 0 && i < panes.length) setActive(i);
+            });
+        }, { passive: true });
+
+        dots.forEach(function (d) {
+            d.addEventListener('click', function () {
+                track.scrollTo({ top: parseInt(d.getAttribute('data-index'), 10) * track.clientHeight, behavior: 'smooth' });
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            var i = currentIndex();
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                if (i < panes.length - 1) { e.preventDefault(); track.scrollTo({ top: (i + 1) * track.clientHeight, behavior: 'smooth' }); }
+            } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                if (i > 0) { e.preventDefault(); track.scrollTo({ top: (i - 1) * track.clientHeight, behavior: 'smooth' }); }
+            }
+        });
+    }
+
+    /* ---------- nav menu ---------- */
+    var menuBtn = document.getElementById('menuBtn');
+    var navMenu = document.getElementById('navMenu');
+    if (menuBtn && navMenu) {
+        function setMenu(open) {
+            navMenu.classList.toggle('is-open', open);
+            menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+        menuBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setMenu(!navMenu.classList.contains('is-open'));
+        });
+        document.addEventListener('click', function (e) {
+            if (navMenu.classList.contains('is-open') && !navMenu.contains(e.target) && e.target !== menuBtn) { setMenu(false); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && navMenu.classList.contains('is-open')) { setMenu(false); menuBtn.focus(); }
+        });
+        navMenu.querySelectorAll('a').forEach(function (a) {
+            a.addEventListener('click', function () { setMenu(false); });
+        });
+    }
+
+    /* ---------- Ghost Portal sign-in ---------- */
+    document.querySelectorAll('a[href="#/portal/signin"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (window.Portal) { window.Portal.open(); }
+        });
+    });
+})();
+</script>
+{{ghost_foot}}
+</body>
+</html>

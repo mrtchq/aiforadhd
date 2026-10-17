@@ -1,0 +1,46 @@
+{{!< default}}
+{{!--
+  AI for ADHD — React landing mount with SEO & AEO pre-rendered markup.
+  The homepage renders the interactive single-page app alongside accessible semantic text
+  for search engine crawlers and LLM indexing bots (GPTBot, PerplexityBot, ClaudeBot).
+--}}
+<main class="gh-main">
+    {{!-- Accessible Pre-rendered SEO/AEO Content for AI & Search Indexers --}}
+    <div class="sr-only search-engine-content" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">
+        <h1>You don’t need another to-do list. You need someone to do the list.</h1>
+        <p>Starting is the hardest part—so don’t be the one who starts. AI for ADHD builds you a personalized AI task-completion system where dedicated digital Allies break down the chaos, draft the work, and prep the finish line. You just approve and move on.</p>
+
+        <h2>Meet Your Personal AI Crew: Digital Allies Who Have Your Back</h2>
+        <ul>
+            <li><strong>The Sorter:</strong> Kills the "Everything is Urgent" Tornado. Acts as the bouncer for your attention—scanning brain-dumps, notes, and inbox chaos, stripping out the noise, and handing you a clean, realistic game plan.</li>
+            <li><strong>The Breaker:</strong> Kills the "Too Big to Start" Wall. Slices massive, vague, overwhelming projects into tiny, frictionless micro-steps—handing you only Step 1 while prepping the rest in the background.</li>
+            <li><strong>The Chaser:</strong> Kills the Boring Admin Quicksand. Goes down the rabbit holes for you—summarizing long docs, comparing options, and gathering context so you make decisions in 30 seconds instead of opening 15 browser tabs.</li>
+            <li><strong>The Starter:</strong> Kills Blank-Page Dread. Takes care of the dreadful first 80%—drafting the awkward emails you've been avoiding, outlining the project, and writing the ugly first drafts—so you just approve and hit send.</li>
+        </ul>
+
+        <h2>How the Crew Relay Works</h2>
+        <p>Your Allies work like a relay team. They catch the chaos, chop it down, grab the info, and draft the work—so you just step in at the 90-yard line and walk it into the end zone. Delegation over discipline: stop trying harder and start having the work taken off your hands.</p>
+
+        <h2>Frequently Asked Questions</h2>
+        <dl>
+            <dt>How does an AI Crew help with ADHD task completion?</dt>
+            <dd>Instead of giving you another planner or telling you to try harder, an AI Crew takes the heavy lifting off your hands. Dedicated digital Allies handle the dreadful first 80% of organizing, researching, and drafting so you only need to approve the final 20%.</dd>
+
+            <dt>What does the AI for ADHD project specialize in?</dt>
+            <dd>We help people set up personalized, AI-powered task completion systems based on delegation. You get dedicated digital Allies—The Sorter, The Breaker, The Chaser, and The Starter—who do the heavy lifting so tasks actually get crossed off your list.</dd>
+
+            <dt>Is the AI for ADHD project free to access?</dt>
+            <dd>Yes, AI for ADHD is 100% free. All prompt packs, toolkits, voice guides, and community systems are completely free with no paywalls or hidden fees.</dd>
+        </dl>
+    </div>
+
+    <div id="root"></div>
+
+    {{!-- Third-party scripts carried over from original landing --}}
+    <script src="https://app.vocal.email/sdk/vocal-form.js"></script>
+    <script src="https://app.contactbutton.com/script/9db5035be64433f500b1b9b2b49e05bf" async="async"></script>
+
+    {{!-- Mount the React app (version-busted to avoid CDN/browser cache) --}}
+    <link rel="stylesheet" href="{{asset "aiforadhd-app.css"}}&v=crew-delegation-rewrite-20261016T103209Z">
+    <script type="module" src="{{asset "aiforadhd-app.js"}}&v=crew-delegation-rewrite-20261016T103209Z"></script>
+</main>

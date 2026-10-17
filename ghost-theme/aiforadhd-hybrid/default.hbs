@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="{{@site.locale}}">
+<head>
+
+    {{!-- Basic meta - advanced meta is output with {{ghost_head}} below --}}
+    <title>{{meta_title page=(t " (Page %)")}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{!-- Preload main styles and scripts for better performance --}}
+    <link rel="preload" as="style" href="{{asset "built/screen.css"}}">
+    <link rel="preload" as="script" href="{{asset "built/source.js"}}">
+
+    {{!-- Fonts are preloaded and defined in the default template to avoid layout shift --}}
+    {{> "typography/fonts"}}
+
+    {{!-- Theme assets - use the {{asset}} helper to reference styles & scripts, this will take care of caching and cache-busting automatically --}}
+    <link rel="stylesheet" type="text/css" href="{{asset "built/screen.css"}}">
+
+    {{!-- Custom background color --}}
+    {{#is "home"}}
+    <style>
+        :root {
+            --background-color: #0a0a0a;
+        }
+    </style>
+    {{else}}
+    <style>
+        :root {
+            --background-color: #000000;
+        }
+        /* Posts/pages: force black background + light text to match the landing aesthetic */
+        html:not(.home-template) body,
+        body:not(.home-template) {
+            background-color: #000000 !important;
+            color: #e5e5e5 !important;
+        }
+        body:not(.home-template) .gh-content,
+        body:not(.home-template) .gh-article-title,
+        body:not(.home-template) .gh-article-excerpt,
+        body:not(.home-template) .gh-article-meta,
+        body:not(.home-template) .gh-content p,
+        body:not(.home-template) .gh-content h1,
+        body:not(.home-template) .gh-content h2,
+        body:not(.home-template) .gh-content h3,
+        body:not(.home-template) .gh-content li,
+        body:not(.home-template) .gh-content blockquote {
+            color: #e5e5e5 !important;
+        }
+        body:not(.home-template) a { color: #FACC15 !important; }
+
+        /* Members-only paywall restyled to gold/black brand aesthetic */
+        body:not(.home-template) .gh-post-upgrade-cta-content {
+            background-color: #0a0a0a !important;
+            border: 1px solid rgba(250,204,21,0.35) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 0 40px rgba(250,204,21,0.12) !important;
+            text-align: center !important;
+        }
+        body:not(.home-template) .gh-post-upgrade-cta h2 {
+            color: #FACC15 !important;
+            font-family: inherit !important;
+        }
+        body:not(.home-template) .gh-post-upgrade-cta p,
+        body:not(.home-template) .gh-post-upgrade-cta small {
+            color: #d4d4d4 !important;
+        }
+        body:not(.home-template) .gh-post-upgrade-cta a {
+            color: #FACC15 !important;
+        }
+        body:not(.home-template) .gh-post-upgrade-cta a.gh-btn {
+            background: linear-gradient(90deg, #FACC15, #a855f7) !important;
+            color: #0a0a0a !important;
+            border-radius: 9999px !important;
+            font-weight: 700 !important;
+            padding: 12px 28px !important;
+            box-shadow: 0 0 20px rgba(250,204,21,0.35) !important;
+        }
+    </style>
+    {{/is}}
+
+    <script>
+        /* Automatically redirect to Member Portal upon signing in or clicking magic link */
+        (function() {
+            var searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.get('action') === 'signin' || searchParams.get('action') === 'signup') {
+                window.location.href = '/members-portal/';
+            }
+        })();
+
+        /* The script for calculating the color contrast has been taken from
+        https://gomakethings.com/dynamically-changing-the-text-color-based-on-background-color-contrast-with-vanilla-js/ */
+        (function () {
+            var accentColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+            accentColor = (accentColor || '').trim().replace('#', '');
+            var textColor = 'dark'; // default to light text on dark posts background
+
+            if (accentColor.length === 3) {
+                accentColor = accentColor[0] + accentColor[0] + accentColor[1] + accentColor[1] + accentColor[2] + accentColor[2];
+            }
+
+            if (accentColor.length === 6) {
+                var r = parseInt(accentColor.substr(0, 2), 16);
+                var g = parseInt(accentColor.substr(2, 2), 16);
+                var b = parseInt(accentColor.substr(4, 2), 16);
+                var yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                textColor = (yiq >= 128) ? 'dark' : 'light';
+            }
+
+            document.documentElement.className = 'has-' + textColor + '-text';
+        })();
+    </script>
+
+    {{!-- ===== LANDING PAGE ONLY: Tailwind + Phosphor + custom styles ===== --}}
+    {{!-- Scoped to home so Ghost Source's post CSS is never touched by Tailwind Preflight --}}
+    {{#is "home"}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#FACC15',
+                            goldDark: '#CA8A04',
+                            blue: '#3b82f6',
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            teal: '#14b8a6',
+                            bg: '#0a0a0a',
+                            surface: '#121212',
+                            surfaceBorder: '#262626'
+                        }
+                    },
+                    backgroundImage: {
+                        'rainbow-gradient': 'linear-gradient(135deg, #3b82f6, #a855f7, #ec4899, #f97316, #FACC15, #14b8a6)',
+                        'gold-gradient': 'linear-gradient(135deg, #FACC15, #CA8A04)',
+                        'cyber-grid': 'linear-gradient(to right, #262626 1px, transparent 1px), linear-gradient(to bottom, #262626 1px, transparent 1px)'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a0a !important; color: #e5e5e5; overflow-x: hidden; }
+        .glass-nav { background: rgba(10,10,10,0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(250,204,21,0.15); }
+        .text-gradient-gold { background: linear-gradient(to bottom right, #FEF08A, #FACC15, #CA8A04); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .text-gradient-rainbow { background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6, #fb923c, #fde047, #2dd4bf); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; background-size: 200% auto; animation: shine 5s linear infinite; }
+        @keyframes shine { to { background-position: 200% center; } }
+        .cyber-card { background: rgba(18,18,18,0.6); border: 1px solid #262626; backdrop-filter: blur(12px); transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); position: relative; overflow: hidden; }
+        .cyber-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); opacity:0; transition: opacity 0.3s; }
+        .cyber-card:hover { transform: translateY(-5px); border-color: rgba(250,204,21,0.3); box-shadow: 0 10px 30px -10px rgba(250,204,21,0.15); }
+        .cyber-card:hover::before { opacity:1; }
+        .btn-glow-wrapper { position: relative; display: inline-flex; }
+        .btn-glow-bg { position:absolute; top:-2px; left:-2px; right:-2px; bottom:-2px; background: linear-gradient(45deg, #FACC15, #a855f7, #3b82f6); border-radius:9999px; z-index:-1; filter: blur(10px); opacity:0.5; transition: opacity 0.3s ease; animation: pulse-border 3s infinite alternate; }
+        .btn-glow-wrapper:hover .btn-glow-bg { opacity:1; filter: blur(14px); }
+        @keyframes pulse-border { 0% { transform: scale(0.98); opacity:0.4;} 100% { transform: scale(1.02); opacity:0.7;} }
+        .reveal { opacity:0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5,0,0,1); }
+        .reveal.active { opacity:1; transform: translateY(0); }
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:#0a0a0a; }
+        ::-webkit-scrollbar-thumb { background:#262626; border-radius:4px; }
+        ::-webkit-scrollbar-thumb:hover { background:#FACC15; }
+        #bg-canvas { position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:-10; pointer-events:none; }
+        
+        /* Vertical Carousel Snap & Slide Styles */
+        html.home-template, body.home-template {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        @media (max-width: 1023px) {
+            html.home-template, body.home-template {
+                scroll-snap-type: y proximity;
+            }
+        }
+        .carousel-slide {
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+            min-height: 100vh;
+            min-height: 100dvh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Vertical Carousel Pagination Navigation */
+        .carousel-pagination-nav,
+        nav[aria-label="Vertical Carousel Navigation"] {
+            position: fixed !important;
+            right: 20px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 50 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 10px !important;
+            background: rgba(10, 10, 10, 0.85) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            padding: 14px 8px !important;
+            border-radius: 9999px !important;
+            border: 1px solid rgba(245, 158, 11, 0.25) !important;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.85) !important;
+            transition: all 0.2s ease;
+        }
+
+        /* Mobile Viewport: Ultra-compact pagination bar so it doesn't take up space */
+        @media (max-width: 768px) {
+            .carousel-pagination-nav,
+            nav[aria-label="Vertical Carousel Navigation"] {
+                right: 4px !important;
+                padding: 4px 2px !important;
+                gap: 2px !important;
+                border-color: rgba(245, 158, 11, 0.2) !important;
+                background: rgba(10, 10, 10, 0.75) !important;
+                box-shadow: 0 0 8px rgba(0, 0, 0, 0.7) !important;
+                width: 14px !important;
+                max-width: 14px !important;
+                box-sizing: border-box !important;
+            }
+            .carousel-pagination-nav button,
+            nav[aria-label="Vertical Carousel Navigation"] button {
+                width: 12px !important;
+                height: 10px !important;
+                min-width: 0 !important;
+                padding: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            .carousel-pagination-nav button svg,
+            nav[aria-label="Vertical Carousel Navigation"] button svg {
+                width: 7px !important;
+                height: 7px !important;
+            }
+            .carousel-pagination-nav button span.rounded-full,
+            nav[aria-label="Vertical Carousel Navigation"] button span.rounded-full {
+                width: 3.5px !important;
+                height: 3.5px !important;
+                min-width: 3.5px !important;
+                min-height: 3.5px !important;
+            }
+            .carousel-pagination-nav button span.rounded-full[class*="amber"],
+            .carousel-pagination-nav button span.rounded-full[class*="scale-125"],
+            .carousel-pagination-nav button span.rounded-full.active,
+            nav[aria-label="Vertical Carousel Navigation"] button span.rounded-full[class*="amber"],
+            nav[aria-label="Vertical Carousel Navigation"] button span.rounded-full[class*="scale-125"],
+            nav[aria-label="Vertical Carousel Navigation"] button span.rounded-full.active {
+                width: 5px !important;
+                height: 5px !important;
+                min-width: 5px !important;
+                min-height: 5px !important;
+                transform: scale(1.15) !important;
+                box-shadow: 0 0 5px #FACC15 !important;
+            }
+        }
+    </style>
+    {{/is}}
+
+    {{ghost_head}}
+
+    {{!-- SEO & AI Engine Optimization (AEO) Meta & Schema Injection --}}
+    {{#is "home"}}
+    <meta name="description" content="You don’t need another to-do list. You need someone to do the list. Personalized AI task-completion systems and digital Allies that do the heavy lifting for you.">
+    <meta property="og:description" content="You don’t need another to-do list. You need someone to do the list. Personalized AI task-completion systems and digital Allies that do the heavy lifting for you.">
+    <meta name="twitter:description" content="You don’t need another to-do list. You need someone to do the list. Personalized AI task-completion systems and digital Allies that do the heavy lifting for you.">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://aiforadhd.xyz/#website",
+                "url": "https://aiforadhd.xyz/",
+                "name": "AI for ADHD",
+                "alternateName": ["AI for ADHD", "aiforadhd.xyz"],
+                "description": "Free AI tools, ChatGPT prompts, and simple guides to help people with ADHD break task paralysis, get unstuck, and get things done. 100% free to join.",
+                "publisher": {
+                    "@id": "https://aiforadhd.xyz/#organization"
+                }
+            },
+            {
+                "@type": "Organization",
+                "@id": "https://aiforadhd.xyz/#organization",
+                "name": "Naravi",
+                "url": "https://aiforadhd.xyz/",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://aiforadhd.xyz/content/images/2026/07/Untitled---July-08--2026-at-11.36.10--1--2.png"
+                },
+                "sameAs": ["https://naravi.org"]
+            },
+            {
+                "@type": "FAQPage",
+                "@id": "https://aiforadhd.xyz/#faq",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How does an AI Crew help with ADHD task completion?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Instead of giving you another planner or telling you to try harder, an AI Crew takes the heavy lifting off your hands. Dedicated digital Allies handle the dreadful first 80% of organizing, researching, and drafting so you only need to approve the final 20%."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What does the AI for ADHD project specialize in?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "We help people set up personalized, AI-powered task completion systems based on delegation. You get dedicated digital Allies—The Sorter, The Breaker, The Chaser, and The Starter—who do the heavy lifting so tasks actually get crossed off your list."
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+    {{/is}}
+
+</head>
+<body class="{{body_class}} has-{{#match @custom.title_font "Elegant serif"}}serif{{else match @custom.title_font "Consistent mono"}}mono{{else}}sans{{/match}}-title has-{{#match @custom.body_font "Elegant serif"}}serif{{else}}sans{{/match}}-body">
+
+{{#is "home"}}
+    {{!-- Landing page renders standalone (it ships its own nav + footer) --}}
+    {{{body}}}
+{{else}}
+<div class="gh-viewport">
+
+    {{> "components/navigation" navigationLayout=@custom.navigation_layout}}
+
+    {{{body}}}
+
+    {{> "components/footer"}}
+
+</div>
+
+{{#is "post, page"}}
+    {{> "lightbox"}}
+{{/is}}
+{{/is}}
+
+<script src="{{asset "built/source.js"}}"></script>
+
+{{ghost_foot}}
+
+</body>
+</html>

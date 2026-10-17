@@ -1,0 +1,16 @@
+{
+  "name": "aiforadhd-hybrid",
+  "version": "1.0.0",
+  "description": "AI for ADHD — custom landing page + Ghost Source post engine.",
+  "engines": {
+    "ghost": ">=5.0.0"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "AI for ADHD",
+    "email": "support@naravi.org"
+  },
+  "config": {
+    "posts_per_page": 6
+  }
+}
