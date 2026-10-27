@@ -1,7 +1,7 @@
 # Ghost theme — live site mirror
 
 This directory mirrors the theme that is **actually active on the live site**, not a design draft.
-It is refreshed nightly (03:30 ET) by `~/.hermes/scripts/aiforadhd_theme_sync.sh` on the VPS.
+It is refreshed daily (20:00 ET) by `~/.hermes/scripts/aiforadhd_theme_sync.sh` on the VPS.
 
 | Field | Value |
 |---|---|
