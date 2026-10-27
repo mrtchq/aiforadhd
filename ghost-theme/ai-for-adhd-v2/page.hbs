@@ -1,0 +1,21 @@
+{{!< default}}
+
+{{#post}}
+<main class="content-page section-shell">
+  <article class="{{post_class}}">
+    {{#if @page.show_title_and_feature_image}}
+    <header class="content-header">
+      <a class="brand content-brand" href="{{@site.url}}">
+        <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png" alt="">
+        <span>AI for ADHD</span>
+      </a>
+      <h1>{{title}}</h1>
+      {{#if excerpt}}<p>{{excerpt}}</p>{{/if}}
+    </header>
+    {{/if}}
+    <section class="gh-content">
+      {{content}}
+    </section>
+  </article>
+</main>
+{{/post}}

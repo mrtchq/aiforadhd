@@ -1,0 +1,155 @@
+{{!< default}}
+
+<header class="site-header portal-header" aria-label="Member portal navigation">
+  <a class="brand" href="{{@site.url}}" aria-label="AI for ADHD home">
+    <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png" alt="">
+    <span>AI for ADHD</span>
+  </a>
+  <nav class="nav-links" aria-label="Member actions">
+    <a href="{{@site.url}}">Home</a>
+    <a href="/5-day-sprint/">Sprint</a>
+    {{#if @member}}
+      <a href="#account" data-portal="account">Account</a>
+      <a class="nav-action" href="javascript:" data-members-signout>Sign Out</a>
+    {{else}}
+      <a class="nav-action" href="#/portal/signin">Sign In</a>
+    {{/if}}
+  </nav>
+</header>
+
+<main class="member-portal" id="member-portal">
+  <section class="member-hero section-shell" aria-labelledby="member-portal-title">
+    <div class="member-orb" aria-hidden="true">
+      <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png" alt="">
+    </div>
+    <div class="member-hero-copy">
+      {{#if @member}}
+        <p class="portal-status">Signed in</p>
+        <h1 id="member-portal-title">Welcome back{{#if @member.firstname}}, {{@member.firstname}}{{/if}}.</h1>
+        <p>
+          Your sprint portal is now organized as a swipeable, mobile-first
+          carousel. Start with the overview, then move through the five days in
+          order without leaving the page.
+        </p>
+      {{else}}
+        <p class="portal-status">Member access</p>
+        <h1 id="member-portal-title">Your calmer AI control room.</h1>
+        <p>
+          Sign in to open the sprint portal: a mobile-friendly carousel with
+          the 5-day sprint, companion prompts, and a low-friction path back to
+          momentum.
+        </p>
+        <a class="button button-primary portal-signin" href="#/portal/signin">Sign In With Ghost</a>
+      {{/if}}
+    </div>
+  </section>
+
+  <section class="section-shell portal-carousel-shell" aria-labelledby="portal-carousel-title">
+    <div class="portal-carousel-header">
+      <div>
+        <p class="panel-label">Sprint library</p>
+        <h2 id="portal-carousel-title">Swipe through the 5-day sprint</h2>
+      </div>
+      <div class="portal-carousel-hint" aria-hidden="true">Drag →</div>
+    </div>
+
+    <div class="portal-carousel" role="list" aria-label="5-day sprint pages">
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Overview</p>
+        <h3>5-Day Sprint</h3>
+        <p>A quick orientation to the full sprint, the outcome, and the path through the member experience.</p>
+        <a class="button button-primary" href="/5-day-sprint/">Open Sprint Hub</a>
+      </article>
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Day 1</p>
+        <h3>ADHD Education</h3>
+        <p>Understand executive function friction before building tools. This makes the rest of the sprint stick.</p>
+        <a class="button button-secondary" href="/day-1-adhd-education/">Open Day 1</a>
+      </article>
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Day 2</p>
+        <h3>Capture Systems</h3>
+        <p>Build one reliable capture point so tasks, ideas, and commitments stop leaking out of memory.</p>
+        <a class="button button-secondary" href="/day-2-capture-systems/">Open Day 2</a>
+      </article>
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Day 3</p>
+        <h3>Planning and Triage</h3>
+        <p>Create realistic planning rules so the system survives bad days instead of collapsing under them.</p>
+        <a class="button button-secondary" href="/day-3-planning-triage/">Open Day 3</a>
+      </article>
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Day 4</p>
+        <h3>AI Leverage</h3>
+        <p>Use AI to reduce activation energy, draft tricky messages, and get to the first usable step faster.</p>
+        <a class="button button-secondary" href="/day-4-ai-leverage/">Open Day 4</a>
+      </article>
+      <article class="portal-card" role="listitem">
+        <p class="portal-card-kicker">Day 5</p>
+        <h3>Automation and Maintenance</h3>
+        <p>Lock in the workflow with reminders, fallback plans, and maintenance habits that keep it alive.</p>
+        <a class="button button-secondary" href="/day-5-automation-maintenance/">Open Day 5</a>
+      </article>
+    </div>
+  </section>
+
+  {{#if @member}}
+    <section class="section-shell portal-dashboard" aria-label="Member portal dashboard">
+      <article class="portal-panel portal-profile">
+        <p class="panel-label">Member profile</p>
+        <h2>{{#if @member.name}}{{@member.name}}{{else}}AI for ADHD Member{{/if}}</h2>
+        <p>{{@member.email}}</p>
+        <div class="portal-actions">
+          <a class="button button-secondary" href="#account" data-portal="account">Manage Account</a>
+          <a class="button button-secondary" href="javascript:" data-members-signout>Sign Out</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="section-shell portal-recent-posts-shell" aria-labelledby="recent-posts-title">
+      <hr class="portal-divider" aria-hidden="true">
+      <div class="portal-carousel-header recent-posts-header">
+        <div>
+          <p class="panel-label">Member feed</p>
+          <h2 id="recent-posts-title">Recent Posts</h2>
+        </div>
+      </div>
+
+      <div class="portal-post-carousel" role="list" aria-label="Recent posts carousel">
+        {{#get "posts" limit="12" include="authors,tags" filter="visibility:public+status:published" order="published_at desc"}}
+          {{#foreach posts}}
+            <article class="portal-post-card" role="listitem">
+              <p class="portal-post-kicker">{{primary_tag.name}}</p>
+              <h3><a href="{{url}}">{{title}}</a></h3>
+              <p>{{excerpt words="18"}}</p>
+              <a class="button button-secondary" href="{{url}}">Read post</a>
+            </article>
+          {{/foreach}}
+        {{/get}}
+      </div>
+    </section>
+  {{else}}
+    <section class="section-shell portal-dashboard signed-out-dashboard" aria-label="Member portal preview">
+      <article class="portal-panel portal-wide">
+        <p class="panel-label">Inside the portal</p>
+        <div class="portal-tool-list">
+          <div>
+            <span>01</span>
+            <h3>Prompt packs</h3>
+            <p>ADHD-friendly prompts for planning, writing, cleanup, and repair.</p>
+          </div>
+          <div>
+            <span>02</span>
+            <h3>Quick resets</h3>
+            <p>Small scripts for switching tasks, getting unstuck, and restarting.</p>
+          </div>
+          <div>
+            <span>03</span>
+            <h3>Community experiments</h3>
+            <p>The best group discoveries organized into repeatable workflows.</p>
+          </div>
+        </div>
+      </article>
+    </section>
+  {{/if}}
+</main>

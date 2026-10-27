@@ -1,0 +1,29 @@
+{{!< default}}
+
+{{#post}}
+<main class="content-page section-shell">
+  <article class="{{post_class}}">
+    <header class="content-header">
+      <a class="brand content-brand" href="{{@site.url}}">
+        <img src="{{#if @site.logo}}{{@site.logo}}{{else}}https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png{{/if}}" alt="{{@site.title}}">
+        <span>{{#if @site.title}}{{@site.title}}{{else}}AI for ADHD{{/if}}</span>
+      </a>
+      <h1>{{title}}</h1>
+      {{#if excerpt}}<p>{{excerpt}}</p>{{/if}}
+    </header>
+
+    {{#if feature_image}}
+    <figure class="post-feature-image" style="margin: 1.5rem 0 2rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--line);">
+      <img src="{{img_url feature_image size="xl"}}" alt="{{#if feature_image_alt}}{{feature_image_alt}}{{else}}{{title}}{{/if}}" style="width: 100%; height: auto; max-height: 480px; object-fit: cover;">
+    </figure>
+    {{/if}}
+
+    {{!-- Inline Audio Player Mount Slot --}}
+    <div class="h5ap-inline-slot" data-post-audio-player data-post-title="{{title}}" {{#if feature_image}}data-post-image="{{img_url feature_image size="m"}}"{{/if}} {{#if primary_author}}data-post-artist="{{primary_author.name}}"{{/if}}></div>
+
+    <section class="gh-content">
+      {{content}}
+    </section>
+  </article>
+</main>
+{{/post}}

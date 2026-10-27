@@ -1,0 +1,23 @@
+{{!< default}}
+
+<main class="content-page section-shell">
+  {{#author}}
+  <header class="content-header">
+    <a class="brand content-brand" href="{{@site.url}}">
+      <img src="https://subpagebucket.s3.eu-north-1.amazonaws.com/library/934/3dbb9e7c-a5a5-480a-a2e4-e42a2c92e4b0.png" alt="">
+      <span>AI for ADHD</span>
+    </a>
+    <h1>{{name}}</h1>
+    {{#if bio}}<p>{{bio}}</p>{{/if}}
+  </header>
+  {{/author}}
+  <div class="post-list">
+    {{#foreach posts}}
+      <article class="{{post_class}}">
+        <a href="{{url}}"><h2>{{title}}</h2></a>
+        {{#if excerpt}}<p>{{excerpt}}</p>{{/if}}
+      </article>
+    {{/foreach}}
+  </div>
+  {{pagination}}
+</main>

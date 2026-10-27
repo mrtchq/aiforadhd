@@ -1,0 +1,79 @@
+{
+  "name": "ai-for-adhd",
+  "description": "A luminous landing page theme for AI for ADHD.",
+  "version": "1.0.0",
+  "engines": {
+    "ghost": ">=5.0.0"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "AI for ADHD",
+    "email": "support@naravi.org"
+  },
+  "keywords": [
+    "ghost",
+    "ghost-theme",
+    "landing-page"
+  ],
+  "config": {
+    "card_assets": true,
+    "posts_per_page": 6,
+    "custom": {
+      "audio_player_skin": {
+        "type": "select",
+        "options": ["Fusion", "Default", "Wave", "Stamp"],
+        "default": "Fusion"
+      },
+      "audio_player_position": {
+        "type": "select",
+        "options": ["Both sticky and inline", "Bottom sticky", "Inline in posts", "Disabled"],
+        "default": "Both sticky and inline"
+      },
+      "audio_player_primary_color": {
+        "type": "color",
+        "default": "#FACC15"
+      },
+      "audio_player_background_color": {
+        "type": "color",
+        "default": "#121212"
+      },
+      "audio_player_text_color": {
+        "type": "color",
+        "default": "#ffffff"
+      },
+      "audio_player_default_audio": {
+        "type": "text",
+        "default": ""
+      },
+      "audio_player_podcast_rss": {
+        "type": "text",
+        "default": ""
+      },
+      "audio_player_show_download": {
+        "type": "boolean",
+        "default": true
+      },
+      "audio_player_seek_time": {
+        "type": "select",
+        "options": ["5", "10", "15", "30"],
+        "default": "15"
+      },
+      "audio_player_start_minimized": {
+        "type": "boolean",
+        "default": false
+      },
+      "apple_podcasts_link": {
+        "type": "text",
+        "default": ""
+      },
+      "spotify_link": {
+        "type": "text",
+        "default": ""
+      },
+      "youtube_music_link": {
+        "type": "text",
+        "default": ""
+      }
+    }
+  }
+}

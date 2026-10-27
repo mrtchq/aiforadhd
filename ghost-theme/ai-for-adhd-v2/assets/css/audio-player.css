@@ -1,0 +1,878 @@
+/* ==========================================================================
+   HTML5 Audio Player (bPlugins style) for Ghost CMS
+   Customizable via Ghost Admin Design Settings:
+   - Skin (Fusion, Default, Wave, Stamp)
+   - Colors (Primary accent, Background, Text)
+   - Position (Bottom sticky, Inline in posts, Both, Disabled)
+   - Seek Time, Download toggle, RSS feed playlist, Minimized mode
+   ========================================================================== */
+
+:root {
+  --h5ap-primary: #FACC15;
+  --h5ap-bg: #121212;
+  --h5ap-text: #ffffff;
+  --h5ap-text-muted: rgba(255, 255, 255, 0.65);
+  --h5ap-border: rgba(250, 204, 21, 0.2);
+  --h5ap-radius: 14px;
+  --h5ap-shadow: 0 12px 42px rgba(0, 0, 0, 0.65), 0 0 20px rgba(250, 204, 21, 0.1);
+  --h5ap-thumb-size: 68px;
+}
+
+/* Light background fallback when text is dark */
+.has-light-text {
+  --h5ap-text-muted: rgba(255, 255, 255, 0.65);
+}
+
+/* --------------------------------------------------------------------------
+   Root Container (Sticky Bottom Bar)
+   -------------------------------------------------------------------------- */
+.h5ap-root {
+  position: fixed;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(860px, calc(100vw - 32px));
+  z-index: 9999;
+  font-family: inherit;
+  color: var(--h5ap-text);
+  box-sizing: border-box;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, bottom 0.3s ease;
+}
+
+.h5ap-root *,
+.h5ap-root *::before,
+.h5ap-root *::after {
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Expanded Player Container
+   -------------------------------------------------------------------------- */
+.h5ap-expanded {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--h5ap-bg);
+  border: 1px solid var(--h5ap-border);
+  border-radius: var(--h5ap-radius);
+  box-shadow: var(--h5ap-shadow);
+  padding: 10px 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Buttons reset */
+.h5ap-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--h5ap-text);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.h5ap-btn:hover {
+  color: var(--h5ap-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.h5ap-btn:focus-visible {
+  outline: 2px solid var(--h5ap-primary);
+  outline-offset: 2px;
+}
+
+.h5ap-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Artwork / Poster Thumbnail
+   -------------------------------------------------------------------------- */
+.h5ap-thumbnail {
+  width: var(--h5ap-thumb-size);
+  height: var(--h5ap-thumb-size);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.h5ap-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.h5ap-poster-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(0,0,0,0.3));
+}
+
+.h5ap-poster-img:not([src]),
+.h5ap-poster-img[src=""] {
+  display: none;
+}
+
+.h5ap-poster-img:not([src]) + .h5ap-poster-fallback,
+.h5ap-poster-img[src=""] + .h5ap-poster-fallback {
+  display: flex;
+}
+
+/* --------------------------------------------------------------------------
+   Transport Controls (Rewind, Play, Forward)
+   -------------------------------------------------------------------------- */
+.h5ap-transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.h5ap-btn-play {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--h5ap-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.h5ap-btn-play:hover {
+  transform: scale(1.06);
+}
+
+.h5ap-btn-play:active {
+  transform: scale(0.96);
+}
+
+.h5ap-btn-play .h5ap-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Play/Pause state toggles */
+.h5ap-root:not(.is-playing) .h5ap-icon-pause-state,
+.h5ap-root.is-playing .h5ap-icon-play-state {
+  display: none;
+}
+
+.h5ap-root.is-playing .h5ap-icon-pause-state,
+.h5ap-root:not(.is-playing) .h5ap-icon-play-state {
+  display: block;
+}
+
+.h5ap-btn-rewind,
+.h5ap-btn-forward {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.h5ap-skip-badge {
+  position: absolute;
+  font-size: 8px;
+  font-weight: 700;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Information & Timeline Center Block
+   -------------------------------------------------------------------------- */
+.h5ap-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.h5ap-meta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.h5ap-titles {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.h5ap-track-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5ap-track-artist {
+  font-size: 11px;
+  color: var(--h5ap-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Soundwave visualizer bars (Wave skin) */
+.h5ap-soundwave-bars {
+  display: none;
+  align-items: flex-end;
+  gap: 3px;
+  height: 18px;
+  padding-right: 4px;
+}
+
+.h5ap-soundwave-bars span {
+  display: block;
+  width: 3px;
+  height: 4px;
+  background: var(--h5ap-primary);
+  border-radius: 2px;
+  transition: height 0.2s ease;
+}
+
+.h5ap-root.is-playing .h5ap-soundwave-bars span {
+  animation: h5ap-wave-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.h5ap-soundwave-bars span:nth-child(1) { animation-delay: 0.1s; }
+.h5ap-soundwave-bars span:nth-child(2) { animation-delay: 0.3s; }
+.h5ap-soundwave-bars span:nth-child(3) { animation-delay: 0.5s; }
+.h5ap-soundwave-bars span:nth-child(4) { animation-delay: 0.2s; }
+.h5ap-soundwave-bars span:nth-child(5) { animation-delay: 0.4s; }
+.h5ap-soundwave-bars span:nth-child(6) { animation-delay: 0.6s; }
+.h5ap-soundwave-bars span:nth-child(7) { animation-delay: 0.25s; }
+.h5ap-soundwave-bars span:nth-child(8) { animation-delay: 0.45s; }
+
+@keyframes h5ap-wave-pulse {
+  0% { height: 4px; }
+  50% { height: 16px; }
+  100% { height: 6px; }
+}
+
+/* --------------------------------------------------------------------------
+   Timeline & Progress Slider
+   -------------------------------------------------------------------------- */
+.h5ap-timeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.h5ap-time {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--h5ap-text-muted);
+  min-width: 34px;
+  text-align: center;
+}
+
+.h5ap-progress-container {
+  position: relative;
+  flex: 1;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.h5ap-progress-buffered,
+.h5ap-progress-played {
+  position: absolute;
+  left: 0;
+  height: 5px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.h5ap-progress-buffered {
+  background: rgba(255, 255, 255, 0.22);
+  width: 0%;
+  z-index: 1;
+}
+
+.h5ap-progress-played {
+  background: var(--h5ap-primary);
+  width: 0%;
+  z-index: 2;
+}
+
+/* Range input styling */
+.h5ap-seek-slider {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  margin: 0;
+  cursor: pointer;
+}
+
+.h5ap-seek-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--h5ap-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.h5ap-seek-slider:hover::-webkit-slider-thumb,
+.h5ap-seek-slider:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+
+.h5ap-seek-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--h5ap-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+
+.h5ap-seek-tooltip {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 4;
+}
+
+.h5ap-progress-container:hover .h5ap-seek-tooltip {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Actions (Download, Repeat, Speed, Playlist, Volume, Minimize)
+   -------------------------------------------------------------------------- */
+.h5ap-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.h5ap-btn-speed {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 7px;
+  border: 1px solid var(--h5ap-border);
+  border-radius: 6px;
+  min-width: 32px;
+}
+
+.h5ap-btn-repeat[data-active="true"] {
+  color: var(--h5ap-primary);
+}
+
+.h5ap-btn-playlist {
+  position: relative;
+}
+
+.h5ap-btn-playlist[aria-expanded="true"] {
+  color: var(--h5ap-primary);
+}
+
+.h5ap-playlist-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--h5ap-primary);
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: 700;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Volume Slider */
+.h5ap-volume-wrap {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.h5ap-root:not(.is-muted) .h5ap-icon-vol-muted,
+.h5ap-root.is-muted .h5ap-icon-vol-on {
+  display: none;
+}
+
+.h5ap-root.is-muted .h5ap-icon-vol-muted,
+.h5ap-root:not(.is-muted) .h5ap-icon-vol-on {
+  display: block;
+}
+
+.h5ap-volume-slider-wrap {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.25s ease, opacity 0.25s ease;
+  display: flex;
+  align-items: center;
+}
+
+.h5ap-volume-wrap:hover .h5ap-volume-slider-wrap,
+.h5ap-volume-slider-wrap:focus-within {
+  width: 60px;
+  opacity: 1;
+  margin-left: 4px;
+}
+
+.h5ap-volume-slider {
+  width: 56px;
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.h5ap-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--h5ap-primary);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Playlist Drawer
+   -------------------------------------------------------------------------- */
+.h5ap-playlist-drawer {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: var(--h5ap-bg);
+  border: 1px solid var(--h5ap-border);
+  border-radius: var(--h5ap-radius);
+  box-shadow: var(--h5ap-shadow);
+  padding: 12px 16px;
+  max-height: 290px;
+  overflow-y: auto;
+  z-index: 10;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.h5ap-playlist-drawer[hidden] {
+  display: none;
+}
+
+.h5ap-playlist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--h5ap-border);
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.h5ap-playlist-heading strong {
+  display: block;
+  font-size: 13px;
+}
+
+.h5ap-playlist-subtitle {
+  font-size: 11px;
+  color: var(--h5ap-text-muted);
+}
+
+.h5ap-service-links {
+  display: flex;
+  gap: 6px;
+}
+
+.h5ap-service-pill {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--h5ap-border);
+  color: var(--h5ap-text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.h5ap-service-pill:hover {
+  border-color: var(--h5ap-primary);
+  color: var(--h5ap-primary);
+}
+
+.h5ap-playlist-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.h5ap-playlist-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.h5ap-playlist-item-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.h5ap-playlist-item-btn.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--h5ap-primary);
+  color: var(--h5ap-primary);
+}
+
+.h5ap-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5ap-item-meta {
+  font-size: 11px;
+  color: var(--h5ap-text-muted);
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Mini Floating Widget Bar
+   -------------------------------------------------------------------------- */
+.h5ap-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--h5ap-bg);
+  border: 1px solid var(--h5ap-border);
+  border-radius: 30px;
+  box-shadow: var(--h5ap-shadow);
+  padding: 6px 14px 6px 8px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.h5ap-mini[hidden] {
+  display: none !important;
+}
+
+.h5ap-mini-play {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--h5ap-primary) !important;
+  color: #ffffff !important;
+}
+
+.h5ap-mini-play .h5ap-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.h5ap-mini-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+
+.h5ap-mini-wave i {
+  display: block;
+  width: 2.5px;
+  height: 4px;
+  background: var(--h5ap-primary);
+  border-radius: 1px;
+}
+
+.h5ap-root.is-playing .h5ap-mini-wave i {
+  animation: h5ap-wave-pulse 0.65s ease-in-out infinite alternate;
+}
+
+.h5ap-mini-wave i:nth-child(2) { animation-delay: 0.15s; }
+.h5ap-mini-wave i:nth-child(3) { animation-delay: 0.3s; }
+.h5ap-mini-wave i:nth-child(4) { animation-delay: 0.45s; }
+.h5ap-mini-wave i:nth-child(5) { animation-delay: 0.2s; }
+
+.h5ap-mini-info {
+  flex: 1;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.h5ap-mini-title {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.h5ap-mini-restore {
+  width: 28px;
+  height: 28px;
+}
+
+/* Minimized state container rules */
+.h5ap-root.is-minimized {
+  width: auto;
+}
+
+.h5ap-root.is-minimized .h5ap-expanded {
+  display: none;
+}
+
+.h5ap-root.is-minimized .h5ap-mini {
+  display: flex !important;
+}
+
+/* --------------------------------------------------------------------------
+   Skins Customizations (Fusion, Default, Wave, Stamp)
+   -------------------------------------------------------------------------- */
+
+/* 1. Fusion Skin (signature bPlugins podcast skin) */
+.h5ap-skin-fusion .h5ap-expanded {
+  border-radius: 16px;
+}
+
+/* 2. Default Skin (sleek minimal pill) */
+.h5ap-skin-default .h5ap-thumbnail {
+  display: none;
+}
+.h5ap-skin-default .h5ap-expanded {
+  border-radius: 40px;
+  padding: 8px 18px;
+}
+.h5ap-skin-default .h5ap-btn-play {
+  width: 38px;
+  height: 38px;
+}
+
+/* 3. Wave Skin (displays animated visualizer waveform) */
+.h5ap-skin-wave .h5ap-soundwave-bars {
+  display: flex;
+}
+.h5ap-skin-wave .h5ap-thumbnail {
+  border-radius: 12px;
+}
+
+/* 4. Stamp Skin (compact podcast card badge) */
+.h5ap-skin-stamp .h5ap-expanded {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 12px;
+}
+.h5ap-skin-stamp .h5ap-thumbnail {
+  display: none;
+}
+.h5ap-skin-stamp .h5ap-transport {
+  justify-content: center;
+}
+.h5ap-skin-stamp .h5ap-actions {
+  justify-content: space-between;
+  border-top: 1px solid var(--h5ap-border);
+  padding-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Inline Post Player
+   -------------------------------------------------------------------------- */
+.h5ap-inline-slot {
+  margin: 1.5rem auto 2rem;
+  max-width: 860px;
+  width: 100%;
+}
+
+.h5ap-inline-player {
+  position: relative !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.h5ap-inline-player .h5ap-mini,
+.h5ap-inline-player .h5ap-btn-minimize {
+  display: none !important;
+}
+
+/* Hide native Ghost audio card when replaced */
+.kg-audio-card.h5ap-hidden {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Layout
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .h5ap-root {
+    width: calc(100vw - 20px);
+    bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .h5ap-expanded {
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  --h5ap-thumb-size: 52px;
+
+  .h5ap-thumbnail {
+    width: 52px;
+    height: 52px;
+  }
+
+  .h5ap-btn-speed,
+  .h5ap-btn-repeat,
+  .h5ap-volume-wrap {
+    display: none;
+  }
+
+  .h5ap-track-title {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .h5ap-thumbnail {
+    display: none;
+  }
+
+  .h5ap-btn-rewind,
+  .h5ap-btn-forward {
+    display: none;
+  }
+
+  .h5ap-btn-play {
+    width: 38px;
+    height: 38px;
+  }
+
+  .h5ap-time {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .h5ap-root.is-playing .h5ap-soundwave-bars span,
+  .h5ap-root.is-playing .h5ap-mini-wave i {
+    animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Portal button clearance (added 2026-10-26)
+   The Ghost portal trigger iframe is fixed bottom-right (184x98, z-index
+   3999998) and sits above the player (z-index 9999). On viewports narrower
+   than ~1228px the centered player bar slides underneath it, so the
+   minimize button ends up covered and unclickable. When the player is on
+   the page, lift the portal trigger above the player bar instead of
+   fighting z-indexes (the player stays fully clickable). When the player
+   is disabled the section is not rendered, so the portal stays put.
+   -------------------------------------------------------------------------- */
+/* Measured 2026-10-26: the visible button sits 28px above the iframe
+   bottom, so these offsets leave a ~14px gap above the player bar
+   in both states (expanded bar top = 106px above viewport bottom,
+   minimized widget top = 62px). */
+body:has(#h5ap-player-root:not(.is-minimized)) .gh-portal-triggerbtn-iframe {
+  bottom: 92px !important;
+}
+body:has(#h5ap-player-root.is-minimized) .gh-portal-triggerbtn-iframe {
+  bottom: 48px !important;
+}
+
+/* --------------------------------------------------------------------------
+   Minimized side-tab (added 2026-10-26)
+   When minimized, the player recedes to the bottom-left edge: the bar
+   slides left on the existing transform transition and only a compact
+   tab stays visible at the left edge. Pressing the tab (anywhere except
+   the play button) restores the full player; the restore button keeps
+   working as before. Portal clearance is untouched: the portal trigger
+   sits bottom-right, the tab bottom-left, so they never meet.
+   -------------------------------------------------------------------------- */
+.h5ap-root.is-minimized {
+  transform: translateX(calc(-50vw + env(safe-area-inset-left, 0px)));
+  width: auto;
+}
+
+.h5ap-root.is-minimized .h5ap-mini {
+  border-radius: 0 16px 16px 0;
+  border-left: none;
+  padding: 8px 10px 8px 12px;
+  cursor: pointer;
+}
+
+.h5ap-root.is-minimized .h5ap-mini-wave,
+.h5ap-root.is-minimized .h5ap-mini-info {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .h5ap-root {
+    transition: none;
+  }
+}

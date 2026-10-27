@@ -1,0 +1,199 @@
+{{^match @custom.audio_player_position "Disabled"}}
+<section id="h5ap-player-root" class="h5ap-root{{#match @custom.audio_player_skin "Default"}} h5ap-skin-default{{/match}}{{#match @custom.audio_player_skin "Wave"}} h5ap-skin-wave{{/match}}{{#match @custom.audio_player_skin "Stamp"}} h5ap-skin-stamp{{/match}}{{#match @custom.audio_player_skin "Fusion"}} h5ap-skin-fusion{{/match}}"
+  data-skin="{{@custom.audio_player_skin}}"
+  data-position="{{@custom.audio_player_position}}"
+  data-primary-color="{{@custom.audio_player_primary_color}}"
+  data-bg-color="{{@custom.audio_player_background_color}}"
+  data-text-color="{{@custom.audio_player_text_color}}"
+  data-default-audio="{{@custom.audio_player_default_audio}}"
+  data-podcast-rss="{{@custom.audio_player_podcast_rss}}"
+  data-show-download="{{@custom.audio_player_show_download}}"
+  data-seek-time="{{@custom.audio_player_seek_time}}"
+  data-start-minimized="{{@custom.audio_player_start_minimized}}"
+  data-spotify="{{@custom.spotify_link}}"
+  data-apple="{{@custom.apple_podcasts_link}}"
+  data-youtube="{{@custom.youtube_music_link}}"
+  data-site-title="{{@site.title}}"
+  data-site-logo="{{@site.logo}}"
+  aria-label="HTML5 Audio Player">
+
+  {{!-- Hidden audio element --}}
+  <audio class="h5ap-audio" preload="metadata"></audio>
+
+  {{!-- Embedded SVG Icons Sprite for HTML5 Audio Player / Plyr --}}
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <defs>
+      <symbol id="h5ap-icon-play" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M15.562 8.1L3.87.225c-.818-.562-1.87 0-1.87.9v15.75c0 .9 1.052 1.462 1.87.9L15.563 9.9c.584-.45.584-1.35 0-1.8z"/>
+      </symbol>
+      <symbol id="h5ap-icon-pause" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M6 1H3c-.6 0-1 .4-1 1v14c0 .6.4 1 1 1h3c.6 0 1-.4 1-1V2c0-.6-.4-1-1-1zm9 0h-3c-.6 0-1 .4-1 1v14c0 .6.4 1 1 1h3c.6 0 1-.4 1-1V2c0-.6-.4-1-1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-rewind" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M1.93 8.35a8 8 0 1 1 1.42 5.07l1.52-1.3A6 6 0 1 0 3.95 8H6L3 4 0 8h1.93zM9 7v5h1.2V8.2h1.3V7H9zm3.5 0v5h3.5v-1.1h-2.3v-1h2v-1.1h-2v-.7h2.3V7h-3.5z"/>
+      </symbol>
+      <symbol id="h5ap-icon-forward" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M16.07 8.35A8 8 0 1 0 14.65 13.42l-1.52-1.3A6 6 0 1 1 14.05 8H12l3-4 3 4h-1.93zM5.5 7v5h1.2V8.2H8V7H5.5zm3.5 0v5h3.5v-1.1h-2.3v-1h2v-1.1h-2v-.7h2.3V7H9z"/>
+      </symbol>
+      <symbol id="h5ap-icon-volume" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M15.6 3.3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4C15.4 5.9 16 7.4 16 9c0 1.6-.6 3.1-1.8 4.3-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3C17.1 13.2 18 11.2 18 9s-.9-4.2-2.4-5.7z"/>
+        <path fill="currentColor" d="M11.282 5.282a.909.909 0 0 0 0 1.316c.735.735.995 1.458.995 2.402 0 .936-.26 1.659-.995 2.402a.93.93 0 0 0 1.315 1.315c1.1-1.1 1.68-2.217 1.68-3.717 0-1.5-.58-2.617-1.68-3.718a.93.93 0 0 0-1.315 0zM9 1a1 1 0 0 0-1 .4L4.667 4H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2.667L8 16.6A1 1 0 0 0 9 17a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-muted" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M12.4 12.5l2.1-2.1 2.1 2.1 1.4-1.4-2.1-2.1 2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4zM9 1a1 1 0 0 0-1 .4L4.667 4H2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2.667L8 16.6A1 1 0 0 0 9 17a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-download" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M9 13c-.3 0-.5-.1-.7-.3L4.6 9c-.4-.4-.4-1 0-1.4s1-.4 1.4 0l1.9 1.9V2c0-.6.4-1 1-1s1 .4 1 1v7.6l1.9-1.9c.4-.4 1-.4 1.4 0s.4 1 0 1.4l-3.7 3.7c-.2.2-.4.3-.7.3zm7 2H2c-.6 0-1 .4-1 1s.4 1 1 1h14c.6 0 1-.4 1-1s-.4-1-1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-repeat" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M14 5H4c-.6 0-1 .4-1 1v3H1V6c0-1.7 1.3-3 3-3h10V1l4 3-4 3V5zm-10 8h10c.6 0 1-.4 1-1V9h2v3c0 1.7-1.3 3-3 3H4v2L0 14l4-3v2z"/>
+      </symbol>
+      <symbol id="h5ap-icon-playlist" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M2 3h14c.6 0 1-.4 1-1s-.4-1-1-1H2c-.6 0-1 .4-1 1s.4 1 1 1zm0 5h14c.6 0 1-.4 1-1s-.4-1-1-1H2c-.6 0-1 .4-1 1s.4 1 1 1zm0 5h9c.6 0 1-.4 1-1s-.4-1-1-1H2c-.6 0-1 .4-1 1s.4 1 1 1zm12.5.5v4l3.5-2-3.5-2z"/>
+      </symbol>
+      <symbol id="h5ap-icon-minimize" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M2 9c0-.6.4-1 1-1h12c.6 0 1 .4 1 1s-.4 1-1 1H3c-.6 0-1-.4-1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-expand" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M9 2c.6 0 1 .4 1 1v5h5c.6 0 1 .4 1 1s-.4 1-1 1h-5v5c0 .6-.4 1-1 1s-1-.4-1-1v-5H3c-.6 0-1-.4-1-1s.4-1 1-1h5V3c0-.6.4-1 1-1z"/>
+      </symbol>
+      <symbol id="h5ap-icon-speed" viewBox="0 0 18 18">
+        <path fill="currentColor" d="M9 2C5.1 2 2 5.1 2 9c0 2.2 1 4.2 2.6 5.5l1.4-1.4C4.8 12 4 10.6 4 9c0-2.8 2.2-5 5-5s5 2.2 5 5c0 1.6-.8 3-2 4.1l1.4 1.4C15 13.2 16 11.2 16 9c0-3.9-3.1-7-7-7zm-.5 4.5v3.8l3 1.8.7-1.2-2.5-1.5V6.5h-1.2z"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  {{!-- Main Expanded Player Bar --}}
+  <div class="h5ap-expanded" role="region" aria-label="Playback controls">
+    {{!-- Thumbnail Artwork (Fusion & Wave skins) --}}
+    <div class="h5ap-thumbnail" aria-hidden="true">
+      <img class="h5ap-poster-img" src="{{#if @site.logo}}{{@site.logo}}{{else}}{{@site.icon}}{{/if}}" alt="Episode artwork" onerror="this.style.display='none'">
+      <div class="h5ap-poster-fallback">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-play"></use></svg>
+      </div>
+    </div>
+
+    {{!-- Transport Controls: Rewind, Big Play, Forward --}}
+    <div class="h5ap-transport">
+      <button type="button" class="h5ap-btn h5ap-btn-rewind" aria-label="Skip backward" title="Skip back {{@custom.audio_player_seek_time}}s">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-rewind"></use></svg>
+        <span class="h5ap-skip-badge">{{#if @custom.audio_player_seek_time}}{{@custom.audio_player_seek_time}}{{else}}15{{/if}}</span>
+      </button>
+
+      <button type="button" class="h5ap-btn h5ap-btn-play" aria-label="Play or pause" title="Play">
+        <svg class="h5ap-icon h5ap-icon-play-state"><use href="#h5ap-icon-play"></use></svg>
+        <svg class="h5ap-icon h5ap-icon-pause-state"><use href="#h5ap-icon-pause"></use></svg>
+      </button>
+
+      <button type="button" class="h5ap-btn h5ap-btn-forward" aria-label="Skip forward" title="Skip forward {{@custom.audio_player_seek_time}}s">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-forward"></use></svg>
+        <span class="h5ap-skip-badge">{{#if @custom.audio_player_seek_time}}{{@custom.audio_player_seek_time}}{{else}}15{{/if}}</span>
+      </button>
+    </div>
+
+    {{!-- Metadata, Timeline and Waveform --}}
+    <div class="h5ap-info">
+      <div class="h5ap-meta-header">
+        <div class="h5ap-titles">
+          <span class="h5ap-track-title" title="Episode title">Loading episode…</span>
+          <span class="h5ap-track-artist" title="Podcast">{{@site.title}}</span>
+        </div>
+
+        {{!-- Soundwave visualizer bars (Wave skin) --}}
+        <div class="h5ap-soundwave-bars" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      {{!-- Progress Seekbar --}}
+      <div class="h5ap-timeline">
+        <span class="h5ap-time h5ap-time-current">0:00</span>
+        <div class="h5ap-progress-container">
+          <input type="range" class="h5ap-seek-slider" min="0" max="1000" value="0" step="1" aria-label="Seek track position">
+          <div class="h5ap-progress-buffered" style="width: 0%;"></div>
+          <div class="h5ap-progress-played" style="width: 0%;"></div>
+          <div class="h5ap-seek-tooltip" aria-hidden="true">0:00</div>
+        </div>
+        <span class="h5ap-time h5ap-time-duration">0:00</span>
+      </div>
+    </div>
+
+    {{!-- Extra Controls --}}
+    <div class="h5ap-actions">
+      {{!-- Playback Speed Toggle --}}
+      <button type="button" class="h5ap-btn h5ap-btn-speed" aria-label="Playback speed" title="Playback speed">
+        <span class="h5ap-speed-text">1×</span>
+      </button>
+
+      {{!-- Repeat / Loop Button --}}
+      <button type="button" class="h5ap-btn h5ap-btn-repeat" aria-label="Toggle repeat" title="Repeat track" data-active="false">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-repeat"></use></svg>
+      </button>
+
+      {{!-- Download Button (controlled from Admin) --}}
+      {{#if @custom.audio_player_show_download}}
+      <a href="#" class="h5ap-btn h5ap-btn-download" aria-label="Download audio episode" title="Download" download target="_blank" rel="noopener noreferrer">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-download"></use></svg>
+      </a>
+      {{/if}}
+
+      {{!-- Playlist / Episodes Drawer Toggle --}}
+      <button type="button" class="h5ap-btn h5ap-btn-playlist" aria-label="Show episodes playlist" title="Episodes playlist" aria-expanded="false">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-playlist"></use></svg>
+        <span class="h5ap-playlist-count" hidden>0</span>
+      </button>
+
+      {{!-- Volume Control --}}
+      <div class="h5ap-volume-wrap">
+        <button type="button" class="h5ap-btn h5ap-btn-volume" aria-label="Mute or unmute" title="Volume">
+          <svg class="h5ap-icon h5ap-icon-vol-on"><use href="#h5ap-icon-volume"></use></svg>
+          <svg class="h5ap-icon h5ap-icon-vol-muted"><use href="#h5ap-icon-muted"></use></svg>
+        </button>
+        <div class="h5ap-volume-slider-wrap">
+          <input type="range" class="h5ap-volume-slider" min="0" max="1" step="0.05" value="1" aria-label="Adjust volume">
+        </div>
+      </div>
+
+      {{!-- Minimize Bar Button --}}
+      <button type="button" class="h5ap-btn h5ap-btn-minimize" aria-label="Minimize player" title="Minimize">
+        <svg class="h5ap-icon"><use href="#h5ap-icon-minimize"></use></svg>
+      </button>
+    </div>
+
+    {{!-- Playlist / Episodes Drawer --}}
+    <div class="h5ap-playlist-drawer" hidden>
+      <div class="h5ap-playlist-header">
+        <div class="h5ap-playlist-heading">
+          <strong>{{t "Podcast episodes"}}</strong>
+          <small class="h5ap-playlist-subtitle">{{@site.title}}</small>
+        </div>
+        <div class="h5ap-service-links">
+          {{#if @custom.spotify_link}}<a href="{{@custom.spotify_link}}" target="_blank" rel="noopener noreferrer" class="h5ap-service-pill" title="Spotify">Spotify</a>{{/if}}
+          {{#if @custom.apple_podcasts_link}}<a href="{{@custom.apple_podcasts_link}}" target="_blank" rel="noopener noreferrer" class="h5ap-service-pill" title="Apple Podcasts">Apple</a>{{/if}}
+          {{#if @custom.youtube_music_link}}<a href="{{@custom.youtube_music_link}}" target="_blank" rel="noopener noreferrer" class="h5ap-service-pill" title="YouTube Music">YouTube</a>{{/if}}
+        </div>
+      </div>
+      <ul class="h5ap-playlist-items" role="list">
+        {{!-- Dynamically populated by audio-player.js from RSS feed or posts --}}
+      </ul>
+    </div>
+  </div>
+
+  {{!-- Minimized Floating Widget Bar --}}
+  <div class="h5ap-mini" hidden>
+    <button type="button" class="h5ap-btn h5ap-mini-play" aria-label="Play or pause">
+      <svg class="h5ap-icon h5ap-icon-play-state"><use href="#h5ap-icon-play"></use></svg>
+      <svg class="h5ap-icon h5ap-icon-pause-state"><use href="#h5ap-icon-pause"></use></svg>
+    </button>
+    <div class="h5ap-mini-wave" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="h5ap-mini-info">
+      <span class="h5ap-mini-title">Audio player</span>
+    </div>
+    <button type="button" class="h5ap-btn h5ap-mini-restore" aria-label="Expand audio player" title="Expand">
+      <svg class="h5ap-icon"><use href="#h5ap-icon-expand"></use></svg>
+    </button>
+  </div>
+</section>
+{{/match}}
