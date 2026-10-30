@@ -1,0 +1,24 @@
+/* Desktop-only navigation; the native mobile swipe area is unchanged. */
+.account-card-nav { display: none; }
+@media (min-width: 768px) {
+  #horizontalScrollArea { scroll-padding-inline: 8rem; }
+  #horizontalScrollArea > .glass-panel { scroll-snap-align: start; }
+  #horizontalScrollArea ~ footer { gap: 16px; }
+  #horizontalScrollArea ~ footer > .space-x-2 { display: none; }
+  .account-card-nav { display: flex; align-items: center; gap: 12px; }
+  .account-card-nav__hint { color: #cbd5e1; letter-spacing: .15em; }
+  .account-card-nav button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+    border: 1px solid rgba(255,209,89,.55); border-radius: 50%;
+    background: rgba(12,12,24,.85); color: #ffd159;
+    cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  .account-card-nav button:hover:not(:disabled) { background: rgba(255,209,89,.15); border-color: #ffd159; }
+  .account-card-nav button:focus-visible { outline: 3px solid #00e5ff; outline-offset: 3px; }
+  .account-card-nav button:disabled { opacity: .3; cursor: default; }
+  .account-card-nav svg { width: 22px; height: 22px; pointer-events: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-card-nav button { transition: none; }
+}
