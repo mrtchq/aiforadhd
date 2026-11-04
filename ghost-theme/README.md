@@ -7,7 +7,7 @@ It is refreshed daily (20:00 ET) by `~/.hermes/scripts/aiforadhd_theme_sync.sh` 
 |---|---|
 | Site | https://aiforadhd.xyz |
 | Active theme | `ai-for-adhd-v2` |
-| Ghost version | 6.72.0 |
+| Ghost version | 6.74.0 |
 | Source on VPS | `/var/www/ghost/content/themes/ai-for-adhd-v2` |
 
 ## Layout
