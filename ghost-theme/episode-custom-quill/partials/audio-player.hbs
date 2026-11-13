@@ -1,0 +1,144 @@
+{{!--
+    StreamPod — site-wide sticky audio player + per-post episode player.
+
+    Usage:
+        {{> "audio-player" mode="global"}}    <- default.hbs, renders the sticky player once per page
+        {{> "audio-player" mode="inline"}}    <- post.hbs, renders the per-post mount point
+
+    Config lives in package.json -> config.custom (20 settings, the gscan maximum).
+    Platform links reuse the theme's existing apple_podcasts_link / spotify_link /
+    youtube_music_link settings rather than adding duplicate ones, which is what keeps
+    this under the cap.
+
+    Theming: data-player-theme carries a slug because the Admin dropdown shows friendly
+    labels ("Obsidian & Gold") while the CSS keys off slugs ("obsidian-gold").
+--}}
+{{#match mode "inline"}}
+
+    {{!-- Per-post mount. JS fills this when window.EPISODE_AUDIO is set, or when the
+         post has no native Ghost audio card to hijack. Stays hidden otherwise. --}}
+    <div class="qap-inline-mount" data-qap-inline hidden></div>
+
+{{else}}
+
+<div id="qap"
+     class="qap"
+     data-hidden="{{#if @custom.default_audio_url}}false{{else}}{{#if @custom.podcast_rss_url}}false{{else}}true{{/if}}{{/if}}"
+     data-player-theme="{{#match @custom.audio_player_theme "Glassmorphic Dark"}}glassmorphic-dark{{else match @custom.audio_player_theme "Minimal Light"}}minimal-light{{else match @custom.audio_player_theme "Cyber Neon"}}cyber-neon{{else match @custom.audio_player_theme "Warm Studio"}}warm-studio{{else}}obsidian-gold{{/match}}"
+     data-minimized="{{#if @custom.audio_player_start_minimized}}true{{else}}false{{/if}}"
+     data-playing="false"
+     data-accent="{{@custom.audio_player_accent}}"
+     data-show-playlist="{{#if @custom.audio_player_show_playlist}}true{{else}}false{{/if}}"
+     data-show-skip="{{#if @custom.audio_player_show_skip}}true{{else}}false{{/if}}"
+     data-show-speed="{{#if @custom.audio_player_show_speed}}true{{else}}false{{/if}}"
+     data-audio-url="{{@custom.default_audio_url}}"
+     data-rss-url="{{@custom.podcast_rss_url}}"
+     data-show-name="{{#if @custom.audio_player_title}}{{@custom.audio_player_title}}{{else}}{{@site.title}}{{/if}}"
+     data-cover="{{#if @custom.audio_player_cover_image}}{{img_url @custom.audio_player_cover_image size="m"}}{{/if}}"
+     data-site-url="{{@site.url}}"
+     data-spotify="{{@custom.spotify_link}}"
+     data-apple="{{@custom.apple_podcasts_link}}"
+     data-youtube="{{@custom.youtube_music_link}}"
+     role="region"
+     aria-label="{{t "Audio player"}}">
+
+    {{!-- ============ EXPANDED DOCK ============ --}}
+    <div class="qap-bar">
+
+        <div class="qap-art">
+            <img class="qap-art-img" src="" alt="" width="56" height="56">
+        </div>
+
+        <div class="qap-meta">
+            <span class="qap-show"></span>
+            <span class="qap-title"></span>
+        </div>
+
+        <div class="qap-seek">
+            <div class="qap-seek-track" role="slider" tabindex="0"
+                 aria-label="{{t "Seek"}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="qap-seek-buffer"></div>
+                <div class="qap-seek-fill"></div>
+                <div class="qap-seek-thumb"></div>
+            </div>
+            <div class="qap-times">
+                <span class="qap-time-current">0:00</span>
+                <span class="qap-time-total">0:00</span>
+            </div>
+        </div>
+
+        <div class="qap-controls">
+            <button class="qap-btn qap-skip-back" type="button" aria-label="{{t "Back 15 seconds"}}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
+            </button>
+            <button class="qap-btn qap-play" type="button" aria-label="{{t "Play"}}">
+                <svg class="qap-ico-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+                <svg class="qap-ico-pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" hidden><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+            <button class="qap-btn qap-skip-fwd" type="button" aria-label="{{t "Forward 30 seconds"}}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 5V2l5 4-5 4V7a5 5 0 1 0 5 5h2a7 7 0 1 1-7-7z"/></svg>
+            </button>
+            <button class="qap-btn qap-speed" type="button" aria-label="{{t "Playback speed"}}">1&times;</button>
+            <button class="qap-btn qap-playlist-toggle" type="button"
+                    aria-label="{{t "Recent episodes"}}" aria-expanded="false">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 6h13v2H3zm0 5h13v2H3zm0 5h9v2H3zm15-5.5v6l5-3z"/></svg>
+            </button>
+            <button class="qap-btn qap-volume" type="button" aria-label="{{t "Mute"}}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+            </button>
+            <button class="qap-btn qap-minimize" type="button" aria-label="{{t "Minimize player"}}">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 11h12v2H6z"/></svg>
+            </button>
+        </div>
+
+        <div class="qap-volume-wrap">
+            <input class="qap-volume-slider" type="range" min="0" max="1" step="0.01" value="1"
+                   aria-label="{{t "Volume"}}">
+        </div>
+
+        {{!-- "Listen on" quick links — these reuse the theme's existing platform settings. --}}
+        <div class="qap-listen">
+            {{#if @custom.spotify_link}}
+                <a class="qap-listen-link qap-listen-spotify" href="{{@custom.spotify_link}}"
+                   target="_blank" rel="noopener noreferrer">{{t "Listen on"}} Spotify</a>
+            {{/if}}
+            {{#if @custom.apple_podcasts_link}}
+                <a class="qap-listen-link qap-listen-apple" href="{{@custom.apple_podcasts_link}}"
+                   target="_blank" rel="noopener noreferrer">{{t "Listen on"}} Apple Podcasts</a>
+            {{/if}}
+            {{#if @custom.youtube_music_link}}
+                <a class="qap-listen-link qap-listen-youtube" href="{{@custom.youtube_music_link}}"
+                   target="_blank" rel="noopener noreferrer">{{t "Listen on"}} YouTube Music</a>
+            {{/if}}
+        </div>
+
+    </div>
+
+    {{!-- ============ PLAYLIST DRAWER (5 most recent episodes) ============ --}}
+    <div class="qap-playlist">
+        <div class="qap-playlist-head">{{t "Latest episodes"}}</div>
+        <ul class="qap-playlist-list"></ul>
+        <div class="qap-playlist-msg" hidden></div>
+    </div>
+
+    {{!-- ============ MINIMIZED BOTTOM-CENTRE TAB ============ --}}
+    <div class="qap-tab">
+        <button class="qap-tab-btn qap-tab-play" type="button" aria-label="{{t "Play"}}">
+            <svg class="qap-ico-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            <svg class="qap-ico-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" hidden><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </button>
+        <div class="qap-tab-wave" aria-hidden="true">
+            <span class="qap-wave-bar"></span>
+            <span class="qap-wave-bar"></span>
+            <span class="qap-wave-bar"></span>
+            <span class="qap-wave-bar"></span>
+        </div>
+        <span class="qap-tab-label">{{t "Now playing"}}</span>
+        <button class="qap-tab-btn qap-tab-restore" type="button" aria-label="{{t "Expand player"}}">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 5l6 6h-4v8h-4v-8H6z"/></svg>
+        </button>
+    </div>
+
+</div>
+
+{{/match}}

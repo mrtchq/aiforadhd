@@ -1,0 +1,633 @@
+/* ==========================================================================
+   StreamPod — "qap" audio player
+   --------------------------------------------------------------------------
+   Ghost theme asset. Plain CSS: no CSS imports, no external fonts or URLs,
+   no JavaScript, no build step. Served to the browser exactly as written.
+
+   Every selector here is prefixed with `.qap` or `#qap`, so none of it can
+   leak into the host theme (.gh-article, .gh-canvas, .gh-btn, the
+   `--background-color` contrast system, …).
+
+   TWO SURFACES, ONE STYLE LANGUAGE
+     #qap          global sticky player (default.hbs, every page)
+                   .qap-bar  expanded  → centered floating dock
+                   .qap-tab  minimized → strict bottom-centre pill
+     .qap-inline   per-post player injected into article body copy
+
+   The component classes (.qap-art, .qap-btn, .qap-wave-bar, …) are declared
+   once, unqualified by surface, so both surfaces share one style language;
+   only the two layout containers differ.
+
+   STATE CONTRACT — JS toggles these, CSS merely reacts:
+     data-minimized="true|false"  which surface is visible
+     data-playing="true|false"    animates the wave bars (.is-playing too)
+     .is-loading  on #qap         shimmer on the artwork while buffering
+     .is-open     on .qap-playlist
+     .is-active   on .qap-episode
+     data-hidden="true" on #qap   nothing configured → fully invisible
+   ========================================================================== */
+
+/* ==========================================================================
+   1. TOKENS + THE ACCENT OVERRIDE CHAIN
+   ========================================================================== */
+.qap,
+.qap-inline {
+    /* Reserved horizontal gutter: Ghost's Portal/Subscribe button floats
+    bottom-right, a custom widget button floats bottom-left. The expanded
+    dock never grows into this band. */
+    --qap-corner: 88px;
+
+    /* Structural tokens — themes override colours, radius and shadow. */
+    --qap-radius: 14px;
+    --qap-shadow: 0 12px 32px rgb(0 0 0 / 35%);
+    --qap-backdrop: 0px;
+
+    /* Interaction tints, kept as tokens so every theme stays consistent. */
+    --qap-hover: rgb(255 255 255 / 8%);
+    --qap-hover-strong: rgb(255 255 255 / 14%);
+    --qap-glow: transparent;
+
+    /* Button surface, plus the text colour that sits on top of it. */
+    --qap-play-bg: var(--qap-accent);
+    --qap-on-accent: #ffffff;
+
+    /* Motion — neutralised wholesale under prefers-reduced-motion. */
+    --qap-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --qap-speed: 220ms;
+
+    /* Playback geometry: JS writes either inline width/left or these custom
+    properties. The defaults keep the bar renderable with no JS at all. */
+    --qap-progress: 0%;
+    --qap-buffered: 0%;
+
+    /* Vertical placement of the dock, and the clearance its drawer needs so
+    .qap-playlist can never land on top of .qap-bar. */
+    --qap-dock-lift: 24px;
+    --qap-dock-clear: 160px;
+
+    /* ── ACCENT FALLBACK CHAIN ────────────────────────────────────────────
+    JS / `@custom.audio_player_accent` only ever writes
+    --qap-accent-override. Every theme assigns --qap-accent *through this
+    chain* and nothing else, so a runtime override always beats the theme
+    default while a sane default still applies when none is set. */
+    --qap-accent: var(--qap-accent-override, #e8b84b);
+
+    /* Neutral fallback palette for a player rendered with no theme attr. */
+    --qap-bg: #14120e;
+    --qap-bg-2: #201d16;
+    --qap-fg: #f7f1e3;
+    --qap-muted: #a99b7f;
+    --qap-border: rgb(232 184 75 / 18%);
+    --qap-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+    --qap-font-display: var(--qap-font);
+    --qap-font-numerals: var(--qap-font);
+}
+
+/* Scoped box-sizing reset — never touches the host theme. */
+.qap, .qap *, .qap *::before, .qap *::after,
+.qap-inline, .qap-inline *, .qap-inline *::before, .qap-inline *::after {
+    box-sizing: border-box;
+}
+
+/* Scoped element normalisation so the host stylesheet cannot reshape us. */
+.qap,
+.qap-inline {
+    margin: 0; color: var(--qap-fg); font-family: var(--qap-font); font-size: 14px;
+    font-weight: 400; line-height: 1.35; text-align: left; letter-spacing: normal;
+    text-transform: none; -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+}
+.qap button,
+.qap-inline button {
+    margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit;
+    line-height: 1; appearance: none; cursor: pointer;
+}
+.qap a,
+.qap-inline a,
+.qap a:hover,
+.qap-inline a:hover { color: inherit; text-decoration: none; }
+.qap img,
+.qap-inline img { display: block; max-width: 100%; height: auto; border: 0; }
+.qap ul,
+.qap-inline ul { margin: 0; padding: 0; list-style: none; }
+.qap svg,
+.qap-inline svg {
+    display: block; width: 18px; height: 18px; fill: currentColor; pointer-events: none;
+}
+
+/* ==========================================================================
+   2. #qap — THE FIXED ROOT
+   A viewport-sized transparent positioning root: fixed, translated to the
+   centre, `width: 100%` (NOT 100vw) so a desktop scrollbar can never push it
+   into horizontal overflow. Because it is transformed and pinned
+   top-to-bottom its padding box *is* the viewport — so a fixed descendant
+   asking for `left: 50%; translateX(-50%)` lands dead centre of the screen.
+   The overlay itself is inert; only its children take pointer events.
+   ========================================================================== */
+#qap {
+    position: fixed; top: 0; left: 50%; bottom: 0; z-index: 9999; width: 100%; max-width: 100%;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    transform: translateX(-50%); pointer-events: none;
+}
+#qap > * { pointer-events: auto; }
+
+/* Nothing configured on this page → the player must be completely invisible. */
+#qap[data-hidden="true"],
+.qap[data-hidden="true"] { display: none; }
+
+/* ==========================================================================
+   3. .qap-bar — THE EXPANDED FLOATING DOCK
+   ========================================================================== */
+.qap-bar {
+    position: absolute; left: 50%; bottom: var(--qap-dock-lift); z-index: 2;
+
+    /* The non-negotiable corner gutter: widening past this would run the dock
+    underneath Ghost's Portal button (bottom-right) or the widget button. */
+    width: min(880px, calc(100vw - 2 * var(--qap-corner)));
+    max-width: min(880px, calc(100vw - 2 * var(--qap-corner)));
+
+    display: grid; gap: 8px 12px; align-items: center; padding: 10px 12px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+    "art meta controls"
+    "seek seek seek"
+    "volume listen listen";
+
+    border: 1px solid var(--qap-border); border-radius: var(--qap-radius);
+    background: var(--qap-bg); color: var(--qap-fg);
+    box-shadow: var(--qap-shadow);
+    backdrop-filter: blur(var(--qap-backdrop));
+    -webkit-backdrop-filter: blur(var(--qap-backdrop));
+
+    transform: translateX(-50%); transform-origin: 50% 100%;
+    transition: opacity var(--qap-speed) var(--qap-ease),
+    transform var(--qap-speed) var(--qap-ease),
+    visibility var(--qap-speed) var(--qap-ease);
+}
+
+/* Below 1024px the horizontal gutter is dropped: the dock goes near
+   full-width instead, and is lifted clear of both corner buttons. */
+@media (max-width: 1023.98px) {
+    .qap { --qap-dock-lift: calc(var(--qap-corner) + 8px); }
+    .qap-bar {
+        width: calc(100% - 24px); max-width: calc(100% - 24px);
+        bottom: calc(var(--qap-corner) + 8px);
+    }
+}
+
+/* No room for a three-column dock — stack it. Everything keeps
+   `max-width: 100%` so a narrow phone can never scroll sideways. */
+@media (max-width: 559.98px) {
+    .qap { --qap-dock-clear: 216px; }
+    .qap-bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            "art meta"
+            "seek seek"
+            "controls controls"
+            "volume listen";
+        max-width: 100%;
+    }
+    .qap-controls { justify-content: space-between; }
+}
+
+/* ==========================================================================
+   4. SHARED COMPONENTS (used by both the dock and the inline player)
+   ========================================================================== */
+
+/* Artwork */
+.qap-art {
+    grid-area: art; position: relative; flex: none; overflow: hidden; display: flex;
+    align-items: center; justify-content: center; width: 52px; height: 52px;
+    border-radius: calc(var(--qap-radius) * 0.6); background: var(--qap-bg-2);
+    color: var(--qap-muted); font-size: 11px;
+}
+.qap-art-img,
+.qap-art img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+/* Buffering shimmer — only while .is-loading is present. */
+#qap.is-loading .qap-art::after,
+.qap-inline.is-loading .qap-art::after {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(100deg, transparent 20%,
+        var(--qap-hover-strong) 50%, transparent 80%);
+    animation: qap-shimmer 1.4s linear infinite; pointer-events: none;
+}
+@keyframes qap-shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+}
+
+/* Show name + episode title */
+.qap-meta {
+    grid-area: meta; display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    min-width: 0;
+}
+.qap-show {
+    display: block; overflow: hidden; color: var(--qap-muted); font-size: 10px; font-weight: 600;
+    letter-spacing: 0.09em; text-transform: uppercase; white-space: nowrap; text-overflow: ellipsis;
+}
+.qap-title {
+    display: block; overflow: hidden; color: var(--qap-fg); font-family: var(--qap-font-display);
+    font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* Seek bar */
+.qap-seek {
+    grid-area: seek; display: flex; flex-direction: column; gap: 4px; min-width: 0; cursor: pointer;
+}
+.qap-seek-track {
+    position: relative; width: 100%; height: 6px; border-radius: 99px; background: var(--qap-bg-2);
+    cursor: pointer; touch-action: none;
+}
+
+/* Invisible 22px-tall hit area so the bar stays tappable on touch. */
+.qap-seek-track::before {
+    content: ""; position: absolute; top: -8px; left: 0; right: 0; bottom: -8px;
+}
+.qap-seek-buffer {
+    position: absolute; top: 0; left: 0; bottom: 0; pointer-events: none;
+    width: var(--qap-buffered, 0%); border-radius: inherit; background: var(--qap-hover);
+}
+.qap-seek-fill {
+    position: absolute; top: 0; left: 0; bottom: 0; pointer-events: none;
+    width: var(--qap-progress, 0%); border-radius: inherit; background: var(--qap-accent);
+}
+.qap-seek-thumb {
+    position: absolute; top: 50%; left: var(--qap-progress, 0%); width: 12px; height: 12px;
+    margin: -6px 0 0 -6px; border-radius: 50%; background: var(--qap-accent);
+    box-shadow: 0 0 0 3px var(--qap-glow); opacity: 0; pointer-events: none;
+    transition: opacity 160ms var(--qap-ease);
+}
+.qap-seek:hover .qap-seek-thumb,
+.qap-seek-track:focus-within .qap-seek-thumb { opacity: 1; }
+
+/* Touch devices have no hover state — keep the thumb visible. */
+@media (hover: none) {
+    .qap-seek-thumb { opacity: 0.9; }
+}
+.qap-times {
+    display: flex; align-items: center; justify-content: space-between; color: var(--qap-muted);
+    font-family: var(--qap-font-numerals); font-size: 11px; letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Transport controls — every control is a real <button>, 40×40 minimum. */
+.qap-controls {
+    grid-area: controls; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    justify-content: flex-end; user-select: none;
+}
+.qap-btn {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 40px;
+    min-height: 40px; padding: 0 8px; border-radius: 10px; background: transparent;
+    color: var(--qap-fg); font-size: 12px;
+    transition: background-color 160ms var(--qap-ease),
+        color 160ms var(--qap-ease), transform 160ms var(--qap-ease);
+}
+.qap-btn:hover { background: var(--qap-hover); }
+.qap-btn:active { transform: scale(0.94); }
+.qap-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+.qap-play {
+    min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--qap-play-bg);
+    color: var(--qap-on-accent); box-shadow: 0 0 0 0 var(--qap-glow);
+    transition: box-shadow 200ms var(--qap-ease),
+        transform 160ms var(--qap-ease);
+}
+.qap-play:hover { background: var(--qap-play-bg); }
+
+/* JS swaps the glyph; CSS supplies the playing glow. */
+#qap[data-playing="true"] .qap-play,
+#qap.is-playing .qap-play {
+    box-shadow: 0 0 0 4px var(--qap-glow);
+}
+.qap-speed {
+    font-family: var(--qap-font-numerals); font-size: 12px; font-variant-numeric: tabular-nums;
+}
+
+/* Volume */
+.qap-volume-wrap {
+    grid-area: volume; display: flex; align-items: center; gap: 8px; min-height: 40px;
+}
+input.qap-volume-slider {
+    display: block; width: 96px; max-width: 100%; height: 40px; margin: 0; padding: 0; border: 0;
+    background: transparent; cursor: pointer; accent-color: var(--qap-accent);
+}
+
+/* "Listen on" links */
+.qap-listen {
+    grid-area: listen; display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: flex-end; gap: 4px;
+}
+.qap-listen-link {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 40px;
+    min-height: 40px; padding: 0 10px; border-radius: 10px; color: var(--qap-muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    transition: background-color 160ms var(--qap-ease),
+        color 160ms var(--qap-ease);
+}
+.qap-listen-link:hover,
+.qap-listen-link:focus-visible {
+    background: var(--qap-hover); color: var(--qap-accent);
+}
+
+/* ==========================================================================
+   5. .qap-playlist — THE DRAWER
+   ========================================================================== */
+.qap-playlist {
+    position: absolute; left: 50%; z-index: 3;
+    bottom: calc(var(--qap-dock-lift) + var(--qap-dock-clear));
+    width: min(420px, calc(100% - 32px)); max-height: min(45vh, 420px); overflow-y: auto;
+    overscroll-behavior: contain; padding: 10px; border: 1px solid var(--qap-border);
+    border-radius: var(--qap-radius); background: var(--qap-bg); color: var(--qap-fg);
+    box-shadow: var(--qap-shadow); backdrop-filter: blur(var(--qap-backdrop));
+    -webkit-backdrop-filter: blur(var(--qap-backdrop)); opacity: 0; visibility: hidden;
+    pointer-events: none; transform: translateX(-50%) translateY(10px);
+    transition: opacity var(--qap-speed) var(--qap-ease),
+        transform var(--qap-speed) var(--qap-ease),
+        visibility var(--qap-speed) var(--qap-ease);
+}
+.qap-playlist.is-open {
+    opacity: 1; visibility: visible; pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+.qap-playlist-head {
+    padding: 4px 10px 8px; color: var(--qap-muted); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.09em; text-transform: uppercase;
+}
+.qap-playlist-list { display: flex; flex-direction: column; gap: 2px; }
+.qap-episode {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px;
+    padding: 8px 10px; border-radius: 10px; cursor: pointer;
+    transition: background-color 140ms var(--qap-ease);
+}
+.qap-episode:hover { background: var(--qap-hover); }
+.qap-episode.is-active {
+    background: var(--qap-hover-strong); box-shadow: inset 3px 0 0 var(--qap-accent);
+}
+.qap-episode-title {
+    min-width: 0; overflow: hidden; color: var(--qap-fg); font-size: 13px; white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.qap-episode.is-active .qap-episode-title { color: var(--qap-accent); font-weight: 600; }
+.qap-episode-extra {
+    flex: none; color: var(--qap-muted); font-family: var(--qap-font-numerals); font-size: 11px;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+/* RSS failure / loading message */
+.qap-playlist-msg {
+    padding: 14px 10px; color: var(--qap-muted); font-size: 12px; line-height: 1.5;
+    text-align: center;
+}
+.qap-playlist-msg:empty { display: none; }
+
+/* ==========================================================================
+   6. .qap-tab — THE MINIMIZED PILL (strict bottom-centre)
+   ========================================================================== */
+.qap-tab {
+    position: fixed; bottom: 0; bottom: calc(env(safe-area-inset-bottom, 0px)); left: 50%;
+    transform: translateX(-50%); z-index: 10000; display: flex; align-items: center; gap: 6px;
+    padding: 6px 8px; max-width: calc(100% - 24px); border: 1px solid var(--qap-border);
+    border-radius: 999px; background: var(--qap-bg); color: var(--qap-fg);
+    box-shadow: var(--qap-shadow); backdrop-filter: blur(var(--qap-backdrop));
+    -webkit-backdrop-filter: blur(var(--qap-backdrop)); user-select: none;
+    transform-origin: 50% 100%;
+    transition: opacity var(--qap-speed) var(--qap-ease),
+        transform var(--qap-speed) var(--qap-ease),
+        visibility var(--qap-speed) var(--qap-ease);
+}
+.qap-tab-btn {
+    display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 40px;
+    min-height: 40px; border-radius: 50%; background: transparent; color: var(--qap-fg);
+    transition: background-color 160ms var(--qap-ease);
+}
+.qap-tab-btn:hover { background: var(--qap-hover); }
+.qap-tab-play { background: var(--qap-play-bg); color: var(--qap-on-accent); }
+.qap-tab-play:hover { background: var(--qap-play-bg); }
+.qap-tab-restore { color: var(--qap-muted); }
+.qap-tab-label {
+    max-width: 34vw; overflow: hidden; color: var(--qap-fg); font-size: 13px; font-weight: 600;
+    white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* Animated equalizer / waveform */
+.qap-tab-wave {
+    display: flex; align-items: flex-end; justify-content: center; flex: none; gap: 2px;
+    width: 22px; height: 18px; overflow: hidden;
+}
+
+/* Frozen low by default… */
+.qap-wave-bar {
+    display: block; width: 3px; height: 18px; border-radius: 2px; background: var(--qap-accent);
+    opacity: 0.55; transform: scaleY(0.22); transform-origin: 50% 100%;
+}
+
+/* …and animating only while the player is actually playing. */
+#qap[data-playing="true"] .qap-wave-bar,
+#qap.is-playing .qap-wave-bar {
+    opacity: 1; animation: qap-wave 900ms ease-in-out infinite;
+}
+#qap[data-playing="true"] .qap-tab-wave .qap-wave-bar:nth-child(1),
+#qap.is-playing .qap-tab-wave .qap-wave-bar:nth-child(1) {
+    animation-delay: 0ms;
+}
+#qap[data-playing="true"] .qap-tab-wave .qap-wave-bar:nth-child(2),
+#qap.is-playing .qap-tab-wave .qap-wave-bar:nth-child(2) {
+    animation-delay: 140ms;
+}
+#qap[data-playing="true"] .qap-tab-wave .qap-wave-bar:nth-child(3),
+#qap.is-playing .qap-tab-wave .qap-wave-bar:nth-child(3) {
+    animation-delay: 280ms;
+}
+#qap[data-playing="true"] .qap-tab-wave .qap-wave-bar:nth-child(4),
+#qap.is-playing .qap-tab-wave .qap-wave-bar:nth-child(4) {
+    animation-delay: 420ms;
+}
+@keyframes qap-wave {
+    0%, 100% { transform: scaleY(0.25); }
+    50% { transform: scaleY(1); }
+}
+
+/* Which surface is showing (expanded is also the default with no attr) */
+.qap:not([data-minimized="true"]) .qap-tab {
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transform: translateX(-50%) translateY(140%);
+}
+.qap[data-minimized="true"] .qap-bar {
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transform: translateX(-50%) translateY(140%);
+}
+.qap[data-minimized="true"] .qap-playlist { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* ==========================================================================
+   7. .qap-inline — THE PER-POST PLAYER
+   ========================================================================== */
+.qap-inline {
+    position: relative; width: 100%; max-width: 100%; margin: 2.4em 0; padding: 12px; display: grid;
+    gap: 10px 12px; align-items: center; grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "art meta controls"
+        "seek seek seek"
+        "volume listen listen";
+    border: 1px solid var(--qap-border); border-radius: var(--qap-radius);
+    background: var(--qap-bg); color: var(--qap-fg); box-shadow: var(--qap-shadow);
+    overflow: hidden;
+}
+.qap-inline .qap-controls { justify-content: flex-end; }
+
+/* Article body copy is narrow — stack before the controls get cramped. */
+@media (max-width: 559.98px) {
+    .qap-inline {
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-areas:
+            "art meta"
+            "seek seek"
+            "controls controls"
+            "volume listen";
+    }
+    .qap-inline .qap-controls { justify-content: space-between; }
+}
+
+/* ==========================================================================
+   8. THE FIVE THEMES
+   Each theme is declared once for BOTH surfaces, so the sticky dock and the
+   inline player can never drift apart. --qap-accent is assigned only through
+   the --qap-accent-override fallback chain.
+   ========================================================================== */
+
+/* 1. Obsidian Gold — charcoal, warm gold accent, soft gold glow, serif feel */
+.qap[data-player-theme="obsidian-gold"],
+.qap-inline[data-player-theme="obsidian-gold"] {
+    --qap-accent: var(--qap-accent-override, #e8b84b); --qap-bg: #14120e;
+    --qap-bg-2: #221e15; --qap-fg: #f7f1e3;
+    --qap-muted: #a99b7f; --qap-border: rgb(232 184 75 / 20%);
+    --qap-radius: 14px; --qap-shadow: 0 18px 44px rgb(0 0 0 / 55%);
+    --qap-backdrop: 0px; --qap-hover: rgb(232 184 75 / 10%);
+    --qap-hover-strong: rgb(232 184 75 / 16%); --qap-glow: rgb(232 184 75 / 32%);
+    --qap-on-accent: #191509; --qap-play-bg: linear-gradient(140deg, #f0cd72, #d8a636);
+    --qap-font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
+        "Book Antiqua", Georgia, "Times New Roman", serif;
+    --qap-font-numerals: var(--qap-font-display);
+}
+
+/* 2. Glassmorphic Dark — frosted translucent dark, backdrop blur, hairline
+   white borders, cool accent */
+.qap[data-player-theme="glassmorphic-dark"],
+.qap-inline[data-player-theme="glassmorphic-dark"] {
+    --qap-accent: var(--qap-accent-override, #7fd1ff); --qap-bg: rgb(17 21 29 / 62%);
+    --qap-bg-2: rgb(255 255 255 / 8%); --qap-fg: #eef2f8;
+    --qap-muted: #a6b0c2; --qap-border: rgb(255 255 255 / 18%);
+    --qap-radius: 18px; --qap-shadow: 0 20px 50px rgb(0 0 0 / 45%);
+    --qap-backdrop: 18px; --qap-hover: rgb(255 255 255 / 10%);
+    --qap-hover-strong: rgb(255 255 255 / 18%); --qap-glow: rgb(127 209 255 / 32%);
+    --qap-on-accent: #061019; --qap-play-bg: linear-gradient(140deg, #9fe0ff, #4fb6f0);
+}
+
+/* 3. Minimal Light — flat white / very light grey, thin grey borders,
+   near-black text, a single accent */
+.qap[data-player-theme="minimal-light"],
+.qap-inline[data-player-theme="minimal-light"] {
+    --qap-accent: var(--qap-accent-override, #2f6df6); --qap-bg: #ffffff;
+    --qap-bg-2: #f1f2f4; --qap-fg: #14161a;
+    --qap-muted: #6b7280; --qap-border: #e2e5ea;
+    --qap-radius: 10px; --qap-shadow: 0 8px 22px rgb(15 18 25 / 8%);
+    --qap-backdrop: 0px; --qap-hover: rgb(20 22 26 / 6%);
+    --qap-hover-strong: rgb(20 22 26 / 10%); --qap-glow: rgb(47 109 246 / 22%);
+    --qap-on-accent: #ffffff; --qap-play-bg: var(--qap-accent);
+}
+
+/* 4. Cyber Neon — near-black, neon cyan/magenta accent, glow, mono numerals */
+.qap[data-player-theme="cyber-neon"],
+.qap-inline[data-player-theme="cyber-neon"] {
+    --qap-accent: var(--qap-accent-override, #00f0ff); --qap-bg: #07080d;
+    --qap-bg-2: #111528; --qap-fg: #e6f7ff;
+    --qap-muted: #6d7fa3; --qap-border: rgb(0 240 255 / 26%);
+    --qap-radius: 8px; --qap-shadow: 0 0 0 1px rgb(255 47 208 / 18%), 0 14px 40px rgb(0 0 0 / 70%);
+    --qap-backdrop: 0px; --qap-hover: rgb(0 240 255 / 10%);
+    --qap-hover-strong: rgb(0 240 255 / 20%); --qap-glow: rgb(0 240 255 / 45%);
+    --qap-on-accent: #04070c; --qap-play-bg: linear-gradient(135deg, #00f0ff, #ff2fd0);
+    --qap-font-numerals: ui-monospace, SFMono-Regular, Menlo, Consolas,
+        "Liberation Mono", monospace;
+}
+
+/* Dark glyph on that bright neon gradient. */
+.qap[data-player-theme="cyber-neon"] .qap-title,
+.qap-inline[data-player-theme="cyber-neon"] .qap-title {
+    letter-spacing: 0.01em; text-shadow: 0 0 12px var(--qap-glow);
+}
+.qap[data-player-theme="cyber-neon"] .qap-play,
+.qap-inline[data-player-theme="cyber-neon"] .qap-play,
+.qap[data-player-theme="cyber-neon"] .qap-tab-play {
+    color: #05060a; text-shadow: none;
+}
+
+/* 5. Warm Studio — warm cream/tan, brown text, terracotta accent, soft
+   shadows */
+.qap[data-player-theme="warm-studio"],
+.qap-inline[data-player-theme="warm-studio"] {
+    --qap-accent: var(--qap-accent-override, #c4643c); --qap-bg: #fbf6ee;
+    --qap-bg-2: #f0e6d8; --qap-fg: #3b2f26;
+    --qap-muted: #8a7864; --qap-border: #e3d5c2;
+    --qap-radius: 16px; --qap-shadow: 0 14px 30px rgb(96 71 45 / 16%);
+    --qap-backdrop: 0px; --qap-hover: rgb(96 71 45 / 7%);
+    --qap-hover-strong: rgb(96 71 45 / 12%); --qap-glow: rgb(196 100 60 / 26%);
+    --qap-on-accent: #fff6ef; --qap-play-bg: linear-gradient(140deg, #d9805a, #b2552f);
+}
+
+/* ==========================================================================
+   9. ACCESSIBILITY
+   ========================================================================== */
+.qap :focus-visible,
+.qap-inline :focus-visible,
+.qap:focus-visible,
+.qap-inline:focus-visible {
+    outline: 2px solid var(--qap-accent); outline-offset: 2px;
+}
+
+/* Mouse users keep the clean look; keyboard users always get the ring. */
+.qap :focus:not(:focus-visible),
+.qap-inline :focus:not(:focus-visible) { outline: none; }
+
+/* Screen-reader-only helper for text inside icon-only buttons. */
+.qap .qap-sr-only,
+.qap-inline .qap-sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* Reduced motion: kill every animation and transition and freeze the
+   equalizer at a legible mid height so "playing" stays readable. */
+@media (prefers-reduced-motion: reduce) {
+    .qap,
+    .qap *,
+    .qap *::before,
+    .qap *::after,
+    .qap-inline,
+    .qap-inline *,
+    .qap-inline *::before,
+    .qap-inline *::after {
+        animation: none !important; transition: none !important;
+    }
+    #qap[data-playing="true"] .qap-wave-bar,
+    #qap.is-playing .qap-wave-bar {
+        animation: none !important; opacity: 1; transform: scaleY(0.62);
+    }
+    .qap-play,
+    .qap-btn:active { transform: none; }
+    .qap-bar,
+    .qap-tab,
+    .qap-playlist { transform: translateX(-50%); }
+}
+
+/* Windows high-contrast / forced-colors mode. */
+@media (forced-colors: active) {
+    .qap-bar,
+    .qap-inline,
+    .qap-tab,
+    .qap-playlist { border: 1px solid CanvasText; }
+    .qap-seek-fill,
+    .qap-seek-buffer,
+    .qap-wave-bar { background: Highlight; }
+    .qap-play { background: ButtonFace; color: ButtonText; }
+}

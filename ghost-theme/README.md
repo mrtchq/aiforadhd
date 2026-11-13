@@ -6,13 +6,14 @@ It is refreshed daily (20:00 ET) by `~/.hermes/scripts/aiforadhd_theme_sync.sh` 
 | Field | Value |
 |---|---|
 | Site | https://aiforadhd.xyz |
-| Active theme | `ai-for-adhd-v2` |
+| Active theme | `episode-custom-quill` |
 | Ghost version | 6.74.0 |
-| Source on VPS | `/var/www/ghost/content/themes/ai-for-adhd-v2` |
+| Source on VPS | `/var/www/ghost/content/themes/episode-custom-quill` |
 
 ## Layout
 
-- `ai-for-adhd-v2/` — **the live theme**.
+- `episode-custom-quill/` — **the live theme**.
+- `ai-for-adhd-v2/` — previously active theme, kept for history. **Not live.**
 - `aiforadhd-hybrid/` — previously active theme, kept for history. **Not live.**
 
 ## Sync rules

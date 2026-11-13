@@ -1,0 +1,173 @@
+{
+    "name": "episode",
+    "description": "A Ghost theme",
+    "version": "1.1.0",
+    "private": true,
+    "engines": {
+        "ghost": ">=5.0.0"
+    },
+    "license": "MIT",
+    "author": {
+        "name": "Ghost Foundation",
+        "email": "hello@ghost.org",
+        "url": "https://ghost.org"
+    },
+    "keywords": [
+        "ghost",
+        "theme",
+        "ghost-theme"
+    ],
+    "docs": "https://episode.ghost.io/about/",
+    "config": {
+        "posts_per_page": 3,
+        "image_sizes": {
+            "xs": {
+                "width": 150
+            },
+            "s": {
+                "width": 300
+            },
+            "m": {
+                "width": 720
+            },
+            "l": {
+                "width": 960
+            },
+            "xl": {
+                "width": 1200
+            },
+            "xxl": {
+                "width": 2000
+            }
+        },
+        "card_assets": true,
+        "custom": {
+            "typography": {
+                "type": "select",
+                "options": ["Wide", "Narrow"],
+                "default": "Wide"
+            },
+            "background_color": {
+                "type": "color",
+                "default": "#ebebeb"
+            },
+            "navigation_layout": {
+                "type": "select",
+                "options": ["Logo on the left", "Logo in the middle", "Stacked"],
+                "default": "Logo on the left"
+            },
+            "email_signup_text": {
+                "type": "text",
+                "default": "Get the latest episodes directly in your inbox"
+            },
+            "footer_text": {
+                "type": "text"
+            },
+            "primary_header": {
+                "type": "text",
+                "default": "A weekly podcast about creativity, design, and building the things we love.",
+                "group": "homepage"
+            },
+            "secondary_header": {
+                "type": "text",
+                "default": "Subscribe below to never miss an episode.",
+                "group": "homepage"
+            },
+            "apple_podcasts_link": {
+                "type": "text",
+                "default": "https://podcasts.apple.com/",
+                "group": "homepage"
+            },
+            "spotify_link": {
+                "type": "text",
+                "default": "https://open.spotify.com/",
+                "group": "homepage"
+            },
+            "youtube_music_link": {
+                "type": "text",
+                "default": "https://music.youtube.com/",
+                "group": "homepage"
+            },
+
+            "default_audio_url": {
+                "type": "text",
+                "description": "Direct .mp3 or .wav link. Used when the feed has no playable episode.",
+                "default": ""
+            },
+            "podcast_rss_url": {
+                "type": "text",
+                "description": "Podcast RSS feed. The player lists the 5 newest episodes from it.",
+                "default": ""
+            },
+            "audio_player_title": {
+                "type": "text",
+                "description": "Name shown in the player. Falls back to the site title.",
+                "default": ""
+            },
+            "audio_player_cover_image": {
+                "type": "image",
+                "description": "Square artwork shown when an episode has no art of its own."
+            },
+            "audio_player_theme": {
+                "type": "select",
+                "options": [
+                    "Obsidian & Gold",
+                    "Glassmorphic Dark",
+                    "Minimal Light",
+                    "Cyber Neon",
+                    "Warm Studio"
+                ],
+                "default": "Obsidian & Gold"
+            },
+            "audio_player_accent": {
+                "type": "color",
+                "description": "Accent for buttons, seek bar and waveform.",
+                "default": "#d4a24c"
+            },
+            "audio_player_start_minimized": {
+                "type": "boolean",
+                "description": "Load with the player collapsed to the bottom-centre tab.",
+                "default": false
+            },
+            "audio_player_show_playlist": {
+                "type": "boolean",
+                "description": "Show the recent-episodes drawer (needs an RSS feed).",
+                "default": true
+            },
+            "audio_player_show_skip": {
+                "type": "boolean",
+                "description": "Show the 15s back / 30s forward skip buttons.",
+                "default": true
+            },
+            "audio_player_show_speed": {
+                "type": "boolean",
+                "description": "Show the playback-speed button (0.75x - 2x).",
+                "default": true
+            }
+        }
+    },
+    "scripts": {
+        "dev": "gulp",
+        "test": "gscan .",
+        "zip": "gulp zip"
+    },
+    "packageManager": "pnpm@12.11.2",
+    "devDependencies": {
+        "@tryghost/shared-theme-assets": "2.7.5",
+        "@tryghost/theme-translations": "^0.0.9",
+        "autoprefixer": "10.6.1",
+        "beeper": "2.1.0",
+        "cssnano": "9.6.0",
+        "gscan": "6.6.1",
+        "gulp": "5.0.1",
+        "gulp-concat": "2.6.1",
+        "gulp-livereload": "4.0.2",
+        "gulp-postcss": "10.0.0",
+        "gulp-uglify": "3.0.2",
+        "gulp-zip": "5.1.0",
+        "ordered-read-streams": "2.0.0",
+        "postcss": "8.5.29",
+        "postcss-easy-import": "4.0.0",
+        "pump": "3.0.4"
+    }
+}
